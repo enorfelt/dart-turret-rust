@@ -1,0 +1,11 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "Cargo.toml",
+    "firmware/turret/Cargo.toml"
+  ],
+  "rust-analyzer.check.allTargets": false,
+  "files.watcherExclude": {
+    "**/target/**": true,
+    "**/.embuild/**": true
+  }
+}

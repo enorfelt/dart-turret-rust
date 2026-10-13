@@ -1,0 +1,6 @@
+target/
+.embuild/
+sdkconfig
+sdkconfig.old
+*.bin
+.claude/settings.local.json

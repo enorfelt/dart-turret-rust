@@ -1,0 +1,25 @@
+[package]
+name = "turret"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+license = "MIT"
+
+[[bin]]
+name = "turret"
+harness = false
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true
+opt-level = "z"
+
+[dependencies]
+log = "0.4"
+esp-idf-svc = "0.53"
+turret-proto = { path = "../../crates/turret-proto" }
+
+[build-dependencies]
+embuild = "0.33"
