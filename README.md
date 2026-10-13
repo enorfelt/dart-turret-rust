@@ -8,6 +8,7 @@ Rust firmware on ESP-IDF for the [Dart-Turret](https://www.printables.com/model/
 crates/turret-core    no_std turret logic: SCS protocol, fire sequencer, command parser, BLE protocol codec
 crates/turret-proto   no_std messages shared by all nodes (serde + postcard), host-tested
 firmware/turret       ESP32-S3 turret controller (esp-idf-svc)
+app/                  phone app: Angular PWA over Web Bluetooth
 scripts/              WSL toolchain setup, Windows flashing helper
 docs/                 architecture, safety rules, roadmap
 ```
@@ -31,6 +32,21 @@ cd firmware/turret && cargo build            # first build downloads ESP-IDF v5.
 ```
 
 The firmware build needs the 6-digit BLE pairing passkey in `TURRET_BLE_PASSKEY`. It is compiled in and never committed. Put it in your shell profile, e.g. `echo 'export TURRET_BLE_PASSKEY=123456' >> ~/.bashrc` with your own digits. Changing it requires `unpair` on the console and pairing the phone again.
+
+## Phone app
+
+The app in `app/` controls the turret from Chrome or Edge on Android or a desktop computer. Safari and Firefox have no Web Bluetooth.
+
+The app uses Node 24 from nvm in WSL:
+
+```sh
+nvm install 24          # once
+cd app && npm ci
+npm start               # http://localhost:4200, open it in Windows Chrome
+npm test -- --watch=false
+```
+
+Pushes to `main` that touch `app/` are deployed to GitHub Pages by `.github/workflows/app.yml`. This needs Pages enabled with "GitHub Actions" as the source. Open the Pages URL on the phone, connect, and enter the passkey when Android asks. Use "Add to Home screen" to install the app.
 
 ## Flash and monitor
 

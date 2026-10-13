@@ -5,7 +5,8 @@ ESP32-S3 Nerf dart turret firmware in Rust on ESP-IDF. Design, pin map, safety r
 ## Layout
 
 - `crates/*` — host workspace (stable toolchain), all `no_std`. `turret-core` holds hardware-independent turret logic (SCS protocol, fire sequencer, command parser, BLE protocol codec in `remote.rs`, pulse and battery maths); `turret-proto` holds inter-node messages.
-- The BLE protocol in `docs/architecture.md` is the contract with the phone app; change the spec and `turret_core::remote` together.
+- The BLE protocol in `docs/architecture.md` is the contract with the phone app; change the spec, `turret_core::remote` and `app/src/app/protocol/turret-protocol.ts` together, with matching byte vectors in both test suites.
+- `app/` — Angular 22 PWA (Web Bluetooth, zoneless, signals, Signal Forms, Vitest). Angular conventions are in `app/CLAUDE.md`. Run npm commands from `app/` inside WSL with nvm Node 24 (`app/.nvmrc`).
 - `firmware/turret/src/board.rs` is the single place GPIOs are assigned; tunables are in `turret_core::config::TurretConfig`.
 - `firmware/<node>` — one ESP-IDF app per node, outside the workspace, with its own `Cargo.lock`, `rust-toolchain.toml` (`esp`) and `.cargo/config.toml` (target, `build-std`, ESP-IDF version).
 
@@ -17,6 +18,8 @@ Run firmware commands from the firmware crate directory. They need the Xtensa en
 cargo test && cargo clippy --all-targets -- -D warnings && cargo fmt --check   # repo root
 cd firmware/turret && cargo build && cargo clippy -- -D warnings               # firmware
 cd firmware/turret && cargo run                                                # flash + monitor, needs usbipd attach
+cd app && npm test -- --watch=false && npm run format:check && npm run build   # phone app
+cd app && npm start                                                            # dev server on localhost:4200
 ```
 
 Flashing from Windows without USB passthrough: `pwsh -ExecutionPolicy Bypass -File scripts/flash.ps1 -Port COMx`.

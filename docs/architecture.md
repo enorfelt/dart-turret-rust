@@ -82,7 +82,7 @@ Default: ESP-NOW with `turret-proto` messages encoded by postcard. That needs no
 
 ## BLE protocol
 
-The turret is a BLE peripheral for our own phone app (roadmap 2c). This section is the contract between the two; the firmware side is `turret_core::remote` (codec, host-tested) and `firmware/turret/src/ble.rs` (NimBLE).
+The turret is a BLE peripheral for our own [phone app](#phone-app-app). This section is the contract between the two. The firmware side is `turret_core::remote` (codec, host-tested) and `firmware/turret/src/ble.rs` (NimBLE); the app side is `app/src/app/protocol/turret-protocol.ts`.
 
 - Advertised name `DART Turret`. The 128-bit service UUID is not advertised (it does not fit next to the name), so Web Bluetooth filters on `namePrefix: "DART"` and lists the service in `optionalServices`.
 - Service `8d6f0001-3b2a-4c1e-9f57-2e1d0c7a5b40`; the characteristics share the UUID with `0001` replaced.
@@ -127,6 +127,28 @@ Events, sent whatever started the action (console or app); a pending State chang
 | `0x04` | Fire rejected | `reason u8`: 0 disarmed, 1 busy, 2 cooling down, 3 no throttle |
 | `0x05` | Gimbal move failed | – |
 
+## Phone app (`app/`)
+
+Angular 22 PWA over Web Bluetooth, for Chromium on Android and desktop. It is served from GitHub Pages and can be installed to the home screen. It is zoneless and signal-based: Bluetooth notifications write straight into signals, and commands are only sent from user input.
+
+| Path (`app/src/app/`) | Role |
+|---|---|
+| `protocol/turret-protocol.ts` | The [BLE protocol](#ble-protocol) codec, the TypeScript twin of `turret_core::remote`. Its tests use the same byte vectors as the Rust tests |
+| `link/` | `TurretLink` interface and the Web Bluetooth implementation. `CommandQueue` keeps one write in flight: a newer Aim replaces a queued one, Disarm drops everything queued, and Cease fire jumps ahead of queued Fire |
+| `turret/turret.ts` | Connection, state, event log and shots as signals; the only place commands are sent from |
+| `aim/aim-controller.ts` | Rate-control joystick maths: deadzone, expo, integration, clamp to 0–1023, at most one Aim per 50 ms. Tunables are in `AIM_TUNING` |
+| `ui/` | Connect screen, control panel, joystick, hold-to-arm switch, fire panel (Signal Forms), telemetry |
+
+The app adds these safety behaviours on top of the firmware's rules, without replacing them:
+- Arming needs a 1 s hold.
+- Disarm is one tap and always visible while armed.
+- The page disarms the turret when it is hidden.
+- Auto fire only runs while the button is held.
+- Fire is only enabled when the turret reports armed and ready.
+- The app refuses a turret with an unknown protocol version.
+
+Develop with `npm start` in `app/` and open `http://localhost:4200` in Windows Chrome; `localhost` counts as a secure context. To use a phone, forward port 4200 from `chrome://inspect`, or use the Pages build. `.github/workflows/app.yml` checks formatting, runs the tests, builds with the repository name as base href, and deploys `main` to Pages.
+
 ## Original firmware pin map (Arduino, ESP32-S3)
 
 | GPIO | Use |
@@ -151,7 +173,7 @@ Events, sent whatever started the action (console or app); a pending State chang
 1. Repository, toolchain and Claude Code setup, `turret-proto` heartbeat. *(done)*
 2. a. Turret drivers (SC15 gimbal, ESCs, pusher, light gate, battery) and the fire sequencer, driven from the USB console. *(done, bench-tested without actuators)*
    b. BLE peripheral with our own protocol (see [BLE protocol](#ble-protocol)), passkey bonding, disarm on link loss. *(done, tested on hardware)*
-   c. Angular PWA in `app/` over Web Bluetooth: pair, arm/disarm, joystick aim, fire modes, state and shot telemetry, installable. Runs in Chromium browsers on Android and desktop; iOS Safari has no Web Bluetooth.
+   c. Angular PWA in `app/` over Web Bluetooth: pair, arm/disarm, joystick aim, fire modes, state and shot telemetry, installable. Runs in Chromium browsers on Android and desktop; iOS Safari has no Web Bluetooth. *(done, tested against a simulated GATT server; pairing and aim tuning still to be checked on the turret)*
 3. TFmini Plus driver and range-based elevation table.
 4. Vision node: camera, esp-dl face detection and recognition, enrollment.
 5. ESP-NOW link, autonomous mode and the safety gates above.

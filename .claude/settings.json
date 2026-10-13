@@ -7,7 +7,12 @@
       "Bash(cargo clippy:*)",
       "Bash(cargo fmt:*)",
       "Bash(espflash board-info:*)",
-      "Bash(espflash save-image:*)"
+      "Bash(espflash save-image:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run format:check:*)",
+      "Bash(npx ng test:*)",
+      "Bash(npx ng build:*)"
     ]
   }
 }
