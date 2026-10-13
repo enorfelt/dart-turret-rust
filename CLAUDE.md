@@ -4,7 +4,8 @@ ESP32-S3 Nerf dart turret firmware in Rust on ESP-IDF. Design, pin map, safety r
 
 ## Layout
 
-- `crates/*` — host workspace (stable toolchain). `turret-proto` is `no_std` and shared by host and firmware.
+- `crates/*` — host workspace (stable toolchain), all `no_std`. `turret-core` holds hardware-independent turret logic (SCS protocol, fire sequencer, command parser, pulse and battery maths); `turret-proto` holds inter-node messages.
+- `firmware/turret/src/board.rs` is the single place GPIOs are assigned; tunables are in `turret_core::config::TurretConfig`.
 - `firmware/<node>` — one ESP-IDF app per node, outside the workspace, with its own `Cargo.lock`, `rust-toolchain.toml` (`esp`) and `.cargo/config.toml` (target, `build-std`, ESP-IDF version).
 
 ## Commands

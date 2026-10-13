@@ -21,15 +21,38 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
 
 ### Turret controller (`firmware/turret`)
 
-| Function | Interface | Notes |
-|---|---|---|
-| Pan/tilt | 2x Waveshare SC15 on UART1, 1 Mbaud, Feetech SCS protocol, IDs 0 (pan) / 1 (tilt) | `REG_WRITE` both, then broadcast `ACTION` so the axes move together |
-| Flywheels | 2x ESC, servo-style pulses via LEDC (1 MHz resolution) | Original used 500–1000 µs at ~333 Hz; recalibrate the ESCs |
-| Pusher | RC servo via LEDC | Original: retracted ≈ 125°, pushed ≈ 5–10° on a 500–1000 µs scale |
-| Range | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m |
-| Dart speed | IR light gate on a GPIO interrupt | Gate blocked time over a 70 mm dart gives the muzzle velocity |
-| Battery | 4S Li-ion through a 39k/8k2 divider to an ADC pin | 16.8 V reads ≈ 2.92 V |
-| Manual control | BLE peripheral compatible with the existing App Inventor app | See [BLE protocol](#ble-protocol) |
+| Function | GPIO | Interface | Notes |
+|---|---|---|---|
+| Pan/tilt | TX 33, RX 34 | 2x Waveshare SC15 on UART1, 1 Mbaud, Feetech SCS protocol, IDs 0 (pan) / 1 (tilt) | `REG_WRITE` both, then broadcast `ACTION` so the axes move together; positions clamped to 0–1023 until the mechanical limits are measured |
+| Flywheels | 17, 18 | 2x ESC, 1000–2000 µs at 50 Hz via LEDC (14-bit) | Standard RC range, unlike the original 500–1000 µs; **calibrate the ESCs to it before the first spin-up** |
+| Pusher | 39 | RC servo, 50 Hz via LEDC | Retracted 847 µs, extended 514 µs: the original's positions converted to µs, to be checked on the printed pusher |
+| Range | – | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m (step 3) |
+| Dart speed | 38 | IR light gate, any-edge GPIO interrupt | Time between the two edges over a 70 mm dart gives km/h |
+| Battery | 16 | 4S Li-ion through a 39k/8k2 divider to ADC2_CH5 | 16.8 V reads ≈ 2.92 V. ADC2 cannot be read while Wi-Fi is running, so this must move to an ADC1 pin (GPIO 1–10) before ESP-NOW |
+| Manual control | – | BLE peripheral compatible with the existing App Inventor app (step 2b) | See [BLE protocol](#ble-protocol) |
+
+Pins are assigned in one place, `firmware/turret/src/board.rs`; GPIO 38 and 16 are provisional until the turret is wired. Timings, pulse ranges, gimbal limits and battery constants live in `TurretConfig` (`crates/turret-core/src/config.rs`).
+
+### Firmware structure
+
+Hardware-independent logic is in `crates/turret-core` and unit-tested on the host: the SCS protocol, pulse/duty maths, battery maths, the command parser and the fire sequencer. The firmware runs one 5 ms control loop that owns all actuators. A console thread reads lines from USB-Serial-JTAG and sends parsed commands over a channel, and the light gate ISR only stores timestamps in atomics.
+
+The fire sequencer is a non-blocking state machine: spin up → push → retract → (next shot) → linear spin-down → cooldown. It refuses to fire while disarmed, busy, cooling down, or with zero speed. Bursts and auto fire are capped at `max_shots`. Disarm cuts the throttle and retracts the pusher immediately.
+
+### Development console
+
+Open with `espflash monitor` (or `cargo run`). Typed characters are echoed; Enter sends the line.
+
+| Command | Effect |
+|---|---|
+| `help` | List commands |
+| `arm` / `disarm` | Allow / stop flywheels and pusher (boots disarmed) |
+| `status` | Arming, fire phase, battery, last gimbal target |
+| `ping <id>` | Ping a serial bus servo |
+| `P;pan;tilt;vpan;vtilt` | Move the gimbal (same format as the app) |
+| `F;1;mode;speed;burst` | Fire; mode 0 single, 1 burst, 2 auto; speed 0–180 as in the app |
+| `F;0` | Cease fire after the current shot |
+| `B` | Battery voltage and percent |
 
 ### Vision node (`firmware/vision`, not created yet)
 
@@ -93,7 +116,8 @@ Kept compatible with `app_inventor/DartDroid_bluetooth_UART.aia` from the origin
 ## Roadmap
 
 1. Repository, toolchain and Claude Code setup, `turret-proto` heartbeat. *(done)*
-2. Turret actuators (SC15 gimbal, ESCs, pusher, light gate, battery) and BLE compatibility with the phone app.
+2. a. Turret drivers (SC15 gimbal, ESCs, pusher, light gate, battery) and the fire sequencer, driven from the USB console. *(done, bench-tested without actuators)*
+   b. BLE peripheral compatible with the phone app, reusing the console's command parser.
 3. TFmini Plus driver and range-based elevation table.
 4. Vision node: camera, esp-dl face detection and recognition, enrollment.
 5. ESP-NOW link, autonomous mode and the safety gates above.

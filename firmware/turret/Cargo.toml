@@ -17,9 +17,10 @@ debug = true
 opt-level = "z"
 
 [dependencies]
+anyhow = "1"
 log = "0.4"
 esp-idf-svc = "0.53"
-turret-proto = { path = "../../crates/turret-proto" }
+turret-core = { path = "../../crates/turret-core" }
 
 [build-dependencies]
 embuild = "0.33"
