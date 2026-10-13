@@ -17,7 +17,7 @@ cd firmware/turret && cargo build && cargo clippy -- -D warnings               #
 cd firmware/turret && cargo run                                                # flash + monitor, needs usbipd attach
 ```
 
-Flashing from Windows without USB passthrough: `pwsh scripts/flash.ps1 -Port COMx`.
+Flashing from Windows without USB passthrough: `pwsh -ExecutionPolicy Bypass -File scripts/flash.ps1 -Port COMx`.
 
 The first firmware build downloads ESP-IDF into `~/.espressif` and takes several minutes.
 

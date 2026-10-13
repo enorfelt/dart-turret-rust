@@ -40,13 +40,17 @@ install_rustup() {
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
   fi
   source "$HOME/.cargo/env"
+  if $update; then
+    step "Updating stable Rust"
+    rustup update stable
+  fi
 }
 
 install_cargo_tools() {
   for tool in "${CARGO_TOOLS[@]}"; do
     if $update || ! is_native_command "$tool"; then
       step "Installing $tool"
-      cargo install --locked "$tool"
+      cargo +stable install --locked "$tool"
     fi
   done
 }
