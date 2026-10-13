@@ -5,6 +5,7 @@ Rust firmware on ESP-IDF for the [Dart-Turret](https://www.printables.com/model/
 ## Layout
 
 ```
+crates/turret-core    no_std turret logic: SCS protocol, fire sequencer, command parser, BLE protocol codec
 crates/turret-proto   no_std messages shared by all nodes (serde + postcard), host-tested
 firmware/turret       ESP32-S3 turret controller (esp-idf-svc)
 scripts/              WSL toolchain setup, Windows flashing helper
@@ -28,6 +29,8 @@ Open a new shell afterwards so `~/export-esp.sh` is sourced. Open the folder fro
 cargo test                                   # host crates, repo root
 cd firmware/turret && cargo build            # first build downloads ESP-IDF v5.5 into ~/.espressif
 ```
+
+The firmware build needs the 6-digit BLE pairing passkey in `TURRET_BLE_PASSKEY`. It is compiled in and never committed. Put it in your shell profile, e.g. `echo 'export TURRET_BLE_PASSKEY=123456' >> ~/.bashrc` with your own digits. Changing it requires `unpair` on the console and pairing the phone again.
 
 ## Flash and monitor
 

@@ -6,10 +6,12 @@ use esp_idf_svc::sys::{
     esp, esp_vfs_usb_serial_jtag_use_driver, usb_serial_jtag_driver_config_t,
     usb_serial_jtag_driver_install, EspError,
 };
-use turret_core::command::{self, Command, ParseError};
+use turret_core::command::{self, ParseError};
 use turret_core::line::{LineBuffer, LineEvent};
 
-pub fn start(commands: Sender<Command>) -> Result<(), EspError> {
+use crate::turret::Input;
+
+pub fn start(commands: Sender<Input>) -> Result<(), EspError> {
     let mut config = usb_serial_jtag_driver_config_t {
         tx_buffer_size: 1024,
         rx_buffer_size: 256,
@@ -24,7 +26,7 @@ pub fn start(commands: Sender<Command>) -> Result<(), EspError> {
     Ok(())
 }
 
-fn read_commands(commands: Sender<Command>) {
+fn read_commands(commands: Sender<Input>) {
     let mut stdin = std::io::stdin();
     let mut lines = LineBuffer::default();
     let mut byte = [0u8; 1];
@@ -36,7 +38,7 @@ fn read_commands(commands: Sender<Command>) {
         match lines.push(byte[0]) {
             Some(LineEvent::Line(line)) => match command::parse(&line) {
                 Ok(command) => {
-                    if commands.send(command).is_err() {
+                    if commands.send(Input::Command(command)).is_err() {
                         return;
                     }
                 }

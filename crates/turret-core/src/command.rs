@@ -8,15 +8,15 @@ pub enum FireMode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FireRequest {
     pub mode: FireMode,
-    pub speed: u8,
+    pub throttle_pct: u8,
     pub burst: u8,
 }
 
 impl FireRequest {
-    pub const MAX_SPEED: u8 = 180;
+    pub const MAX_THROTTLE_PCT: u8 = 100;
 
     pub fn throttle_permille(&self) -> u16 {
-        (u32::from(self.speed) * 1000 / u32::from(Self::MAX_SPEED)) as u16
+        u16::from(self.throttle_pct.min(Self::MAX_THROTTLE_PCT)) * 10
     }
 }
 
@@ -31,11 +31,11 @@ pub enum Command {
     Fire(FireRequest),
     CeaseFire,
     Battery,
-    Setup,
     Arm,
     Disarm,
     Status,
     Ping(u8),
+    Unpair,
     Help,
 }
 
@@ -56,7 +56,6 @@ pub fn parse(line: &str) -> Result<Command, ParseError> {
         "P" => parse_move(&mut fields),
         "F" => parse_fire(&mut fields),
         "B" => Ok(Command::Battery),
-        "S" => Ok(Command::Setup),
         _ => parse_console(line),
     }
 }
@@ -81,9 +80,9 @@ fn parse_fire<'a>(fields: &mut impl Iterator<Item = &'a str>) -> Result<Command,
         2 => FireMode::Auto,
         _ => return Err(ParseError::Invalid("mode")),
     };
-    let speed: u8 = field(fields, "speed")?;
-    if speed > FireRequest::MAX_SPEED {
-        return Err(ParseError::Invalid("speed"));
+    let throttle_pct: u8 = field(fields, "throttle")?;
+    if throttle_pct > FireRequest::MAX_THROTTLE_PCT {
+        return Err(ParseError::Invalid("throttle"));
     }
     let burst = fields
         .next()
@@ -95,7 +94,11 @@ fn parse_fire<'a>(fields: &mut impl Iterator<Item = &'a str>) -> Result<Command,
         })
         .transpose()?
         .unwrap_or(1);
-    Ok(Command::Fire(FireRequest { mode, speed, burst }))
+    Ok(Command::Fire(FireRequest {
+        mode,
+        throttle_pct,
+        burst,
+    }))
 }
 
 fn parse_console(line: &str) -> Result<Command, ParseError> {
@@ -107,6 +110,8 @@ fn parse_console(line: &str) -> Result<Command, ParseError> {
         Command::Disarm
     } else if verb.eq_ignore_ascii_case("status") {
         Command::Status
+    } else if verb.eq_ignore_ascii_case("unpair") {
+        Command::Unpair
     } else if verb.eq_ignore_ascii_case("help") {
         Command::Help
     } else if verb.eq_ignore_ascii_case("ping") {
@@ -160,12 +165,12 @@ mod tests {
     }
 
     #[test]
-    fn parses_app_fire_as_sent_by_dartdroid() {
+    fn parses_fire_with_trailing_fields() {
         assert_eq!(
             parse("F;1;1;80;3;0"),
             Ok(Command::Fire(FireRequest {
                 mode: FireMode::Burst,
-                speed: 80,
+                throttle_pct: 80,
                 burst: 3
             }))
         );
@@ -177,7 +182,7 @@ mod tests {
             parse("F;1;0;40"),
             Ok(Command::Fire(FireRequest {
                 mode: FireMode::Single,
-                speed: 40,
+                throttle_pct: 40,
                 burst: 1
             }))
         );
@@ -189,28 +194,29 @@ mod tests {
     }
 
     #[test]
-    fn fire_rejects_unknown_mode_and_overspeed() {
+    fn fire_rejects_unknown_mode_and_overthrottle() {
         assert_eq!(parse("F;1;7;80;3;0"), Err(ParseError::Invalid("mode")));
-        assert_eq!(parse("F;1;0;181;3;0"), Err(ParseError::Invalid("speed")));
+        assert_eq!(parse("F;1;0;101;3;0"), Err(ParseError::Invalid("throttle")));
     }
 
     #[test]
-    fn app_speed_scale_maps_to_throttle() {
-        let request = |speed| FireRequest {
+    fn throttle_percent_maps_to_permille() {
+        let request = |throttle_pct| FireRequest {
             mode: FireMode::Single,
-            speed,
+            throttle_pct,
             burst: 1,
         };
 
         assert_eq!(request(0).throttle_permille(), 0);
-        assert_eq!(request(90).throttle_permille(), 500);
-        assert_eq!(request(180).throttle_permille(), 1000);
+        assert_eq!(request(50).throttle_permille(), 500);
+        assert_eq!(request(100).throttle_permille(), 1000);
+        assert_eq!(request(255).throttle_permille(), 1000);
     }
 
     #[test]
-    fn parses_battery_and_setup_requests() {
+    fn parses_battery_request() {
         assert_eq!(parse("B;"), Ok(Command::Battery));
-        assert_eq!(parse("S;anything"), Ok(Command::Setup));
+        assert_eq!(parse("S;anything"), Err(ParseError::Unknown));
     }
 
     #[test]
@@ -220,6 +226,7 @@ mod tests {
         assert_eq!(parse("Status"), Ok(Command::Status));
         assert_eq!(parse("help"), Ok(Command::Help));
         assert_eq!(parse("ping 1"), Ok(Command::Ping(1)));
+        assert_eq!(parse("Unpair"), Ok(Command::Unpair));
     }
 
     #[test]

@@ -97,6 +97,10 @@ impl FireControl {
         self.phase
     }
 
+    pub fn is_ready(&self, now_ms: u64) -> bool {
+        self.phase == Phase::Idle && now_ms >= self.ready_at_ms
+    }
+
     pub fn arm(&mut self) {
         self.armed = true;
     }
@@ -251,7 +255,7 @@ mod tests {
     fn request(mode: FireMode, burst: u8) -> FireRequest {
         FireRequest {
             mode,
-            speed: 90,
+            throttle_pct: 50,
             burst,
         }
     }
@@ -436,11 +440,34 @@ mod tests {
     }
 
     #[test]
+    fn is_ready_only_when_idle_and_cooled_down() {
+        let mut control = armed();
+        assert!(control.is_ready(0));
+
+        control.fire(&request(FireMode::Single, 1), 0).unwrap();
+        assert!(!control.is_ready(10));
+
+        let (_, finished_at) = run_until_idle(&mut control, 0);
+        assert!(!control.is_ready(finished_at + 499));
+        assert!(control.is_ready(finished_at + 500));
+    }
+
+    #[test]
+    fn is_ready_after_disarm_cooldown() {
+        let mut control = armed();
+        control.fire(&request(FireMode::Single, 1), 0).unwrap();
+        control.disarm(100);
+
+        assert!(!control.is_ready(599));
+        assert!(control.is_ready(600));
+    }
+
+    #[test]
     fn zero_speed_is_rejected() {
         let mut control = armed();
         let stopped = FireRequest {
             mode: FireMode::Single,
-            speed: 0,
+            throttle_pct: 0,
             burst: 1,
         };
 

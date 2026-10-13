@@ -6,4 +6,5 @@ pub mod config;
 pub mod fire;
 pub mod line;
 pub mod pulse;
+pub mod remote;
 pub mod scs;

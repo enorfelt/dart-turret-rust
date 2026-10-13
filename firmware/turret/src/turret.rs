@@ -5,9 +5,11 @@ use std::time::{Duration, Instant};
 use turret_core::command::Command;
 use turret_core::config::TurretConfig;
 use turret_core::fire::{Event, FireControl, Phase, Rejection};
+use turret_core::remote::{RemoteEvent, StateSnapshot};
 
 use crate::actuators::Actuators;
 use crate::battery::{BatteryMonitor, Reading};
+use crate::ble::Remote;
 use crate::gimbal::Gimbal;
 use crate::light_gate::LightGate;
 
@@ -19,38 +21,57 @@ commands:
   arm | disarm            enable / disable the flywheels and pusher
   status                  show arming, fire phase, battery and gimbal
   ping <id>               ping a serial bus servo
-  P;pan;tilt;vpan;vtilt   move the gimbal (DartDroid format)
-  F;1;mode;speed;burst    fire: mode 0 single, 1 burst, 2 auto; speed 0-180
+  P;pan;tilt;vpan;vtilt   move the gimbal in servo units
+  F;1;mode;throttle;burst fire: mode 0 single, 1 burst, 2 auto; throttle 0-100 %
   F;0                     cease fire
-  B                       battery level";
+  B                       battery level
+  unpair                  forget all paired phones";
+
+pub enum Input {
+    Command(Command),
+    RemoteLost,
+}
 
 pub struct Turret {
     pub actuators: Actuators,
     pub gimbal: Gimbal,
     pub light_gate: LightGate,
     pub battery: BatteryMonitor,
+    pub remote: Remote,
     pub config: TurretConfig,
 }
 
 impl Turret {
-    pub fn run(self, commands: Receiver<Command>) -> ! {
+    pub fn run(self, inputs: Receiver<Input>) -> ! {
         let Self {
             mut actuators,
             gimbal,
             light_gate,
             mut battery,
+            remote,
             config,
         } = self;
         let boot = Instant::now();
         let mut fire = FireControl::new(config.fire);
         let mut state = State::default();
+        let mut sent_state = None;
 
         log::info!("turret ready, disarmed; type help");
         loop {
             let now_ms = boot.elapsed().as_millis() as u64;
 
-            while let Ok(command) = commands.try_recv() {
-                handle(command, now_ms, &mut fire, &gimbal, &mut state);
+            while let Ok(input) = inputs.try_recv() {
+                match input {
+                    Input::Command(command) => {
+                        handle(command, now_ms, &mut fire, &gimbal, &mut state, &remote);
+                    }
+                    Input::RemoteLost => {
+                        if let Some(event) = fire.disarm(now_ms) {
+                            report(event, &remote);
+                        }
+                        log::warn!("remote lost, disarmed");
+                    }
+                }
             }
 
             let phase_before = fire.phase();
@@ -58,7 +79,7 @@ impl Turret {
                 fire.record_gate(blocked_us);
             }
             if let Some(event) = fire.tick(now_ms) {
-                report(event);
+                report(event, &remote);
             }
             if fire.phase() == Phase::Pushing && phase_before != Phase::Pushing {
                 light_gate.reset();
@@ -75,6 +96,12 @@ impl Turret {
                 }
             }
 
+            let snapshot = state.snapshot(&fire, now_ms);
+            if sent_state != Some(snapshot) {
+                remote.state(snapshot);
+                sent_state = Some(snapshot);
+            }
+
             thread::sleep(LOOP_PERIOD);
         }
     }
@@ -87,12 +114,28 @@ struct State {
     next_battery_ms: u64,
 }
 
+impl State {
+    fn snapshot(&self, fire: &FireControl, now_ms: u64) -> StateSnapshot {
+        StateSnapshot {
+            armed: fire.is_armed(),
+            ready: fire.is_ready(now_ms),
+            phase: fire.phase(),
+            battery_mv: self
+                .battery
+                .map(|reading| u16::try_from(reading.pack_mv).unwrap_or(u16::MAX)),
+            battery_pct: self.battery.map_or(0, |reading| reading.percent),
+            gimbal: self.gimbal,
+        }
+    }
+}
+
 fn handle(
     command: Command,
     now_ms: u64,
     fire: &mut FireControl,
     gimbal: &Gimbal,
     state: &mut State,
+    remote: &Remote,
 ) {
     match command {
         Command::Arm => {
@@ -101,13 +144,16 @@ fn handle(
         }
         Command::Disarm => {
             if let Some(event) = fire.disarm(now_ms) {
-                report(event);
+                report(event, remote);
             }
             println!("disarmed");
         }
         Command::Fire(request) => match fire.fire(&request, now_ms) {
             Ok(()) => println!("firing {request:?}"),
-            Err(rejection) => println!("fire rejected: {}", describe(rejection)),
+            Err(rejection) => {
+                println!("fire rejected: {}", describe(rejection));
+                remote.event(RemoteEvent::FireRejected(rejection));
+            }
         },
         Command::CeaseFire => {
             fire.cease_fire(now_ms);
@@ -123,7 +169,10 @@ fn handle(
                 state.gimbal = Some(position);
                 println!("moving to pan {} tilt {}", position.0, position.1);
             }
-            Err(error) => println!("move failed: {error}"),
+            Err(error) => {
+                println!("move failed: {error}");
+                remote.event(RemoteEvent::MoveFailed);
+            }
         },
         Command::Ping(id) => match gimbal.ping(id) {
             Ok(status) => println!(
@@ -152,12 +201,16 @@ fn handle(
                     )),
             );
         }
-        Command::Setup => println!("setup is not supported yet"),
+        Command::Unpair => {
+            remote.forget_bonds();
+            println!("forgetting paired phones");
+        }
         Command::Help => println!("{HELP}"),
     }
 }
 
-fn report(event: Event) {
+fn report(event: Event, remote: &Remote) {
+    remote.event(event.into());
     match event {
         Event::Shot {
             number,
@@ -177,6 +230,6 @@ fn describe(rejection: Rejection) -> &'static str {
         Rejection::Disarmed => "disarmed, send arm first",
         Rejection::Busy => "already firing",
         Rejection::CoolingDown => "cooling down",
-        Rejection::NoThrottle => "speed must be above 0",
+        Rejection::NoThrottle => "throttle must be above 0",
     }
 }

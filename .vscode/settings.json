@@ -4,6 +4,9 @@
     "firmware/turret/Cargo.toml"
   ],
   "rust-analyzer.check.allTargets": false,
+  "rust-analyzer.cargo.extraEnv": {
+    "TURRET_BLE_PASSKEY": "000000"
+  },
   "files.watcherExclude": {
     "**/target/**": true,
     "**/.embuild/**": true

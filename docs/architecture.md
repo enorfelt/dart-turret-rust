@@ -2,7 +2,7 @@
 
 Status: design proposal. Decisions marked *open* are settled in the roadmap step that needs them.
 
-The mechanical design is the [Dart-Turret](https://www.printables.com/model/338574) (2-axis gimbal, two brushless flywheels, servo dart pusher), printed unchanged. The firmware is rewritten in Rust on ESP-IDF (`esp-idf-svc`), and autonomous targeting is added on top of the original manual BLE control.
+The mechanical design is the [Dart-Turret](https://www.printables.com/model/338574) (2-axis gimbal, two brushless flywheels, servo dart pusher), printed unchanged. The firmware is rewritten in Rust on ESP-IDF (`esp-idf-svc`), manual control moves to our own BLE protocol and phone app, and autonomous targeting is added on top.
 
 ## Nodes
 
@@ -13,9 +13,9 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
         │ face detect / recognize  │                                      │ gimbal, flywheels,       │
         └──────────────────────────┘                                      │ pusher, lidar, BLE       │
                                                                           └────────────┬─────────────┘
-                                                                                       │ BLE (NUS-style)
+                                                                                       │ BLE (bonded, binary)
                                                                                 ┌──────┴──────┐
-                                                                                │ Phone app   │
+                                                                                │ Phone PWA   │
                                                                                 └─────────────┘
 ```
 
@@ -28,14 +28,14 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
 | Pusher | 39 | RC servo, 50 Hz via LEDC | Retracted 847 µs, extended 514 µs: the original's positions converted to µs, to be checked on the printed pusher |
 | Range | – | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m (step 3) |
 | Dart speed | 38 | IR light gate, any-edge GPIO interrupt | Time between the two edges over a 70 mm dart gives km/h |
-| Battery | 16 | 4S Li-ion through a 39k/8k2 divider to ADC2_CH5 | 16.8 V reads ≈ 2.92 V. ADC2 cannot be read while Wi-Fi is running, so this must move to an ADC1 pin (GPIO 1–10) before ESP-NOW |
-| Manual control | – | BLE peripheral compatible with the existing App Inventor app (step 2b) | See [BLE protocol](#ble-protocol) |
+| Battery | 16 | 4S Li-ion through a 39k/8k2 divider to ADC2_CH5 | 16.8 V reads ≈ 2.92 V. ADC2 cannot be read while Wi-Fi is running, so this must move to an ADC1 pin (GPIO 1–10) before ESP-NOW; check that readings still work with BLE active |
+| Manual control | – | BLE peripheral (NimBLE), bonded with a passkey | See [BLE protocol](#ble-protocol) |
 
 Pins are assigned in one place, `firmware/turret/src/board.rs`; GPIO 38 and 16 are provisional until the turret is wired. Timings, pulse ranges, gimbal limits and battery constants live in `TurretConfig` (`crates/turret-core/src/config.rs`).
 
 ### Firmware structure
 
-Hardware-independent logic is in `crates/turret-core` and unit-tested on the host: the SCS protocol, pulse/duty maths, battery maths, the command parser and the fire sequencer. The firmware runs one 5 ms control loop that owns all actuators. A console thread reads lines from USB-Serial-JTAG and sends parsed commands over a channel, and the light gate ISR only stores timestamps in atomics.
+Hardware-independent logic is in `crates/turret-core` and unit-tested on the host: the SCS protocol, pulse/duty maths, battery maths, the command parser and the fire sequencer. The firmware runs one 5 ms control loop that owns all actuators. A console thread reads lines from USB-Serial-JTAG and the NimBLE host task decodes Command writes; both send commands over one channel. The loop publishes state snapshots and fire events to a `ble` thread, which rate-limits and notifies them, so no BLE call runs in the control loop. A BLE disconnect disarms. The light gate ISR only stores timestamps in atomics.
 
 The fire sequencer is a non-blocking state machine: spin up → push → retract → (next shot) → linear spin-down → cooldown. It refuses to fire while disarmed, busy, cooling down, or with zero speed. Bursts and auto fire are capped at `max_shots`. Disarm cuts the throttle and retracts the pusher immediately.
 
@@ -49,10 +49,11 @@ Open with `espflash monitor` (or `cargo run`). Typed characters are echoed; Ente
 | `arm` / `disarm` | Allow / stop flywheels and pusher (boots disarmed) |
 | `status` | Arming, fire phase, battery, last gimbal target |
 | `ping <id>` | Ping a serial bus servo |
-| `P;pan;tilt;vpan;vtilt` | Move the gimbal (same format as the app) |
-| `F;1;mode;speed;burst` | Fire; mode 0 single, 1 burst, 2 auto; speed 0–180 as in the app |
+| `P;pan;tilt;vpan;vtilt` | Move the gimbal, servo units |
+| `F;1;mode;throttle;burst` | Fire; mode 0 single, 1 burst, 2 auto; throttle 0–100 % |
 | `F;0` | Cease fire after the current shot |
 | `B` | Battery voltage and percent |
+| `unpair` | Forget all bonded phones |
 
 ### Vision node (`firmware/vision`, not created yet)
 
@@ -81,18 +82,50 @@ Default: ESP-NOW with `turret-proto` messages encoded by postcard. That needs no
 
 ## BLE protocol
 
-Kept compatible with `app_inventor/DartDroid_bluetooth_UART.aia` from the original repo.
+The turret is a BLE peripheral for our own phone app (roadmap 2c). This section is the contract between the two; the firmware side is `turret_core::remote` (codec, host-tested) and `firmware/turret/src/ble.rs` (NimBLE).
 
-- Device name `DART Turret`, service UUID `0xDEAD`.
-- RX (write) `6E400002-B5A3-F393-E0A9-E50E24DCCA9E`, TX (notify) `6E400003-…`, TXPOS (notify) `6E400005-…`.
-- ASCII, `;`-separated:
+- Advertised name `DART Turret`. The 128-bit service UUID is not advertised (it does not fit next to the name), so Web Bluetooth filters on `namePrefix: "DART"` and lists the service in `optionalServices`.
+- Service `8d6f0001-3b2a-4c1e-9f57-2e1d0c7a5b40`; the characteristics share the UUID with `0001` replaced.
+- Every characteristic requires an authenticated link: LE Secure Connections with a static 6-digit passkey, compiled in from `TURRET_BLE_PASSKEY`. The first access triggers OS pairing; bonds are kept in NVS until `unpair` on the console.
+- One connection at a time. Losing it disarms the turret.
+- Little-endian, fixed layouts, every payload ≤ 20 bytes so the default ATT MTU suffices.
 
-| Command | Format | Replies |
+| Characteristic | UUID | Properties | Payload |
+|---|---|---|---|
+| Command | `8d6f0002-…` | Write with response | `op u8` + arguments |
+| State | `8d6f0003-…` | Read, Notify | 10 bytes, below |
+| Event | `8d6f0004-…` | Notify | `kind u8` + arguments |
+
+Commands. A write that does not decode is answered with ATT error `0x80` (unknown op) or `0x81` (bad length or value); otherwise the outcome arrives as State and Event notifications.
+
+| Op | Command | Arguments |
 |---|---|---|
-| Move | `P;<x>;<y>;<speed_x>;<speed_y>` | `P;Busy`, then `P;Ready` on TXPOS |
-| Fire | `F;<fire>;<mode>;<speed>;<burst>;<auto_speed>` (mode 0 semi, 1 burst, 2 auto) | `F;Busy`, then `F;Ready;<km/h>` or `F;Ready;ERR` |
-| Battery | `B…` | `B;<percent>` (the app expects a `B-` prefix; fix one side) |
-| Unknown | anything else | `X;Error` |
+| `0x01` | Arm | – |
+| `0x02` | Disarm | – |
+| `0x03` | Aim | `pan u16, tilt u16, pan_speed u16, tilt_speed u16`, servo units, clamped to the gimbal limits |
+| `0x04` | Fire | `mode u8` (0 single, 1 burst, 2 auto), `throttle u8` (0–100 %, 0 is rejected), `shots u8` (burst only, capped at `max_shots`) |
+| `0x05` | Cease fire | – |
+
+State, notified on change at most every 50 ms and readable at any time:
+
+| Byte | Field |
+|---|---|
+| 0 | Protocol version, currently 1; the app refuses versions it does not know |
+| 1 | Flags: bit 0 armed, bit 1 fire sequencer idle and cooled down |
+| 2 | Fire phase: 0 idle, 1 spin-up, 2 pushing, 3 retracting, 4 spin-down |
+| 3–4 | Battery pack mV, 0 until the first reading |
+| 5 | Battery percent |
+| 6–7, 8–9 | Last commanded pan, tilt; `0xFFFF` before the first move |
+
+Events, sent whatever started the action (console or app); a pending State change is flushed first so the two stay in order:
+
+| Kind | Event | Arguments |
+|---|---|---|
+| `0x01` | Shot | `number u8, speed_kmh u16` (`0xFFFF` without a light gate reading) |
+| `0x02` | Sequence finished | `shots u8` |
+| `0x03` | Sequence aborted (disarm or link loss) | – |
+| `0x04` | Fire rejected | `reason u8`: 0 disarmed, 1 busy, 2 cooling down, 3 no throttle |
+| `0x05` | Gimbal move failed | – |
 
 ## Original firmware pin map (Arduino, ESP32-S3)
 
@@ -117,7 +150,8 @@ Kept compatible with `app_inventor/DartDroid_bluetooth_UART.aia` from the origin
 
 1. Repository, toolchain and Claude Code setup, `turret-proto` heartbeat. *(done)*
 2. a. Turret drivers (SC15 gimbal, ESCs, pusher, light gate, battery) and the fire sequencer, driven from the USB console. *(done, bench-tested without actuators)*
-   b. BLE peripheral compatible with the phone app, reusing the console's command parser.
+   b. BLE peripheral with our own protocol (see [BLE protocol](#ble-protocol)), passkey bonding, disarm on link loss. *(done, tested on hardware)*
+   c. Angular PWA in `app/` over Web Bluetooth: pair, arm/disarm, joystick aim, fire modes, state and shot telemetry, installable. Runs in Chromium browsers on Android and desktop; iOS Safari has no Web Bluetooth.
 3. TFmini Plus driver and range-based elevation table.
 4. Vision node: camera, esp-dl face detection and recognition, enrollment.
 5. ESP-NOW link, autonomous mode and the safety gates above.
