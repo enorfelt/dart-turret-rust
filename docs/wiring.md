@@ -51,6 +51,56 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 - The SC15 is rated 4.8–8.4 V and stalls at 1.7 A, so two stalled servos need 3.4 A. The original 8 V MP1584 (3 A peak) is undersized for that.
 - Turn the turret off before plugging in USB, unless the board's schematic shows that VBUS and the 5V pin are isolated by a diode.
 
+## Battery pack
+
+The printed holder takes the four cells as two stacks of two, lying front to back. The covers hold contact plates, so the plates make the series links and no wire runs between cells. The cells come out for charging in a standalone 18650 charger, which charges each cell to 4.2 V on its own, so the pack needs no balance lead.
+
+Back cover (seen from behind), front cover (seen from the front):
+
+```
+ BACK                                      FRONT (left and right swap)
+          left stack     right stack                 right stack    left stack
+ top:     PACK − (S)     PACK + (B)         top:      (S) ┐          ┌ (B)
+ bottom:  (B) ══ back bridge ══ (S)                       ║ bridge   ║ bridge
+                                            bottom:   (B) ┘          └ (S)
+ (S) spring, on a cell's − end    (B) flat button, on a cell's + end
+```
+
+Current path: pack − → top-left cell → front-left bridge → bottom-left cell → back bridge → bottom-right cell → front-right bridge → top-right cell → pack +. The two cells in a stack point opposite ways, and so do the two cells in a row. Every cell has a spring on its − end and a button on its + end.
+
+The drawing assumes the long channel in the back cover sits over the bottom row. If it sits over the top row, swap top and bottom in the drawing; the rest stays the same.
+
+| Wire | From | To | AWG |
+|---|---|---|---|
+| Pack − | Back end plate, top-left | BMS B− | 14 |
+| Pack + | Back end plate, top-right | BMS B+, then the fuse | 14 |
+| B1 | Front-left bridge | BMS B1 | 26 |
+| B2 | Back bridge | BMS B2 | 26 |
+| B3 | Front-right bridge | BMS B3 | 26 |
+| Output − | BMS P− | XT60 −, then the − bus | 14 |
+
+- Pack leads and B2 leave through the hole in the back cover. The front cover has no hole: drill a 3 mm hole or file a notch for B1 and B3, and run them back along the frame.
+- Solder to the plate tabs before the plates go into the covers, with the cells out. Nickel-plated steel takes solder with a hot iron and flux. Glue or strain-relieve the wires at the cover so swapping cells does not flex the joints.
+- Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses `arm` and reports a battery fault.
+- Use unprotected flat-top or button-top high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.
+- The 8 contacts in the chain are the weak point: at a 35 A spin-up peak, about 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA rather than PLA, and measure the drop across a contact during a spin-up; more than about 0.1 V means that contact needs attention.
+- Charge all four cells together and put them back as a set. Store them at about 3.7 V per cell.
+- With the cells removed, the BMS sees no pack. Some BMS boards stay latched off afterwards until a charger is connected to P+/P−; prefer one that recovers by itself.
+
+## Battery guard (firmware)
+
+The firmware reads the pack every 5 s while the flywheels are idle, so spin-up sag does not count. `TurretConfig::battery` sets the thresholds:
+
+| Pack voltage | State | Effect |
+|---|---|---|
+| Under 5 V | No pack, USB power | Arming allowed; nothing downstream has power |
+| 5–10 V | Fault: reversed or dead cell | `arm` refused, an armed turret disarms |
+| 10–13.2 V (under 3.3 V per cell) | Empty | `arm` refused, an armed turret disarms |
+| 13.2–14 V (under 3.5 V per cell) | Low | Logged as a warning |
+| 14 V and up | Good | |
+
+The guard only sees the whole pack. The BMS is what protects each cell.
+
 ## Signals
 
 ```
@@ -104,8 +154,13 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 2 | 30 A BLHeli_S or BLHeli_32 ESC, 2–4S | Original uses Racerstar RS30A; no BEC needed |
 | 1 | Standard-size RC servo (metal gear) | Dart pusher, 6 V |
 | 4 | High-drain 18650 cell | e.g. Molicel P28A (35 A); Samsung 30Q (15 A) is the minimum |
-| 1 | 4S BMS, ≥30 A continuous | Over-discharge and short protection; balance-charge the pack externally |
-| 1 | 4S 18650 holder or spot-welded pack with nickel strip | |
+| 1 | 4S BMS, ≥30 A continuous | Over-discharge and short protection. No balancing needed, as the cells are charged out of the holder; prefer one that recovers by itself when cells are reinserted |
+| 1 | Printed 2×2 battery holder and covers | From the original; print the covers in PETG or ASA |
+| 2 | 18650 double contact plate, spring + button | Front cover bridges, one per stack. Match the plate's cell pitch to the holder's stack spacing; nickel-plated steel at least 0.3 mm, or phosphor bronze |
+| 1 | 18650 spring plate + 1 button plate, joined with 16 AWG or nickel strip | Back cover bridge across the two stacks. Use one double plate instead if one matches that span |
+| 1 | 18650 single spring plate | Back cover, pack − |
+| 1 | 18650 single button plate | Back cover, pack + |
+| 1 | 4-bay Li-ion charger, 4.2 V per cell | e.g. Nitecore or XTAR; charges each cell separately |
 | 1 | Buck converter 7.5 V, ≥5 A | e.g. Pololu D36V50F7, or an adjustable XL4015 5 A set to 7.5 V |
 | 1 | Buck converter 6 V, ≥3 A | e.g. Pololu D36V28F6, or an MP1584 for a small pusher servo |
 | 1 | Buck converter 5 V, ≥2 A | e.g. Pololu D36V28F5, or an MP1584 set to 5 V |

@@ -4,6 +4,7 @@ use std::time::{Duration, Instant};
 
 use esp_idf_svc::hal::gpio::{Input as GpioInput, PinDriver};
 use turret_core::arm_switch::ArmSwitch;
+use turret_core::battery::Health;
 use turret_core::command::Command;
 use turret_core::config::TurretConfig;
 use turret_core::fire::{Event, FireControl, Phase, Rejection};
@@ -20,7 +21,8 @@ const BATTERY_PERIOD_MS: u64 = 5_000;
 
 const HELP: &str = "\
 commands:
-  arm | disarm            enable / disable the flywheels and pusher (arm needs the arm switch on)
+  arm | disarm            enable / disable the flywheels and pusher (arm needs the arm switch on
+                          and a battery that is not empty or faulty)
   status                  show arming, arm switch, fire phase, battery and gimbal
   ping <id>               ping a serial bus servo
   P;pan;tilt;vpan;vtilt   move the gimbal in servo units
@@ -110,10 +112,21 @@ impl Turret {
                 log::error!("actuator update failed: {error}");
             }
 
-            if now_ms >= state.next_battery_ms {
+            if now_ms >= state.next_battery_ms && fire.phase() == Phase::Idle {
                 state.next_battery_ms = now_ms + BATTERY_PERIOD_MS;
                 match battery.read() {
-                    Ok(reading) => state.battery = Some(reading),
+                    Ok(reading) => {
+                        if state.battery.map(|previous| previous.health) != Some(reading.health) {
+                            log_health(reading);
+                        }
+                        state.battery = Some(reading);
+                        if fire.is_armed() && !reading.health.allows_arming() {
+                            if let Some(event) = fire.disarm(now_ms) {
+                                report(event, &remote);
+                            }
+                            log::warn!("battery {}, disarmed", describe_health(reading.health));
+                        }
+                    }
                     Err(error) => log::warn!("battery read failed: {error}"),
                 }
             }
@@ -163,10 +176,17 @@ fn handle(
 ) {
     match command {
         Command::Arm if !arm_switch_on => println!("not armed: the arm switch is off"),
-        Command::Arm => {
-            fire.arm();
-            println!("armed");
-        }
+        Command::Arm => match state
+            .battery
+            .map(|reading| reading.health)
+            .filter(|health| !health.allows_arming())
+        {
+            Some(health) => println!("not armed: battery {}", describe_health(health)),
+            None => {
+                fire.arm();
+                println!("armed");
+            }
+        },
         Command::Disarm => {
             if let Some(event) = fire.disarm(now_ms) {
                 report(event, remote);
@@ -207,7 +227,12 @@ fn handle(
             Err(error) => println!("servo {id}: {error}"),
         },
         Command::Battery => match state.battery {
-            Some(reading) => println!("battery {} mV, {}%", reading.pack_mv, reading.percent),
+            Some(reading) => println!(
+                "battery {} mV, {}%, {}",
+                reading.pack_mv,
+                reading.percent,
+                describe_health(reading.health)
+            ),
             None => println!("battery not read yet"),
         },
         Command::Status => {
@@ -248,6 +273,28 @@ fn report(event: Event, remote: &Remote) {
         } => log::warn!("shot {number}: no light gate reading"),
         Event::Finished { shots } => log::info!("sequence finished after {shots} shot(s)"),
         Event::Aborted => log::warn!("fire sequence aborted"),
+    }
+}
+
+fn log_health(reading: Reading) {
+    match reading.health {
+        Health::Good => log::info!("battery {} mV, good", reading.pack_mv),
+        Health::Absent => log::info!("battery {} mV, no pack (USB power)", reading.pack_mv),
+        health => log::warn!(
+            "battery {} mV, {}",
+            reading.pack_mv,
+            describe_health(health)
+        ),
+    }
+}
+
+fn describe_health(health: Health) -> &'static str {
+    match health {
+        Health::Absent => "absent",
+        Health::Fault => "fault: check for a reversed or dead cell",
+        Health::Empty => "empty, charge the cells",
+        Health::Low => "low",
+        Health::Good => "good",
     }
 }
 

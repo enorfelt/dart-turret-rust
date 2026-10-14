@@ -4,7 +4,7 @@ use esp_idf_svc::hal::adc::oneshot::{AdcChannelDriver, AdcDriver};
 use esp_idf_svc::hal::adc::{ADC1, ADCU1};
 use esp_idf_svc::hal::gpio::{ADCPin, Gpio1};
 use esp_idf_svc::sys::EspError;
-use turret_core::battery::Battery;
+use turret_core::battery::{Battery, Health};
 
 type BatteryPin = Gpio1<'static>;
 type BatteryChannel = <BatteryPin as ADCPin>::AdcChannel;
@@ -13,6 +13,7 @@ type BatteryChannel = <BatteryPin as ADCPin>::AdcChannel;
 pub struct Reading {
     pub pack_mv: u32,
     pub percent: u8,
+    pub health: Health,
 }
 
 pub struct BatteryMonitor {
@@ -36,6 +37,7 @@ impl BatteryMonitor {
         Ok(Reading {
             pack_mv,
             percent: self.battery.percent(pack_mv),
+            health: self.battery.health(pack_mv),
         })
     }
 }

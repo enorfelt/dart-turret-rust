@@ -71,7 +71,10 @@ impl Default for TurretConfig {
                 divider_top_ohm: 39_000,
                 divider_bottom_ohm: 8_200,
                 empty_cell_mv: 3_300,
+                low_cell_mv: 3_500,
                 full_cell_mv: 4_200,
+                fault_cell_mv: 2_500,
+                absent_pack_mv: 5_000,
             },
             arm_switch_settle_ms: 50,
         }

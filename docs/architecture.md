@@ -28,7 +28,7 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
 | Pusher | 41 | RC servo, 50 Hz via LEDC | Retracted 847 µs, extended 514 µs: the original's positions converted to µs, to be checked on the printed pusher |
 | Range | RX 6, TX 7 | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m (step 3) |
 | Dart speed | 42 | IR light gate, any-edge GPIO interrupt | Time between the two edges over a 70 mm dart gives km/h |
-| Battery | 1 | 4S Li-ion through a 39k/8k2 divider to ADC1_CH0 | 16.8 V reads ≈ 2.92 V. ADC1, so readings keep working with Wi-Fi and ESP-NOW on |
+| Battery | 1 | 4S Li-ion through a 39k/8k2 divider to ADC1_CH0 | 16.8 V reads ≈ 2.92 V. ADC1, so readings keep working with Wi-Fi and ESP-NOW on. Read every 5 s while the flywheels are idle; below 3.3 V per cell, or below 10 V (a reversed or dead cell), `arm` is refused and an armed turret disarms. Below 5 V counts as no pack (USB power) and does not block arming |
 | Arm switch | 47 | Input with pull-up, closed to GND when on | Second pole of the switch cuts the pusher servo's supply. `arm` is refused while it is off, and turning it off disarms; on needs 50 ms without bounce |
 | Manual control | – | BLE peripheral (NimBLE), bonded with a passkey | See [BLE protocol](#ble-protocol) |
 
@@ -47,13 +47,13 @@ Open with `espflash monitor` (or `cargo run`). Typed characters are echoed; Ente
 | Command | Effect |
 |---|---|
 | `help` | List commands |
-| `arm` / `disarm` | Allow / stop flywheels and pusher (boots disarmed) |
+| `arm` / `disarm` | Allow / stop flywheels and pusher (boots disarmed); `arm` needs the arm switch on and a battery that is not empty or faulty |
 | `status` | Arming, fire phase, battery, last gimbal target |
 | `ping <id>` | Ping a serial bus servo |
 | `P;pan;tilt;vpan;vtilt` | Move the gimbal, servo units |
 | `F;1;mode;throttle;burst` | Fire; mode 0 single, 1 burst, 2 auto; throttle 0–100 % |
 | `F;0` | Cease fire after the current shot |
-| `B` | Battery voltage and percent |
+| `B` | Battery voltage, percent and health |
 | `unpair` | Forget all bonded phones |
 
 ### Vision node (`firmware/vision`, not created yet)

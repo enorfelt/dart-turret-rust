@@ -179,6 +179,9 @@ figcaption { color: var(--ink-muted); max-width: 80ch; font-size: .95rem; }
 .n-sense { stroke: var(--sense); } .dot.n-sense, .tag.n-sense { fill: var(--sense); stroke: none; }
 .n-lidar { stroke: var(--lidar); }
 .n-phase { stroke: var(--phase); }
+.plate { fill: none; stroke: var(--ink-muted); stroke-width: 12; stroke-linecap: round; }
+.pol { fill: currentColor; font: 700 26px var(--font-mono); }
+.stack { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 5; }
 
 .sheet[data-focus] .w, .sheet[data-focus] .dot, .sheet[data-focus] .tag { opacity: .12; }
 .sheet[data-focus="batt"] .n-batt,
@@ -394,6 +397,110 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     </ul>
   </section>
 
+  <section aria-labelledby="pack-h">
+    <h2 id="pack-h">Battery pack</h2>
+    <p>The printed holder takes the four cells as two stacks of two, lying front to back. Contact plates in the covers make the series links, so no wire runs between cells. The cells come out for charging in a standalone 18650 charger that charges each cell to 4.2 V, so the pack needs no balance lead.</p>
+    <figure>
+      <div class="scroll">
+        <svg class="diagram" viewBox="0 0 1200 450" role="img" aria-label="Battery holder contact plates. Back cover, seen from behind: pack minus on the top-left cell, pack plus on the top-right cell, and a bridge plate joining the bottom-left and bottom-right cells with the B2 tap. Front cover, seen from the front: a bridge plate joins the two cells of each stack, carrying the B1 and B3 taps.">
+          <text class="t" x="300" y="30" text-anchor="middle">Back cover, seen from behind</text>
+          <text class="t" x="900" y="30" text-anchor="middle">Front cover, seen from the front</text>
+          <path class="w" stroke="var(--line)" stroke-width="1.5" d="M600 20 V420"/>
+
+          <rect class="stack" x="124" y="94" width="112" height="242" rx="56"/>
+          <rect class="stack" x="364" y="94" width="112" height="242" rx="56"/>
+          <text class="s" x="180" y="356" text-anchor="middle">left stack</text>
+          <text class="s" x="420" y="356" text-anchor="middle">right stack</text>
+          <path class="w n-gnd" stroke-width="4" d="M180 104 V66"/>
+          <path class="w n-batt" stroke-width="4" d="M420 104 V66"/>
+          <text class="tag n-gnd" x="180" y="58" text-anchor="middle">Pack − → BMS B−</text>
+          <text class="tag n-batt" x="420" y="58" text-anchor="middle">Pack + → BMS B+</text>
+          <path class="plate" d="M232 280 H368"/>
+          <path class="w n-sense" stroke-width="2" d="M300 280 V384"/>
+          <circle class="dot n-sense" cx="300" cy="280" r="5"/>
+          <text class="tag n-sense" x="300" y="400" text-anchor="middle">B2 → BMS</text>
+          <text class="s" x="300" y="268" text-anchor="middle">back bridge</text>
+          <circle class="box" cx="180" cy="150" r="46"/>
+          <text class="pol" x="180" y="154" text-anchor="middle">−</text>
+          <text class="s" x="180" y="174" text-anchor="middle">C1 · spring</text>
+          <circle class="box" cx="420" cy="150" r="46"/>
+          <text class="pol" x="420" y="154" text-anchor="middle">+</text>
+          <text class="s" x="420" y="174" text-anchor="middle">C4 · button</text>
+          <circle class="box" cx="180" cy="280" r="46"/>
+          <text class="pol" x="180" y="284" text-anchor="middle">+</text>
+          <text class="s" x="180" y="304" text-anchor="middle">C2 · button</text>
+          <circle class="box" cx="420" cy="280" r="46"/>
+          <text class="pol" x="420" y="284" text-anchor="middle">−</text>
+          <text class="s" x="420" y="304" text-anchor="middle">C3 · spring</text>
+
+          <rect class="stack" x="704" y="94" width="112" height="242" rx="56"/>
+          <rect class="stack" x="944" y="94" width="112" height="242" rx="56"/>
+          <text class="s" x="760" y="356" text-anchor="middle">right stack</text>
+          <text class="s" x="1000" y="356" text-anchor="middle">left stack</text>
+          <path class="plate" d="M760 192 V238"/>
+          <path class="plate" d="M1000 192 V238"/>
+          <path class="w n-sense" stroke-width="2" d="M760 215 H650"/>
+          <path class="w n-sense" stroke-width="2" d="M1000 215 H1110"/>
+          <circle class="dot n-sense" cx="760" cy="215" r="5"/>
+          <circle class="dot n-sense" cx="1000" cy="215" r="5"/>
+          <text class="tag n-sense" x="646" y="207" text-anchor="start">B3</text>
+          <text class="tag n-sense" x="1114" y="207" text-anchor="end">B1</text>
+          <text class="s" x="880" y="219" text-anchor="middle">bridge per stack</text>
+          <circle class="box" cx="760" cy="150" r="46"/>
+          <text class="pol" x="760" y="154" text-anchor="middle">−</text>
+          <text class="s" x="760" y="174" text-anchor="middle">C4 · spring</text>
+          <circle class="box" cx="760" cy="280" r="46"/>
+          <text class="pol" x="760" y="284" text-anchor="middle">+</text>
+          <text class="s" x="760" y="304" text-anchor="middle">C3 · button</text>
+          <circle class="box" cx="1000" cy="150" r="46"/>
+          <text class="pol" x="1000" y="154" text-anchor="middle">+</text>
+          <text class="s" x="1000" y="174" text-anchor="middle">C1 · button</text>
+          <circle class="box" cx="1000" cy="280" r="46"/>
+          <text class="pol" x="1000" y="284" text-anchor="middle">−</text>
+          <text class="s" x="1000" y="304" text-anchor="middle">C2 · spring</text>
+          <text class="s" x="880" y="400" text-anchor="middle">no hole in this cover: drill 3 mm for B1 and B3</text>
+        </svg>
+      </div>
+      <figcaption>Current runs pack − → C1 → front-left bridge → C2 → back bridge → C3 → front-right bridge → C4 → pack +. Every cell has a spring on its − end and a button on its + end. The drawing assumes the long channel in the back cover sits over the bottom row; if it sits over the top row, swap top and bottom.</figcaption>
+    </figure>
+    <div class="two">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Wire</th><th>From</th><th>To</th><th>AWG</th></tr></thead>
+          <tbody>
+            <tr><td><span class="swatch" style="--c: var(--gnd)"></span>Pack −</td><td>Back end plate, C1</td><td>BMS B−</td><td class="num">14</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Pack +</td><td>Back end plate, C4</td><td>BMS B+, then the fuse</td><td class="num">14</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--sense)"></span>B1</td><td>Front-left bridge</td><td>BMS B1</td><td class="num">26</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--sense)"></span>B2</td><td>Back bridge</td><td>BMS B2</td><td class="num">26</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--sense)"></span>B3</td><td>Front-right bridge</td><td>BMS B3</td><td class="num">26</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--gnd)"></span>Output −</td><td>BMS P−</td><td>XT60 −, then the − bus</td><td class="num">14</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="notes">
+        <li>Solder the plate tabs before the plates go into the covers, with the cells out. Strain-relieve the wires at the cover so swapping cells does not flex the joints.</li>
+        <li class="warn">Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses to arm.</li>
+        <li>Use unprotected high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.</li>
+        <li>The 8 contacts are the weak point: at a 35 A spin-up peak, 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA, and measure the drop across a contact during a spin-up; over 0.1 V needs attention.</li>
+        <li>Charge all four cells together and put them back as a set.</li>
+      </ul>
+    </div>
+    <h3>Firmware battery guard</h3>
+    <p>The firmware reads the pack every 5 s while the flywheels are idle, so spin-up sag does not count. It only sees the whole pack; the BMS protects each cell.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Pack</th><th>State</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td class="num">&lt; 5 V</td><td>No pack, USB power</td><td>Arming allowed; nothing downstream has power</td></tr>
+          <tr><td class="num">5–10 V</td><td>Fault: reversed or dead cell</td><td><code>arm</code> refused, an armed turret disarms</td></tr>
+          <tr><td class="num">10–13.2 V</td><td>Empty, under 3.3 V per cell</td><td><code>arm</code> refused, an armed turret disarms</td></tr>
+          <tr><td class="num">13.2–14 V</td><td>Low, under 3.5 V per cell</td><td>Warning in the log</td></tr>
+          <tr><td class="num">≥ 14 V</td><td>Good</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <section aria-labelledby="sig-h">
     <h2 id="sig-h">Signals</h2>
     <figure>
@@ -591,6 +698,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <ol class="check">
         <li>With nothing on the buck outputs, set them to 7.5 V, 6.0 V and 5.0 V with a multimeter.</li>
         <li>Check that the + bus and − bus are not shorted, with the battery disconnected.</li>
+        <li>With the cells in, measure the pack leads: 12.8–16.8 V. About 8 V means a reversed cell.</li>
         <li>First power-on: arm switch off, no darts, flywheel motors unplugged from the ESCs.</li>
         <li>Run <code>B</code> on the console and compare with a multimeter across the pack.</li>
         <li>Run <code>ping 0</code> and <code>ping 1</code>. No reply: swap TTLinker RXD/TXD.</li>
@@ -614,8 +722,13 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed</td></tr>
           <tr><td class="num">1</td><td>Standard-size metal-gear RC servo</td><td>Dart pusher, 6 V</td></tr>
           <tr><td class="num">4</td><td>High-drain 18650 cell</td><td>Molicel P28A (35 A); Samsung 30Q (15 A) at minimum</td></tr>
-          <tr><td class="num">1</td><td>4S BMS, ≥30 A continuous</td><td>Over-discharge and short protection; balance-charge externally</td></tr>
-          <tr><td class="num">1</td><td>4S 18650 holder, or spot-welded pack</td><td></td></tr>
+          <tr><td class="num">1</td><td>4S BMS, ≥30 A continuous</td><td>Over-discharge and short protection; no balancing needed. Prefer one that recovers by itself when cells are reinserted</td></tr>
+          <tr><td class="num">1</td><td>Printed 2×2 battery holder and covers</td><td>From the original; covers in PETG or ASA</td></tr>
+          <tr><td class="num">2</td><td>18650 double contact plate, spring + button</td><td>Front cover, one per stack. Match the plate's pitch to the stack spacing; nickel-plated steel ≥0.3 mm, or phosphor bronze</td></tr>
+          <tr><td class="num">1</td><td>18650 spring plate + button plate, joined with 16 AWG or nickel strip</td><td>Back cover bridge across the stacks; a double plate if one matches the span</td></tr>
+          <tr><td class="num">1</td><td>18650 single spring plate</td><td>Back cover, pack −</td></tr>
+          <tr><td class="num">1</td><td>18650 single button plate</td><td>Back cover, pack +</td></tr>
+          <tr><td class="num">1</td><td>4-bay Li-ion charger, 4.2 V per cell</td><td>e.g. Nitecore or XTAR; charges each cell separately</td></tr>
           <tr><td class="num">1</td><td>Buck converter 7.5 V, ≥5 A</td><td>Pololu D36V50F7, or XL4015 set to 7.5 V</td></tr>
           <tr><td class="num">1</td><td>Buck converter 6 V, ≥3 A</td><td>Pololu D36V28F6, or MP1584 for a small pusher servo</td></tr>
           <tr><td class="num">1</td><td>Buck converter 5 V, ≥2 A</td><td>Pololu D36V28F5, or MP1584 set to 5 V</td></tr>
