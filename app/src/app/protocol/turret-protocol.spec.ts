@@ -49,9 +49,10 @@ describe('turret protocol', () => {
 
   describe('decodeState', () => {
     it('decodes a full state', () => {
-      expect(decodeState(view(1, 0b01, 2, 0xf0, 0x3c, 71, 0x00, 0x02, 0x2c, 0x01))).toEqual({
+      expect(decodeState(view(2, 0b101, 2, 0xf0, 0x3c, 71, 0x00, 0x02, 0x2c, 0x01))).toEqual({
         armed: true,
         ready: false,
+        armSwitch: true,
         phase: 'pushing',
         batteryMv: 15_600,
         batteryPct: 71,
@@ -60,9 +61,10 @@ describe('turret protocol', () => {
     });
 
     it('decodes unknown values as null', () => {
-      expect(decodeState(view(1, 0b10, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff))).toEqual({
+      expect(decodeState(view(2, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff))).toEqual({
         armed: false,
         ready: true,
+        armSwitch: false,
         phase: 'idle',
         batteryMv: null,
         batteryPct: 0,
@@ -71,14 +73,14 @@ describe('turret protocol', () => {
     });
 
     it('refuses other protocol versions', () => {
-      expect(() => decodeState(view(2, 0, 0, 0, 0, 0, 0, 0, 0, 0))).toThrow(
+      expect(() => decodeState(view(1, 0, 0, 0, 0, 0, 0, 0, 0, 0))).toThrow(
         UnsupportedProtocolVersion,
       );
     });
 
     it('rejects a short payload or an unknown phase', () => {
-      expect(() => decodeState(view(1, 0, 0))).toThrow(ProtocolError);
-      expect(() => decodeState(view(1, 0, 9, 0, 0, 0, 0, 0, 0, 0))).toThrow(ProtocolError);
+      expect(() => decodeState(view(2, 0, 0))).toThrow(ProtocolError);
+      expect(() => decodeState(view(2, 0, 9, 0, 0, 0, 0, 0, 0, 0))).toThrow(ProtocolError);
     });
   });
 

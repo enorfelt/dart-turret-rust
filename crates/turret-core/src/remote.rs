@@ -3,7 +3,7 @@ use heapless::Vec;
 use crate::command::{Command, FireMode, FireRequest};
 use crate::fire::{Event, Phase, Rejection};
 
-pub const PROTOCOL_VERSION: u8 = 1;
+pub const PROTOCOL_VERSION: u8 = 2;
 pub const STATE_LEN: usize = 10;
 pub const MAX_EVENT_LEN: usize = 4;
 pub const UNKNOWN_POSITION: u16 = 0xFFFF;
@@ -90,6 +90,7 @@ fn decode_fire(args: &[u8]) -> Result<Command, CommandError> {
 pub struct StateSnapshot {
     pub armed: bool,
     pub ready: bool,
+    pub arm_switch: bool,
     pub phase: Phase,
     pub battery_mv: Option<u16>,
     pub battery_pct: u8,
@@ -98,7 +99,8 @@ pub struct StateSnapshot {
 
 impl StateSnapshot {
     pub fn encode(&self) -> [u8; STATE_LEN] {
-        let flags = u8::from(self.armed) | u8::from(self.ready) << 1;
+        let flags =
+            u8::from(self.armed) | u8::from(self.ready) << 1 | u8::from(self.arm_switch) << 2;
         let [mv_lo, mv_hi] = self.battery_mv.unwrap_or(0).to_le_bytes();
         let (pan, tilt) = self.gimbal.unwrap_or((UNKNOWN_POSITION, UNKNOWN_POSITION));
         let [pan_lo, pan_hi] = pan.to_le_bytes();
@@ -243,6 +245,7 @@ mod tests {
         let state = StateSnapshot {
             armed: true,
             ready: false,
+            arm_switch: true,
             phase: Phase::Pushing,
             battery_mv: Some(15_600),
             battery_pct: 71,
@@ -251,7 +254,7 @@ mod tests {
 
         assert_eq!(
             state.encode(),
-            [1, 0b01, 2, 0xF0, 0x3C, 71, 0x00, 0x02, 0x2C, 0x01]
+            [2, 0b101, 2, 0xF0, 0x3C, 71, 0x00, 0x02, 0x2C, 0x01]
         );
     }
 
@@ -260,6 +263,7 @@ mod tests {
         let state = StateSnapshot {
             armed: false,
             ready: true,
+            arm_switch: false,
             phase: Phase::Idle,
             battery_mv: None,
             battery_pct: 0,
@@ -268,7 +272,7 @@ mod tests {
 
         assert_eq!(
             state.encode(),
-            [1, 0b10, 0, 0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF]
+            [2, 0b010, 0, 0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF]
         );
     }
 

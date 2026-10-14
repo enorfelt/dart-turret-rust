@@ -37,6 +37,7 @@ describe('Turret', () => {
     expect(turret.state()).toEqual({
       armed: false,
       ready: true,
+      armSwitch: true,
       phase: 'idle',
       batteryMv: 15_600,
       batteryPct: 71,
@@ -46,11 +47,11 @@ describe('Turret', () => {
   });
 
   it('refuses a turret with an unknown protocol version', async () => {
-    link.initialState = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    link.initialState = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     const turret = await connected();
 
     expect(turret.connection()).toBe('idle');
-    expect(turret.error()).toContain('version 2');
+    expect(turret.error()).toContain('version 1');
     expect(link.closed).toBe(1);
   });
 
@@ -86,10 +87,19 @@ describe('Turret', () => {
     expect(turret.canFire()).toBe(true);
   });
 
+  it('reports the physical arm switch', async () => {
+    const turret = await connected();
+    expect(turret.armSwitchOn()).toBe(true);
+
+    link.notifyState([2, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff]);
+
+    expect(turret.armSwitchOn()).toBe(false);
+  });
+
   it('cannot fire while armed but busy', async () => {
     const turret = await connected();
 
-    link.notifyState([1, 0b01, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff]);
+    link.notifyState([2, 0b101, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff]);
 
     expect(turret.armed()).toBe(true);
     expect(turret.canFire()).toBe(false);

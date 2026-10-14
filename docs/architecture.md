@@ -126,8 +126,8 @@ State, notified on change at most every 50 ms, once when notifications are turne
 
 | Byte | Field |
 |---|---|
-| 0 | Protocol version, currently 1; the app refuses versions it does not know |
-| 1 | Flags: bit 0 armed, bit 1 fire sequencer idle and cooled down |
+| 0 | Protocol version, currently 2; the app refuses versions it does not know |
+| 1 | Flags: bit 0 armed, bit 1 fire sequencer idle and cooled down, bit 2 physical arm switch on |
 | 2 | Fire phase: 0 idle, 1 spin-up, 2 pushing, 3 retracting, 4 spin-down |
 | 3–4 | Battery pack mV, 0 until the first reading |
 | 5 | Battery percent |

@@ -6,7 +6,7 @@ export const STATE_UUID = characteristicUuid('0003');
 export const EVENT_UUID = characteristicUuid('0004');
 export const DEVICE_NAME_PREFIX = 'DART';
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 const STATE_LENGTH = 10;
 const UNKNOWN = 0xffff;
 
@@ -35,6 +35,7 @@ export interface GimbalPosition {
 export interface TurretState {
   armed: boolean;
   ready: boolean;
+  armSwitch: boolean;
   phase: FirePhase;
   batteryMv: number | null;
   batteryPct: number;
@@ -108,8 +109,9 @@ export function decodeState(view: DataView): TurretState {
   const pan = view.getUint16(6, true);
   const tilt = view.getUint16(8, true);
   return {
-    armed: (flags & 0b01) !== 0,
-    ready: (flags & 0b10) !== 0,
+    armed: (flags & 0b001) !== 0,
+    ready: (flags & 0b010) !== 0,
+    armSwitch: (flags & 0b100) !== 0,
     phase,
     batteryMv: batteryMv === 0 ? null : batteryMv,
     batteryPct: view.getUint8(5),

@@ -74,6 +74,18 @@ describe('App', () => {
     expect(host.querySelector('app-joystick')).not.toBeNull();
   });
 
+  it('does not offer arming while the arm switch is off', async () => {
+    const fixture = await render();
+    const host: HTMLElement = fixture.nativeElement;
+    await TestBed.inject(Turret).connect();
+
+    link.notifyState([2, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff]);
+    await fixture.whenStable();
+
+    expect(button(host, 'Arm switch off')!.disabled).toBe(true);
+    expect(button(host, 'Hold to arm')).toBeUndefined();
+  });
+
   it('wraps the screen in hazard tape and offers disarm while armed', async () => {
     const fixture = await render();
     const host: HTMLElement = fixture.nativeElement;

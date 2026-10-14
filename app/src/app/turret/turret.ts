@@ -65,6 +65,7 @@ export class Turret {
   readonly connected = computed(() => this.connection() === 'connected');
   readonly inactive = computed(() => ['idle', 'unsupported'].includes(this.connection()));
   readonly armed = computed(() => this.connected() && this.state()?.armed === true);
+  readonly armSwitchOn = computed(() => this.state()?.armSwitch === true);
   readonly canFire = computed(() => this.armed() && this.state()?.ready === true);
   readonly lastShot = computed(() => this.shots()[0] ?? null);
   readonly batteryVolts = computed(() => {

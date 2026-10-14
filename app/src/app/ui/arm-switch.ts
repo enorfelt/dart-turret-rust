@@ -9,6 +9,8 @@ const ARM_HOLD_MS = 1000;
   template: `
     @if (turret.armed()) {
       <button type="button" class="disarm" (click)="turret.disarm()">Disarm</button>
+    } @else if (!turret.armSwitchOn()) {
+      <button type="button" class="arm" disabled>Arm switch off</button>
     } @else {
       <button
         type="button"
@@ -47,6 +49,11 @@ const ARM_HOLD_MS = 1000;
       border: 2px solid var(--hazard);
       background: transparent;
       color: var(--hazard);
+    }
+
+    .arm:disabled {
+      border-color: var(--panel-raised);
+      color: var(--ink-muted);
     }
 
     .fill {
@@ -99,7 +106,7 @@ export class ArmSwitch {
     this.holding.set(true);
     this.timer = setTimeout(() => {
       this.holding.set(false);
-      this.turret.arm();
+      if (this.turret.armSwitchOn()) this.turret.arm();
     }, ARM_HOLD_MS);
   }
 

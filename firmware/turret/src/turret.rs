@@ -118,7 +118,7 @@ impl Turret {
                 }
             }
 
-            let snapshot = state.snapshot(&fire, now_ms);
+            let snapshot = state.snapshot(&fire, arm_switch_on, now_ms);
             if sent_state != Some(snapshot) {
                 remote.state(snapshot);
                 sent_state = Some(snapshot);
@@ -137,10 +137,11 @@ struct State {
 }
 
 impl State {
-    fn snapshot(&self, fire: &FireControl, now_ms: u64) -> StateSnapshot {
+    fn snapshot(&self, fire: &FireControl, arm_switch: bool, now_ms: u64) -> StateSnapshot {
         StateSnapshot {
             armed: fire.is_armed(),
             ready: fire.is_ready(now_ms),
+            arm_switch,
             phase: fire.phase(),
             battery_mv: self
                 .battery
