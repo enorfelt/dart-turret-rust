@@ -75,12 +75,7 @@ fn decode_fire(args: &[u8]) -> Result<Command, CommandError> {
     let &[mode, throttle_pct, shots] = args else {
         return Err(CommandError::Malformed);
     };
-    let mode = match mode {
-        0 => FireMode::Single,
-        1 => FireMode::Burst,
-        2 => FireMode::Auto,
-        _ => return Err(CommandError::Malformed),
-    };
+    let mode = FireMode::try_from(mode).map_err(|()| CommandError::Malformed)?;
     if throttle_pct > FireRequest::MAX_THROTTLE_PCT {
         return Err(CommandError::Malformed);
     }

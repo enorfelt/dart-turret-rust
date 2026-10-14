@@ -130,7 +130,7 @@ impl FireControl {
         if throttle_permille == 0 {
             return Err(Rejection::NoThrottle);
         }
-        let max_shots = self.timing.max_shots;
+        let max_shots = self.timing.max_shots.max(1);
         self.shots_left = match request.mode {
             FireMode::Single => 1,
             FireMode::Burst => request.burst.clamp(1, max_shots),
@@ -381,6 +381,22 @@ mod tests {
             let (events, _) = run_until_idle(&mut control, 0);
 
             assert_eq!(events.last(), Some(&Event::Finished { shots: 5 }));
+        }
+    }
+
+    #[test]
+    fn zero_max_shots_fires_one_dart_per_request() {
+        for mode in [FireMode::Single, FireMode::Burst, FireMode::Auto] {
+            let mut control = FireControl::new(FireTiming {
+                max_shots: 0,
+                ..TIMING
+            });
+            control.arm();
+            control.fire(&request(mode, 3), 0).unwrap();
+
+            let (events, _) = run_until_idle(&mut control, 0);
+
+            assert_eq!(events.last(), Some(&Event::Finished { shots: 1 }));
         }
     }
 

@@ -62,6 +62,21 @@ describe('Turret', () => {
     expect(turret.error()).toBeNull();
   });
 
+  it('keeps a state notified while opening over the older read', async () => {
+    link.whileOpening = () => link.notifyState(ARMED_READY_STATE);
+    const turret = await connected();
+
+    expect(turret.canFire()).toBe(true);
+  });
+
+  it('stays lost when the link drops while opening', async () => {
+    link.whileOpening = () => link.drop();
+    const turret = await connected();
+
+    expect(turret.connection()).toBe('lost');
+    expect(turret.state()).toBeNull();
+  });
+
   it('follows state notifications', async () => {
     const turret = await connected();
 
@@ -94,6 +109,16 @@ describe('Turret', () => {
       { number: 1, speedKmh: 252 },
     ]);
     expect(turret.lastShot()).toEqual({ number: 2, speedKmh: null });
+    expect(turret.tally()).toEqual({ shots: 2, timedShots: 1, speedSumKmh: 252 });
+  });
+
+  it('tallies every shot of the session beyond the shot list', async () => {
+    const turret = await connected();
+
+    for (let shot = 0; shot < 150; shot++) link.notifyEvent([0x01, 1, 100, 0x00]);
+
+    expect(turret.shots().length).toBe(100);
+    expect(turret.tally()).toEqual({ shots: 150, timedShots: 150, speedSumKmh: 15_000 });
   });
 
   it('encodes commands onto the link', async () => {

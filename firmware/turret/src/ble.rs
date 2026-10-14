@@ -39,6 +39,7 @@ static PEER: AtomicU16 = AtomicU16::new(CONN_HANDLE_NONE);
 static STATE_SUBSCRIBED: AtomicBool = AtomicBool::new(false);
 static EVENT_SUBSCRIBED: AtomicBool = AtomicBool::new(false);
 static NEEDS_ADVERTISING: AtomicBool = AtomicBool::new(false);
+static RESEND_STATE: AtomicBool = AtomicBool::new(false);
 static LATEST_STATE: Mutex<Option<[u8; STATE_LEN]>> = Mutex::new(None);
 
 extern "C" {
@@ -152,6 +153,7 @@ fn on_gatts(event: GattsEvent<'_>, commands: &Sender<Input>) -> u8 {
         } => {
             if attr_handle == STATE_HANDLE.load(Ordering::Relaxed) {
                 STATE_SUBSCRIBED.store(cur_notify, Ordering::Relaxed);
+                RESEND_STATE.store(cur_notify, Ordering::Relaxed);
             } else if attr_handle == EVENT_HANDLE.load(Ordering::Relaxed) {
                 EVENT_SUBSCRIBED.store(cur_notify, Ordering::Relaxed);
             }
@@ -210,6 +212,10 @@ fn run<S>(driver: BleDriver<'static, S>, outgoing: Receiver<Outgoing>) {
             }
             Err(RecvTimeoutError::Timeout) => {}
             Err(RecvTimeoutError::Disconnected) => return,
+        }
+
+        if RESEND_STATE.swap(false, Ordering::Relaxed) {
+            pending_state = pending_state.or(*LATEST_STATE.lock().unwrap());
         }
 
         let state_due = last_state_at.is_none_or(|at| at.elapsed() >= STATE_INTERVAL);

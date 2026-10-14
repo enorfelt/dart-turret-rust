@@ -25,6 +25,12 @@ export interface Shot {
   speedKmh: number | null;
 }
 
+export interface ShotTally {
+  shots: number;
+  timedShots: number;
+  speedSumKmh: number;
+}
+
 const EVENT_LOG_SIZE = 50;
 const SHOT_LOG_SIZE = 100;
 
@@ -46,12 +52,14 @@ export class Turret {
   private readonly _state = signal<TurretState | null>(null);
   private readonly _events = signal<readonly LoggedEvent[]>([]);
   private readonly _shots = signal<readonly Shot[]>([]);
+  private readonly _tally = signal<ShotTally>({ shots: 0, timedShots: 0, speedSumKmh: 0 });
   private readonly _error = signal<string | null>(null);
 
   readonly connection = this._connection.asReadonly();
   readonly state = this._state.asReadonly();
   readonly events = this._events.asReadonly();
   readonly shots = this._shots.asReadonly();
+  readonly tally = this._tally.asReadonly();
   readonly error = this._error.asReadonly();
 
   readonly connected = computed(() => this.connection() === 'connected');
@@ -123,10 +131,13 @@ export class Turret {
 
   private async open(reuseDevice: boolean): Promise<void> {
     this._connection.set('connecting');
+    this._state.set(null);
     this._error.set(null);
     try {
       const initialState = await this.link.open(this.listener, reuseDevice);
-      this._state.set(decodeState(initialState));
+      if (this._connection() !== 'connecting') return;
+      // A notification that arrived while opening is at least as fresh as the read.
+      this._state.update((state) => state ?? decodeState(initialState));
       this._connection.set('connected');
     } catch (error) {
       this.link.close();
@@ -153,6 +164,11 @@ export class Turret {
     if (event.kind === 'shot') {
       const shot = { number: event.number, speedKmh: event.speedKmh };
       this._shots.update((shots) => [shot, ...shots].slice(0, SHOT_LOG_SIZE));
+      this._tally.update(({ shots, timedShots, speedSumKmh }) => ({
+        shots: shots + 1,
+        timedShots: timedShots + (shot.speedKmh === null ? 0 : 1),
+        speedSumKmh: speedSumKmh + (shot.speedKmh ?? 0),
+      }));
     }
   }
 

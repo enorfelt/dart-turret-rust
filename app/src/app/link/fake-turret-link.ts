@@ -9,6 +9,7 @@ export class FakeTurretLink implements TurretLink {
   supported = true;
   initialState: readonly number[] = IDLE_STATE;
   openError: unknown;
+  whileOpening: (() => void) | undefined;
   written: number[][] = [];
   opened: { reuseDevice: boolean }[] = [];
   closed = 0;
@@ -18,6 +19,7 @@ export class FakeTurretLink implements TurretLink {
     this.opened.push({ reuseDevice });
     if (this.openError) throw this.openError;
     this.listener = listener;
+    this.whileOpening?.();
     return view(this.initialState);
   }
 

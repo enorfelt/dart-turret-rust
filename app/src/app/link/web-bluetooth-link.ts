@@ -39,11 +39,11 @@ export class WebBluetoothLink implements TurretLink {
         service.getCharacteristic(STATE_UUID),
         service.getCharacteristic(EVENT_UUID),
       ]);
-      const initialState = await state.readValue();
       this.listen(state, 'characteristicvaluechanged', () => listener.state(state.value!));
       this.listen(event, 'characteristicvaluechanged', () => listener.event(event.value!));
       await state.startNotifications();
       await event.startNotifications();
+      const initialState = await state.readValue();
       this.command = command;
       return initialState;
     } catch (error) {

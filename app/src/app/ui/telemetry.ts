@@ -115,13 +115,9 @@ export class Telemetry {
   protected readonly text = eventText;
 
   protected readonly shotSummary = computed(() => {
-    const speeds = this.turret
-      .shots()
-      .map((shot) => shot.speedKmh)
-      .filter((speed) => speed !== null);
-    const count = this.turret.shots().length;
-    if (speeds.length === 0) return `${count} ${count === 1 ? 'dart' : 'darts'} this session`;
-    const average = Math.round(speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length);
-    return `${count} ${count === 1 ? 'dart' : 'darts'} this session, average ${average} km/h`;
+    const { shots, timedShots, speedSumKmh } = this.turret.tally();
+    const count = `${shots} ${shots === 1 ? 'dart' : 'darts'} this session`;
+    if (timedShots === 0) return count;
+    return `${count}, average ${Math.round(speedSumKmh / timedShots)} km/h`;
   });
 }

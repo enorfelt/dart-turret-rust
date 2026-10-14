@@ -12,6 +12,7 @@ import { FireMode } from '../protocol/turret-protocol';
       (pointerup)="letGo()"
       (pointercancel)="letGo()"
       (lostpointercapture)="letGo()"
+      (blur)="letGo()"
       (keydown.enter)="press()"
       (keyup.enter)="letGo()"
       (keydown.space)="$event.preventDefault(); press()"

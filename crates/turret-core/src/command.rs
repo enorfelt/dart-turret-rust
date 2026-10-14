@@ -5,6 +5,19 @@ pub enum FireMode {
     Auto,
 }
 
+impl TryFrom<u8> for FireMode {
+    type Error = ();
+
+    fn try_from(mode: u8) -> Result<Self, ()> {
+        match mode {
+            0 => Ok(Self::Single),
+            1 => Ok(Self::Burst),
+            2 => Ok(Self::Auto),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FireRequest {
     pub mode: FireMode,
@@ -74,12 +87,8 @@ fn parse_fire<'a>(fields: &mut impl Iterator<Item = &'a str>) -> Result<Command,
     if trigger == 0 {
         return Ok(Command::CeaseFire);
     }
-    let mode = match field::<u8>(fields, "mode")? {
-        0 => FireMode::Single,
-        1 => FireMode::Burst,
-        2 => FireMode::Auto,
-        _ => return Err(ParseError::Invalid("mode")),
-    };
+    let mode = FireMode::try_from(field::<u8>(fields, "mode")?)
+        .map_err(|()| ParseError::Invalid("mode"))?;
     let throttle_pct: u8 = field(fields, "throttle")?;
     if throttle_pct > FireRequest::MAX_THROTTLE_PCT {
         return Err(ParseError::Invalid("throttle"));

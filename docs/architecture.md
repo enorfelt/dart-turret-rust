@@ -106,7 +106,7 @@ Commands. A write that does not decode is answered with ATT error `0x80` (unknow
 | `0x04` | Fire | `mode u8` (0 single, 1 burst, 2 auto), `throttle u8` (0–100 %, 0 is rejected), `shots u8` (burst only, capped at `max_shots`) |
 | `0x05` | Cease fire | – |
 
-State, notified on change at most every 50 ms and readable at any time:
+State, notified on change at most every 50 ms, once when notifications are turned on, and readable at any time:
 
 | Byte | Field |
 |---|---|

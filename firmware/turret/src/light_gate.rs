@@ -44,6 +44,8 @@ impl LightGate {
     }
 }
 
+// Edges are assumed to alternate blocked/clear; a stray edge or a beam already blocked at reset()
+// swaps start and end. TODO: read the pin level instead once the blocked polarity is confirmed.
 unsafe extern "C" fn on_edge(_: *mut c_void) {
     let now_us = unsafe { esp_timer_get_time() } as u32;
     if BLOCKED.swap(true, Ordering::SeqCst) {
