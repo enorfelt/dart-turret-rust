@@ -3,14 +3,24 @@ import { App } from './app';
 import { ARMED_READY_STATE, FakeTurretLink } from './link/fake-turret-link';
 import { TURRET_LINK } from './link/turret-link';
 import { Turret } from './turret/turret';
+import { SwUpdate } from '@angular/service-worker';
+import { RELOAD } from './update/app-update';
+import { APP_VERSION_TOKEN } from './update/app-version';
+import { FakeSwUpdate } from './update/fake-sw-update';
 
 describe('App', () => {
   let link: FakeTurretLink;
+  let sw: FakeSwUpdate;
 
   async function render() {
     TestBed.configureTestingModule({
       imports: [App],
-      providers: [{ provide: TURRET_LINK, useValue: link }],
+      providers: [
+        { provide: TURRET_LINK, useValue: link },
+        { provide: SwUpdate, useValue: sw },
+        { provide: RELOAD, useValue: () => undefined },
+        { provide: APP_VERSION_TOKEN, useValue: '2026-10-14-d7a9dbe' },
+      ],
     });
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
@@ -22,6 +32,27 @@ describe('App', () => {
 
   beforeEach(() => {
     link = new FakeTurretLink();
+    sw = new FakeSwUpdate();
+  });
+
+  it('shows the app version on the connect panel', async () => {
+    const fixture = await render();
+
+    expect(fixture.nativeElement.textContent).toContain('Version 2026-10-14-d7a9dbe');
+  });
+
+  it('offers a reload when a new version is ready while connected', async () => {
+    const fixture = await render();
+    const host: HTMLElement = fixture.nativeElement;
+    await TestBed.inject(Turret).connect();
+
+    sw.versionReady();
+    await fixture.whenStable();
+    button(host, 'Reload')!.click();
+    await fixture.whenStable();
+
+    expect(host.textContent).toContain('A new version of the app is ready.');
+    expect(sw.activations).toBe(1);
   });
 
   it('explains unsupported browsers', async () => {

@@ -63,6 +63,7 @@ export class Turret {
   readonly error = this._error.asReadonly();
 
   readonly connected = computed(() => this.connection() === 'connected');
+  readonly inactive = computed(() => ['idle', 'unsupported'].includes(this.connection()));
   readonly armed = computed(() => this.connected() && this.state()?.armed === true);
   readonly canFire = computed(() => this.armed() && this.state()?.ready === true);
   readonly lastShot = computed(() => this.shots()[0] ?? null);
@@ -97,6 +98,14 @@ export class Turret {
     this.link.close();
     this._state.set(null);
     this._connection.set('idle');
+  }
+
+  async disarmAndDisconnect(): Promise<void> {
+    if (this.connected()) {
+      this.queue.clear();
+      await this.link.write(encodeCommand({ op: 'disarm' })).catch(() => undefined);
+    }
+    this.disconnect();
   }
 
   dismissError(): void {

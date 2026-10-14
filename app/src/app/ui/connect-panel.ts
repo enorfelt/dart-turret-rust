@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Turret } from '../turret/turret';
+import { APP_VERSION_TOKEN } from '../update/app-version';
 
 @Component({
   selector: 'app-connect-panel',
@@ -28,6 +29,7 @@ import { Turret } from '../turret/turret';
         <button type="button" class="primary" (click)="turret.connect()">Connect</button>
       }
     }
+    <p class="version">Version {{ version }}</p>
   `,
   styles: `
     :host {
@@ -54,6 +56,17 @@ import { Turret } from '../turret/turret';
       max-width: 34ch;
       margin: 0;
       color: var(--ink-muted);
+    }
+
+    /* Equal auto margins keep the content centred while pinning the version to the bottom. */
+    h1,
+    .version {
+      margin-top: auto;
+    }
+
+    .version {
+      align-self: flex-start;
+      font-size: 0.75rem;
     }
 
     button {
@@ -84,4 +97,5 @@ import { Turret } from '../turret/turret';
 })
 export class ConnectPanel {
   protected readonly turret = inject(Turret);
+  protected readonly version = inject(APP_VERSION_TOKEN);
 }

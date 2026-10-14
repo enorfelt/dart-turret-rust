@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Turret } from './turret/turret';
+import { AppUpdate } from './update/app-update';
 import { ConnectPanel } from './ui/connect-panel';
 import { ControlPanel } from './ui/control-panel';
 
@@ -8,8 +9,14 @@ import { ControlPanel } from './ui/control-panel';
   imports: [ConnectPanel, ControlPanel],
   host: { '[class.armed]': 'turret.armed()' },
   template: `
+    @if (update.ready()) {
+      <p class="banner update" role="status">
+        <span>A new version of the app is ready.</span>
+        <button type="button" (click)="update.reload()">Reload</button>
+      </p>
+    }
     @if (turret.error(); as error) {
-      <p class="error" role="alert">
+      <p class="banner error" role="alert">
         <span>{{ error }}</span>
         <button type="button" (click)="turret.dismissError()">Dismiss</button>
       </p>
@@ -52,18 +59,25 @@ import { ControlPanel } from './ui/control-panel';
       border-image: repeating-linear-gradient(-45deg, var(--hazard) 0 14px, var(--body) 14px 28px) 8;
     }
 
-    .error {
+    .banner {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: var(--gap);
       margin: 0;
       padding: 8px 12px;
+    }
+
+    .update {
+      background: var(--panel-raised);
+    }
+
+    .error {
       background: var(--fire-pressed);
       color: #fff;
     }
 
-    .error button {
+    .banner button {
       flex: none;
       padding: 4px 12px;
       border: 1px solid currentColor;
@@ -74,4 +88,5 @@ import { ControlPanel } from './ui/control-panel';
 })
 export class App {
   protected readonly turret = inject(Turret);
+  protected readonly update = inject(AppUpdate);
 }

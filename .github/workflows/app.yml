@@ -31,7 +31,7 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm test -- --watch=false
-      - run: npx ng build --base-href "/${{ github.event.repository.name }}/"
+      - run: npx ng build --base-href "/${{ github.event.repository.name }}/" --define "APP_VERSION='$(date -u +%Y-%m-%d)-${GITHUB_SHA::7}'"
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
