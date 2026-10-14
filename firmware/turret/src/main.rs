@@ -9,6 +9,7 @@ mod turret;
 
 use std::sync::mpsc;
 
+use esp_idf_svc::hal::gpio::{PinDriver, Pull};
 use esp_idf_svc::hal::peripherals::Peripherals;
 use esp_idf_svc::nvs::EspDefaultNvsPartition;
 use turret_core::config::TurretConfig;
@@ -50,7 +51,8 @@ fn main() -> anyhow::Result<()> {
         config.gimbal,
     )?;
     let light_gate = LightGate::new(board.light_gate)?;
-    let battery = BatteryMonitor::new(peripherals.adc2, board.battery, config.battery)?;
+    let arm_switch = PinDriver::input(board.arm_switch, Pull::Up)?;
+    let battery = BatteryMonitor::new(peripherals.adc1, board.battery, config.battery)?;
 
     let (inputs, received) = mpsc::channel();
     let remote = ble::start(peripherals.modem, inputs.clone(), PASSKEY)?;
@@ -60,6 +62,7 @@ fn main() -> anyhow::Result<()> {
         actuators,
         gimbal,
         light_gate,
+        arm_switch,
         battery,
         remote,
         config,

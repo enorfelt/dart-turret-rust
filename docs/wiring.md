@@ -1,0 +1,119 @@
+# Wiring
+
+Turret controller wiring for a Freenove ESP32-S3 WROOM board (ESP32-S3-WROOM-1, octal PSRAM) on a 4S1P 18650 pack. Based on the [original Dart-Turret wiring](https://github.com/Tops76/Dart-Turret), with a main fuse, a power switch, a hardware arm switch, beefier servo supplies and pins moved for the Freenove board.
+
+Status: proposed, not wired yet. `firmware/turret/src/board.rs` uses this pin map.
+
+## Pin map (Freenove ESP32-S3 WROOM)
+
+The original pins do not fit this board: GPIO 33–37 are taken by the octal PSRAM (33/34 are not even broken out), and GPIO 38–40 go to the SD card slot. The camera connector stays empty on the turret controller, so camera pins are free to use.
+
+| Function | GPIO | Was | Notes |
+|---|---|---|---|
+| Servo bus TX (UART1) | 14 | 33 | Through the level shifter to the TTLinker |
+| Servo bus RX (UART1) | 21 | 34 | Through the level shifter to the TTLinker |
+| ESC left | 17 | 17 | Camera pin, unused here |
+| ESC right | 18 | 18 | Camera pin, unused here |
+| Pusher servo | 41 | 39 | JTAG MTDI, free while debugging over USB |
+| Light gate | 42 | 38 | JTAG MTMS, free while debugging over USB |
+| Battery divider | 1 | 16 | ADC1_CH0, so readings keep working with Wi-Fi / ESP-NOW on |
+| TFmini Plus RX (ESP receives) | 6 | – | UART2, step 3 |
+| TFmini Plus TX (ESP sends) | 7 | – | UART2, step 3 |
+| Arm switch sense | 47 | – | Internal pull-up; switch closes to GND when armed |
+
+Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0 to the onboard USB-UART), 35–40.
+
+## Power
+
+```
+ 4S1P 18650 pack (+ 4S BMS)
+   +  ──[ 25 A blade fuse ]──[ main switch ]──┬────────────────────────────────── + bus (14 AWG)
+   −  ────────────────────────────────────────┼────────────────────────────────── − bus (14 AWG)
+                                              │
+     + bus / − bus (keep short) feeds:        │
+       ├── ESC left   (16 AWG) ─── motor left   (3 phase)
+       ├── ESC right  (16 AWG) ─── motor right  (3 phase)
+       ├── Buck 7.5 V, ≥5 A (20 AWG) ─── TTLinker VIN ─── SC15 pan ─── SC15 tilt
+       ├── Buck 6 V,   ≥3 A (20 AWG) ─── arm switch pole A ─── pusher servo +
+       ├── Buck 5 V,   ≥2 A (22 AWG) ─── ESP 5V pin, TFmini 5 V, level shifter HV,
+       │                                  TTLinker 5 V, light gate LED
+       └── 39 kΩ ──┬── 8.2 kΩ ── − bus        (26 AWG)
+                   ├── 100 nF ── − bus
+                   └── GPIO 1
+```
+
+- The fuse goes as close to the battery + as possible, so it protects everything downstream, the switch included.
+- The divider sits after the switch so its 0.36 mA does not drain the pack while off.
+- All grounds are common: buck outputs, ESC signal grounds, ESP GND, TTLinker GND, TFmini GND.
+- Connect only signal and ground from the ESC servo leads. If an ESC has a BEC, leave its red wire unconnected.
+- The SC15 is rated 4.8–8.4 V and stalls at 1.7 A, so two stalled servos need 3.4 A. The original 8 V MP1584 (3 A peak) is undersized for that.
+- Turn the turret off before plugging in USB, unless the board's schematic shows that VBUS and the 5V pin are isolated by a diode.
+
+## Signals
+
+```
+ ESP GPIO 14 (TX) ──LV1┐                ┌HV1── TTLinker RXD ┐
+ ESP GPIO 21 (RX) ──LV2┤ level shifter  ├HV2── TTLinker TXD ├── SC15 bus (3-pin cable)
+ ESP 3V3 ───────────LV │  (BSS138, 4ch) │HV ── 5 V          │
+ GND ───────────────GND┘                └GND── GND          ┘
+
+ ESP GPIO 17 ─────────── ESC left signal      (ESC GND to common GND)
+ ESP GPIO 18 ─────────── ESC right signal
+ ESP GPIO 41 ─────────── pusher servo signal
+
+ Light gate:  5 V ── 330 Ω ── IR LED ── GND
+              3V3 ── 10 kΩ ──┬── GPIO 42
+                             └── phototransistor C;  E ── GND
+
+ Arm switch (DPST):  pole A in series with the pusher servo's 6 V
+                     pole B: GPIO 47 ── switch ── GND
+
+ TFmini Plus:  red 5 V, black GND, TX ── GPIO 6, RX ── GPIO 7   (3.3 V UART, no shifter)
+```
+
+- If `ping 0` gets no answer, swap TTLinker RXD/TXD. The labels on these boards are not consistent about whose side they name.
+- The light gate phototransistor pulls GPIO 42 down while lit. The original wired it from 5 V, which can push more than 3.3 V into the pin; the pull-up to 3V3 avoids that.
+- The arm switch is the hardware arm interlock from the safety requirements. With pole A open the pusher has no power, so no dart can fire even if the flywheels spin. Pole B lets the firmware refuse `arm` while the switch is off and disarm when it is turned off.
+- BSS138 shifters are slow. If the servo bus gets errors at 1 Mbaud, use a 74AHCT125 buffer or lower the servo baud rate.
+
+## Wire gauges
+
+Use stranded silicone wire everywhere; it survives the pan and tilt movement. Add strain relief where wires cross the gimbal axes.
+
+| Run | AWG | Why |
+|---|---|---|
+| Battery → fuse → switch → + / − bus | 14 | Flywheel spin-up peaks of 30–40 A for a fraction of a second |
+| Bus → each ESC | 16 | Up to ~20 A per ESC during spin-up; 18 is fine if the run is under 10 cm |
+| ESC → motor phases | As supplied | Usually 18–20 AWG on the motor |
+| Bus → buck converter inputs | 20 | Under 3 A on the 16 V side |
+| 7.5 V servo bus, 6 V pusher | 20 | Up to 3.4 A while stalled |
+| 5 V logic rail | 22 | Under 1 A |
+| Signals, divider, light gate, arm sense | 26 | Milliamps |
+
+## Bill of materials
+
+| Qty | Part | Notes |
+|---|---|---|
+| 1 | Freenove ESP32-S3 WROOM board | Turret controller, camera connector left empty |
+| 2 | Waveshare SC15 serial bus servo | Pan (ID 0) and tilt (ID 1) |
+| 1 | Feetech TTLinker (mini) | UART to half-duplex servo bus |
+| 1 | 4-channel BSS138 level shifter | 3.3 V ↔ 5 V for the TTLinker |
+| 2 | 2206 2300 KV brushless motor | Original uses Armattan Oomph 2206/2300 KV; any 2206–2207, 2300–2500 KV with a 5 mm shaft and 16×19 mm M3 mount should fit the printed mounts (check) |
+| 2 | 30 A BLHeli_S or BLHeli_32 ESC, 2–4S | Original uses Racerstar RS30A; no BEC needed |
+| 1 | Standard-size RC servo (metal gear) | Dart pusher, 6 V |
+| 4 | High-drain 18650 cell | e.g. Molicel P28A (35 A); Samsung 30Q (15 A) is the minimum |
+| 1 | 4S BMS, ≥30 A continuous | Over-discharge and short protection; balance-charge the pack externally |
+| 1 | 4S 18650 holder or spot-welded pack with nickel strip | |
+| 1 | Buck converter 7.5 V, ≥5 A | e.g. Pololu D36V50F7, or an adjustable XL4015 5 A set to 7.5 V |
+| 1 | Buck converter 6 V, ≥3 A | e.g. Pololu D36V28F6, or an MP1584 for a small pusher servo |
+| 1 | Buck converter 5 V, ≥2 A | e.g. Pololu D36V28F5, or an MP1584 set to 5 V |
+| 1 | Inline mini blade (ATM) fuse holder, 14 AWG leads | |
+| 2 | 25 A mini blade fuse | One spare. Never go above 30 A on 14 AWG |
+| 1 | Main power switch | An RC anti-spark electronic switch, 2–6S, ≥40 A, avoids the spark from the ESC capacitors. A mechanical switch must be rated ≥20 A at ≥24 V DC |
+| 1 | DPST toggle or key switch, ≥3 A DC | Arm switch |
+| 1 | XT60 connector pair | Battery to turret |
+| 1 | Resistors 39 kΩ, 8.2 kΩ (1 %), 100 nF capacitor | Battery divider |
+| 1 | IR LED, IR phototransistor, 330 Ω, 10 kΩ | Light gate |
+| 1 | TFmini Plus | Step 3 |
+| – | Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors | |
+| – | 16 mm carbon tube ×1, 12 mm ×2, M3 screws | Frame, from the original |

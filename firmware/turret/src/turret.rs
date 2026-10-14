@@ -2,6 +2,8 @@ use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::{Duration, Instant};
 
+use esp_idf_svc::hal::gpio::{Input as GpioInput, PinDriver};
+use turret_core::arm_switch::ArmSwitch;
 use turret_core::command::Command;
 use turret_core::config::TurretConfig;
 use turret_core::fire::{Event, FireControl, Phase, Rejection};
@@ -18,8 +20,8 @@ const BATTERY_PERIOD_MS: u64 = 5_000;
 
 const HELP: &str = "\
 commands:
-  arm | disarm            enable / disable the flywheels and pusher
-  status                  show arming, fire phase, battery and gimbal
+  arm | disarm            enable / disable the flywheels and pusher (arm needs the arm switch on)
+  status                  show arming, arm switch, fire phase, battery and gimbal
   ping <id>               ping a serial bus servo
   P;pan;tilt;vpan;vtilt   move the gimbal in servo units
   F;1;mode;throttle;burst fire: mode 0 single, 1 burst, 2 auto; throttle 0-100 %
@@ -36,6 +38,7 @@ pub struct Turret {
     pub actuators: Actuators,
     pub gimbal: Gimbal,
     pub light_gate: LightGate,
+    pub arm_switch: PinDriver<'static, GpioInput>,
     pub battery: BatteryMonitor,
     pub remote: Remote,
     pub config: TurretConfig,
@@ -47,12 +50,14 @@ impl Turret {
             mut actuators,
             gimbal,
             light_gate,
+            arm_switch: arm_switch_pin,
             mut battery,
             remote,
             config,
         } = self;
         let boot = Instant::now();
         let mut fire = FireControl::new(config.fire);
+        let mut arm_switch = ArmSwitch::new(config.arm_switch_settle_ms);
         let mut state = State::default();
         let mut sent_state = None;
 
@@ -60,10 +65,27 @@ impl Turret {
         loop {
             let now_ms = boot.elapsed().as_millis() as u64;
 
+            arm_switch.update(arm_switch_pin.is_low(), now_ms);
+            let arm_switch_on = arm_switch.is_on(now_ms);
+            if fire.is_armed() && !arm_switch_on {
+                if let Some(event) = fire.disarm(now_ms) {
+                    report(event, &remote);
+                }
+                log::warn!("arm switch off, disarmed");
+            }
+
             while let Ok(input) = inputs.try_recv() {
                 match input {
                     Input::Command(command) => {
-                        handle(command, now_ms, &mut fire, &gimbal, &mut state, &remote);
+                        handle(
+                            command,
+                            now_ms,
+                            arm_switch_on,
+                            &mut fire,
+                            &gimbal,
+                            &mut state,
+                            &remote,
+                        );
                     }
                     Input::RemoteLost => {
                         if let Some(event) = fire.disarm(now_ms) {
@@ -132,12 +154,14 @@ impl State {
 fn handle(
     command: Command,
     now_ms: u64,
+    arm_switch_on: bool,
     fire: &mut FireControl,
     gimbal: &Gimbal,
     state: &mut State,
     remote: &Remote,
 ) {
     match command {
+        Command::Arm if !arm_switch_on => println!("not armed: the arm switch is off"),
         Command::Arm => {
             fire.arm();
             println!("armed");
@@ -187,8 +211,9 @@ fn handle(
         },
         Command::Status => {
             println!(
-                "{}, fire phase {:?}, battery {}, gimbal {}",
+                "{}, arm switch {}, fire phase {:?}, battery {}, gimbal {}",
                 if fire.is_armed() { "armed" } else { "disarmed" },
+                if arm_switch_on { "on" } else { "off" },
                 fire.phase(),
                 state.battery.map_or("unknown".into(), |reading| format!(
                     "{} mV {}%",

@@ -37,6 +37,7 @@ pub struct TurretConfig {
     pub gimbal: GimbalConfig,
     pub fire: FireTiming,
     pub battery: Battery,
+    pub arm_switch_settle_ms: u64,
 }
 
 impl TurretConfig {
@@ -72,6 +73,7 @@ impl Default for TurretConfig {
                 empty_cell_mv: 3_300,
                 full_cell_mv: 4_200,
             },
+            arm_switch_settle_ms: 50,
         }
     }
 }

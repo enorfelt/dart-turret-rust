@@ -1,12 +1,12 @@
 use esp_idf_svc::hal::adc::attenuation::DB_12;
 use esp_idf_svc::hal::adc::oneshot::config::{AdcChannelConfig, Calibration};
 use esp_idf_svc::hal::adc::oneshot::{AdcChannelDriver, AdcDriver};
-use esp_idf_svc::hal::adc::{ADC2, ADCU2};
-use esp_idf_svc::hal::gpio::{ADCPin, Gpio16};
+use esp_idf_svc::hal::adc::{ADC1, ADCU1};
+use esp_idf_svc::hal::gpio::{ADCPin, Gpio1};
 use esp_idf_svc::sys::EspError;
 use turret_core::battery::Battery;
 
-type BatteryPin = Gpio16<'static>;
+type BatteryPin = Gpio1<'static>;
 type BatteryChannel = <BatteryPin as ADCPin>::AdcChannel;
 
 #[derive(Debug, Clone, Copy)]
@@ -16,12 +16,12 @@ pub struct Reading {
 }
 
 pub struct BatteryMonitor {
-    channel: AdcChannelDriver<'static, BatteryChannel, AdcDriver<'static, ADCU2>>,
+    channel: AdcChannelDriver<'static, BatteryChannel, AdcDriver<'static, ADCU1>>,
     battery: Battery,
 }
 
 impl BatteryMonitor {
-    pub fn new(adc: ADC2<'static>, pin: BatteryPin, battery: Battery) -> Result<Self, EspError> {
+    pub fn new(adc: ADC1<'static>, pin: BatteryPin, battery: Battery) -> Result<Self, EspError> {
         let config = AdcChannelConfig {
             attenuation: DB_12,
             calibration: Calibration::Curve,

@@ -23,15 +23,16 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
 
 | Function | GPIO | Interface | Notes |
 |---|---|---|---|
-| Pan/tilt | TX 33, RX 34 | 2x Waveshare SC15 on UART1, 1 Mbaud, Feetech SCS protocol, IDs 0 (pan) / 1 (tilt) | `REG_WRITE` both, then broadcast `ACTION` so the axes move together; positions clamped to 0–1023 until the mechanical limits are measured |
+| Pan/tilt | TX 14, RX 21 | 2x Waveshare SC15 on UART1 through a level shifter and a Feetech TTLinker, 1 Mbaud, Feetech SCS protocol, IDs 0 (pan) / 1 (tilt) | `REG_WRITE` both, then broadcast `ACTION` so the axes move together; positions clamped to 0–1023 until the mechanical limits are measured |
 | Flywheels | 17, 18 | 2x ESC, 1000–2000 µs at 50 Hz via LEDC (14-bit) | Standard RC range, unlike the original 500–1000 µs; **calibrate the ESCs to it before the first spin-up** |
-| Pusher | 39 | RC servo, 50 Hz via LEDC | Retracted 847 µs, extended 514 µs: the original's positions converted to µs, to be checked on the printed pusher |
-| Range | – | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m (step 3) |
-| Dart speed | 38 | IR light gate, any-edge GPIO interrupt | Time between the two edges over a 70 mm dart gives km/h |
-| Battery | 16 | 4S Li-ion through a 39k/8k2 divider to ADC2_CH5 | 16.8 V reads ≈ 2.92 V. ADC2 cannot be read while Wi-Fi is running, so this must move to an ADC1 pin (GPIO 1–10) before ESP-NOW; check that readings still work with BLE active |
+| Pusher | 41 | RC servo, 50 Hz via LEDC | Retracted 847 µs, extended 514 µs: the original's positions converted to µs, to be checked on the printed pusher |
+| Range | RX 6, TX 7 | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m (step 3) |
+| Dart speed | 42 | IR light gate, any-edge GPIO interrupt | Time between the two edges over a 70 mm dart gives km/h |
+| Battery | 1 | 4S Li-ion through a 39k/8k2 divider to ADC1_CH0 | 16.8 V reads ≈ 2.92 V. ADC1, so readings keep working with Wi-Fi and ESP-NOW on |
+| Arm switch | 47 | Input with pull-up, closed to GND when on | Second pole of the switch cuts the pusher servo's supply. `arm` is refused while it is off, and turning it off disarms; on needs 50 ms without bounce |
 | Manual control | – | BLE peripheral (NimBLE), bonded with a passkey | See [BLE protocol](#ble-protocol) |
 
-Pins are assigned in one place, `firmware/turret/src/board.rs`; GPIO 38 and 16 are provisional until the turret is wired. Timings, pulse ranges, gimbal limits and battery constants live in `TurretConfig` (`crates/turret-core/src/config.rs`).
+The controller board is a Freenove ESP32-S3 WROOM (octal PSRAM, so GPIO 33–37 are unavailable and 38–40 go to the SD slot). Pins are assigned in one place, `firmware/turret/src/board.rs`; power, wiring and parts are in [wiring.md](wiring.md). Timings, pulse ranges, gimbal limits and battery constants live in `TurretConfig` (`crates/turret-core/src/config.rs`).
 
 ### Firmware structure
 
@@ -88,7 +89,7 @@ Open questions:
 
 ## Safety requirements
 
-- A physical arm switch must be on to spin flywheels; BLE disarm and kill work at any time.
+- A physical arm switch must be on to spin flywheels; BLE disarm and kill work at any time. The switch also cuts the pusher's power in hardware.
 - No fire on uncertainty: unknown, low-confidence or authorized faces are never engaged.
 - Torso aim offset; no fire when the aim point cannot be placed below the face.
 - Minimum engagement range from the lidar; no fire without a valid range reading.

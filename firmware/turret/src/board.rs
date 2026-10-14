@@ -1,4 +1,4 @@
-use esp_idf_svc::hal::gpio::{AnyInputPin, AnyOutputPin, Gpio16, Pins};
+use esp_idf_svc::hal::gpio::{AnyInputPin, AnyOutputPin, Gpio1, Pins};
 
 pub struct Board {
     pub esc_left: AnyOutputPin<'static>,
@@ -7,7 +7,8 @@ pub struct Board {
     pub servo_tx: AnyOutputPin<'static>,
     pub servo_rx: AnyInputPin<'static>,
     pub light_gate: AnyInputPin<'static>,
-    pub battery: Gpio16<'static>,
+    pub arm_switch: AnyInputPin<'static>,
+    pub battery: Gpio1<'static>,
 }
 
 impl Board {
@@ -15,11 +16,12 @@ impl Board {
         Self {
             esc_left: pins.gpio17.into(),
             esc_right: pins.gpio18.into(),
-            pusher: pins.gpio39.into(),
-            servo_tx: pins.gpio33.into(),
-            servo_rx: pins.gpio34.into(),
-            light_gate: pins.gpio38.into(),
-            battery: pins.gpio16,
+            pusher: pins.gpio41.into(),
+            servo_tx: pins.gpio14.into(),
+            servo_rx: pins.gpio21.into(),
+            light_gate: pins.gpio42.into(),
+            arm_switch: pins.gpio47.into(),
+            battery: pins.gpio1,
         }
     }
 }
