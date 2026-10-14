@@ -4,6 +4,8 @@ Turret controller wiring for a Freenove ESP32-S3 WROOM board (ESP32-S3-WROOM-1, 
 
 Status: proposed, not wired yet. `firmware/turret/src/board.rs` uses this pin map.
 
+The same wiring drawn as colour-coded schematics is in [wiring.html](wiring.html); open it in a browser. Keep the two in step when the wiring changes.
+
 ## Pin map (Freenove ESP32-S3 WROOM)
 
 The original pins do not fit this board: GPIO 33–37 are taken by the octal PSRAM (33/34 are not even broken out), and GPIO 38–40 go to the SD card slot. The camera connector stays empty on the turret controller, so camera pins are free to use.

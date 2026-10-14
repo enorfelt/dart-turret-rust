@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dart Turret Wiring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a bench sheet. Header, one rail legend that drives both schematics, then reference tables. */
+:root {
+  --paper: #eef1f4;
+  --panel: #ffffff;
+  --ink: #1e2833;
+  --ink-muted: #5a6878;
+  --line: #b9c3ce;
+  --accent: #9a7400;
+  --batt: #d33a3f;
+  --gnd: #3b4754;
+  --v75: #d9770f;
+  --v6: #7c55d9;
+  --v5: #108c99;
+  --servo: #2f6fdf;
+  --pwm: #2e9a62;
+  --sense: #a8700a;
+  --lidar: #c23f8e;
+  --phase: #7d8a98;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #1e2833;
+    --panel: #283543;
+    --ink: #e8edf2;
+    --ink-muted: #9aabbd;
+    --line: #46576a;
+    --accent: #f5c518;
+    --batt: #f0565b;
+    --gnd: #aab8c6;
+    --v75: #f59a3a;
+    --v6: #a78bfa;
+    --v5: #34c3d0;
+    --servo: #6fa0ff;
+    --pwm: #52c98a;
+    --sense: #e7b53a;
+    --lidar: #f07cc0;
+    --phase: #7d8a98;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #1e2833;
+  --panel: #283543;
+  --ink: #e8edf2;
+  --ink-muted: #9aabbd;
+  --line: #46576a;
+  --accent: #f5c518;
+  --batt: #f0565b;
+  --gnd: #aab8c6;
+  --v75: #f59a3a;
+  --v6: #a78bfa;
+  --v5: #34c3d0;
+  --servo: #6fa0ff;
+  --pwm: #52c98a;
+  --sense: #e7b53a;
+  --lidar: #f07cc0;
+  --phase: #7d8a98;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 32px 64px;
+  display: grid;
+  gap: 40px;
+}
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.1;
+  text-wrap: balance;
+  margin: 0;
+}
+h1 { font-size: 2.6rem; letter-spacing: .01em; }
+h2 { font-size: 1.7rem; }
+h3 { font-size: 1.2rem; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--accent);
+  font-size: .9rem;
+}
+header { display: grid; gap: 10px; }
+.meta { color: var(--ink-muted); }
+code, .mono { font-family: var(--font-mono); font-size: .88em; }
+
+.legend {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 2;
+  background: var(--paper);
+  padding-block: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+.legend span.lbl {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: .85rem;
+  color: var(--ink-muted);
+  margin-right: 4px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font: 500 .9rem var(--font-body);
+  cursor: pointer;
+}
+.chip i { width: 18px; height: 4px; border-radius: 2px; background: var(--c); }
+.chip[aria-pressed="true"] { border-color: var(--c); box-shadow: inset 0 0 0 1px var(--c); }
+.chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+section { display: grid; gap: 14px; }
+figure { margin: 0; display: grid; gap: 10px; }
+.scroll {
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+svg.diagram { display: block; width: 100%; min-width: 900px; height: auto; color: var(--ink); }
+figcaption { color: var(--ink-muted); max-width: 80ch; font-size: .95rem; }
+.notes { display: grid; gap: 8px; padding-left: 1.2em; margin: 0; max-width: 80ch; }
+
+/* SVG parts */
+.box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+.box.key { stroke: var(--ink-muted); }
+.t { fill: currentColor; font: 600 13px var(--font-body); }
+.s { fill: var(--ink-muted); font: 400 11.5px var(--font-body); }
+.p { fill: currentColor; font: 600 11.5px var(--font-mono); }
+.tag { font: 600 11.5px var(--font-mono); }
+.w { fill: none; stroke-linecap: round; stroke-linejoin: round; transition: opacity .15s; }
+.dot { stroke: none; transition: opacity .15s; }
+.sym { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.n-batt { stroke: var(--batt); } .dot.n-batt, .tag.n-batt { fill: var(--batt); stroke: none; }
+.n-gnd { stroke: var(--gnd); } .dot.n-gnd, .tag.n-gnd { fill: var(--gnd); stroke: none; }
+.n-v75 { stroke: var(--v75); } .dot.n-v75, .tag.n-v75 { fill: var(--v75); stroke: none; }
+.n-v6 { stroke: var(--v6); } .dot.n-v6, .tag.n-v6 { fill: var(--v6); stroke: none; }
+.n-v5 { stroke: var(--v5); } .dot.n-v5, .tag.n-v5 { fill: var(--v5); stroke: none; }
+.n-v33 { stroke: var(--v5); stroke-dasharray: 5 4; } .tag.n-v33 { fill: var(--v5); stroke: none; }
+.n-servo { stroke: var(--servo); } .dot.n-servo { fill: var(--servo); stroke: none; }
+.n-pwm { stroke: var(--pwm); }
+.n-sense { stroke: var(--sense); } .dot.n-sense, .tag.n-sense { fill: var(--sense); stroke: none; }
+.n-lidar { stroke: var(--lidar); }
+.n-phase { stroke: var(--phase); }
+
+.sheet[data-focus] .w, .sheet[data-focus] .dot, .sheet[data-focus] .tag { opacity: .12; }
+.sheet[data-focus="batt"] .n-batt,
+.sheet[data-focus="gnd"] .n-gnd,
+.sheet[data-focus="v75"] .n-v75,
+.sheet[data-focus="v6"] .n-v6,
+.sheet[data-focus="v5"] .n-v5,
+.sheet[data-focus="v5"] .n-v33,
+.sheet[data-focus="servo"] .n-servo,
+.sheet[data-focus="pwm"] .n-pwm,
+.sheet[data-focus="sense"] .n-sense,
+.sheet[data-focus="lidar"] .n-lidar { opacity: 1; }
+
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+.tbl { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: .85rem;
+  color: var(--ink-muted);
+}
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.swatch { display: inline-block; width: 14px; height: 4px; border-radius: 2px; background: var(--c); vertical-align: middle; margin-right: 8px; }
+.two { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 80ch; }
+.warn { color: var(--batt); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .w, .dot { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="page sheet" id="sheet">
+  <header>
+    <div class="eyebrow">Turret controller · Freenove ESP32-S3 WROOM · 4S1P 18650</div>
+    <h1>Dart Turret Wiring</h1>
+    <p class="meta">Power and signal wiring for the turret controller, with the main fuse, power switch and hardware arm switch. Matches <code>firmware/turret/src/board.rs</code> and <code>docs/wiring.md</code>. Status: proposed, not yet wired.</p>
+  </header>
+
+  <div class="legend" role="toolbar" aria-label="Highlight a rail">
+    <span class="lbl">Highlight</span>
+    <button class="chip" type="button" id="f-batt" data-net="batt" style="--c: var(--batt)" aria-pressed="false"><i></i>Battery +, 16.8 V</button>
+    <button class="chip" type="button" id="f-gnd" data-net="gnd" style="--c: var(--gnd)" aria-pressed="false"><i></i>Ground</button>
+    <button class="chip" type="button" id="f-v75" data-net="v75" style="--c: var(--v75)" aria-pressed="false"><i></i>7.5 V servos</button>
+    <button class="chip" type="button" id="f-v6" data-net="v6" style="--c: var(--v6)" aria-pressed="false"><i></i>6 V pusher</button>
+    <button class="chip" type="button" id="f-v5" data-net="v5" style="--c: var(--v5)" aria-pressed="false"><i></i>5 V / 3V3 logic</button>
+    <button class="chip" type="button" id="f-servo" data-net="servo" style="--c: var(--servo)" aria-pressed="false"><i></i>Servo bus data</button>
+    <button class="chip" type="button" id="f-pwm" data-net="pwm" style="--c: var(--pwm)" aria-pressed="false"><i></i>PWM</button>
+    <button class="chip" type="button" id="f-sense" data-net="sense" style="--c: var(--sense)" aria-pressed="false"><i></i>Sensor inputs</button>
+    <button class="chip" type="button" id="f-lidar" data-net="lidar" style="--c: var(--lidar)" aria-pressed="false"><i></i>Lidar UART</button>
+  </div>
+
+  <section aria-labelledby="power-h">
+    <h2 id="power-h">Power</h2>
+    <figure>
+      <div class="scroll">
+        <svg class="diagram" viewBox="0 0 1200 730" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the main switch onto a plus and minus bus. The bus feeds both ESCs, a 7.5 V buck for the servo bus, a 6 V buck for the pusher through the arm switch, a 5 V buck for the logic, and the battery divider into GPIO 1.">
+          <!-- battery -->
+          <rect class="box key" x="20" y="50" width="160" height="130" rx="6"/>
+          <text class="t" x="36" y="78">Battery</text>
+          <text class="s" x="36" y="98">4S1P 18650 + 4S BMS</text>
+          <text class="s" x="36" y="116">12.8–16.8 V</text>
+          <text class="p" x="164" y="80" text-anchor="end">+</text>
+          <text class="p" x="164" y="155" text-anchor="end">−</text>
+
+          <!-- + path: fuse, switch -->
+          <path class="w n-batt" stroke-width="4" d="M180 85 H230 M310 85 H350 M460 85 H510"/>
+          <rect class="box" x="230" y="72" width="80" height="26" rx="4"/>
+          <text class="t" x="270" y="90" text-anchor="middle">25 A fuse</text>
+          <rect class="box" x="350" y="72" width="110" height="26" rx="4"/>
+          <text class="t" x="405" y="90" text-anchor="middle">Main switch</text>
+          <text class="s" x="270" y="62" text-anchor="middle">mini blade, at the battery</text>
+          <text class="s" x="405" y="62" text-anchor="middle">anti-spark, ≥40 A</text>
+          <text class="s" x="345" y="122" text-anchor="middle">14 AWG battery to bus</text>
+
+          <!-- − path -->
+          <path class="w n-gnd" stroke-width="4" d="M180 150 H480"/>
+
+          <!-- buses -->
+          <path class="w n-batt" stroke-width="6" d="M510 85 V660"/>
+          <path class="w n-gnd" stroke-width="6" d="M480 150 V660"/>
+          <circle class="dot n-batt" cx="510" cy="85" r="5"/>
+          <circle class="dot n-gnd" cx="480" cy="150" r="5"/>
+          <text class="t" x="470" y="684" text-anchor="end">− bus</text>
+          <text class="t" x="520" y="684" text-anchor="start">+ bus</text>
+          <text class="s" x="495" y="702" text-anchor="middle">14 AWG, short</text>
+
+          <!-- row: ESC left yc=170 -->
+          <path class="w n-batt" stroke-width="3" d="M510 160 H620"/>
+          <path class="w n-gnd" stroke-width="3" d="M480 180 H504 a6 6 0 0 1 12 0 H620"/>
+          <circle class="dot n-batt" cx="510" cy="160" r="4"/>
+          <circle class="dot n-gnd" cx="480" cy="180" r="4"/>
+          <text class="s" x="568" y="152" text-anchor="middle">16 AWG</text>
+          <rect class="box" x="620" y="142" width="150" height="56" rx="5"/>
+          <text class="t" x="636" y="166">ESC left</text>
+          <text class="s" x="636" y="184">30 A BLHeli, 2–4S</text>
+          <path class="w n-phase" stroke-width="2" d="M770 158 H854 M770 170 H854 M770 182 H854"/>
+          <text class="s" x="812" y="150" text-anchor="middle">3 phase</text>
+          <circle class="box" cx="880" cy="170" r="26"/>
+          <text class="t" x="880" y="175" text-anchor="middle">M</text>
+          <text class="s" x="916" y="174">2206 2300 KV flywheel motor</text>
+
+          <!-- row: ESC right yc=250 -->
+          <path class="w n-batt" stroke-width="3" d="M510 240 H620"/>
+          <path class="w n-gnd" stroke-width="3" d="M480 260 H504 a6 6 0 0 1 12 0 H620"/>
+          <circle class="dot n-batt" cx="510" cy="240" r="4"/>
+          <circle class="dot n-gnd" cx="480" cy="260" r="4"/>
+          <text class="s" x="568" y="232" text-anchor="middle">16 AWG</text>
+          <rect class="box" x="620" y="222" width="150" height="56" rx="5"/>
+          <text class="t" x="636" y="246">ESC right</text>
+          <text class="s" x="636" y="264">30 A BLHeli, 2–4S</text>
+          <path class="w n-phase" stroke-width="2" d="M770 238 H854 M770 250 H854 M770 262 H854"/>
+          <text class="s" x="812" y="230" text-anchor="middle">3 phase</text>
+          <circle class="box" cx="880" cy="250" r="26"/>
+          <text class="t" x="880" y="255" text-anchor="middle">M</text>
+          <text class="s" x="916" y="254">2206 2300 KV flywheel motor</text>
+
+          <!-- row: buck 7.5 V yc=345 -->
+          <path class="w n-batt" stroke-width="2.5" d="M510 335 H620"/>
+          <path class="w n-gnd" stroke-width="2.5" d="M480 355 H504 a6 6 0 0 1 12 0 H620"/>
+          <circle class="dot n-batt" cx="510" cy="335" r="4"/>
+          <circle class="dot n-gnd" cx="480" cy="355" r="4"/>
+          <text class="s" x="568" y="327" text-anchor="middle">20 AWG</text>
+          <rect class="box" x="620" y="317" width="150" height="56" rx="5"/>
+          <text class="t" x="636" y="341">Buck 7.5 V</text>
+          <text class="s" x="636" y="359">≥5 A</text>
+          <path class="w n-v75" stroke-width="3" d="M770 335 H860"/>
+          <path class="w n-gnd" stroke-width="2.5" d="M770 355 H860"/>
+          <text class="s" x="815" y="327" text-anchor="middle">7.5 V · 20 AWG</text>
+          <rect class="box" x="860" y="317" width="100" height="56" rx="5"/>
+          <text class="t" x="876" y="341">TTLinker</text>
+          <text class="s" x="876" y="359">VIN, GND</text>
+          <path class="w n-v75" stroke-width="3" d="M960 335 H990 M1070 335 H1110"/>
+          <path class="w n-gnd" stroke-width="2.5" d="M960 355 H990 M1070 355 H1110"/>
+          <rect class="box" x="990" y="317" width="80" height="56" rx="5"/>
+          <text class="t" x="1006" y="341">SC15 pan</text>
+          <text class="s" x="1006" y="359">ID 0</text>
+          <rect class="box" x="1110" y="317" width="80" height="56" rx="5"/>
+          <text class="t" x="1126" y="341">SC15 tilt</text>
+          <text class="s" x="1126" y="359">ID 1</text>
+          <text class="s" x="1090" y="393" text-anchor="middle">3-pin servo cable, daisy-chained</text>
+
+          <!-- row: buck 6 V yc=445 -->
+          <path class="w n-batt" stroke-width="2.5" d="M510 435 H620"/>
+          <path class="w n-gnd" stroke-width="2.5" d="M480 455 H504 a6 6 0 0 1 12 0 H620"/>
+          <circle class="dot n-batt" cx="510" cy="435" r="4"/>
+          <circle class="dot n-gnd" cx="480" cy="455" r="4"/>
+          <text class="s" x="568" y="427" text-anchor="middle">20 AWG</text>
+          <rect class="box" x="620" y="417" width="150" height="56" rx="5"/>
+          <text class="t" x="636" y="441">Buck 6 V</text>
+          <text class="s" x="636" y="459">≥3 A</text>
+          <path class="w n-v6" stroke-width="3" d="M770 435 H870 M920 435 H1000"/>
+          <path class="w n-gnd" stroke-width="2.5" d="M770 455 H1000"/>
+          <circle class="dot n-v6" cx="870" cy="435" r="4"/>
+          <circle class="dot n-v6" cx="920" cy="435" r="4"/>
+          <path class="sym" d="M870 435 L914 418"/>
+          <text class="t" x="895" y="406" text-anchor="middle">Arm switch, pole A</text>
+          <text class="s" x="815" y="427" text-anchor="middle">6 V</text>
+          <rect class="box" x="1000" y="417" width="130" height="56" rx="5"/>
+          <text class="t" x="1016" y="441">Pusher servo</text>
+          <text class="s" x="1016" y="459">metal gear, 6 V</text>
+          <text class="s" x="960" y="493" text-anchor="middle">switch off: pusher has no power, no dart can fire</text>
+
+          <!-- row: buck 5 V yc=560 -->
+          <path class="w n-batt" stroke-width="2.5" d="M510 550 H620"/>
+          <path class="w n-gnd" stroke-width="2.5" d="M480 570 H504 a6 6 0 0 1 12 0 H620"/>
+          <circle class="dot n-batt" cx="510" cy="550" r="4"/>
+          <circle class="dot n-gnd" cx="480" cy="570" r="4"/>
+          <text class="s" x="568" y="542" text-anchor="middle">20 AWG</text>
+          <rect class="box" x="620" y="532" width="150" height="56" rx="5"/>
+          <text class="t" x="636" y="556">Buck 5 V</text>
+          <text class="s" x="636" y="574">≥2 A</text>
+          <path class="w n-v5" stroke-width="2.5" d="M770 550 H830 M830 516 V604 M830 516 H846 M830 538 H846 M830 560 H846 M830 582 H846 M830 604 H846"/>
+          <circle class="dot n-v5" cx="830" cy="550" r="4"/>
+          <text class="s" x="800" y="542" text-anchor="middle">22 AWG</text>
+          <text class="t" x="852" y="520">ESP32-S3 5V pin</text>
+          <text class="t" x="852" y="542">TFmini Plus 5 V</text>
+          <text class="t" x="852" y="564">Level shifter HV</text>
+          <text class="t" x="852" y="586">TTLinker 5 V</text>
+          <text class="t" x="852" y="608">Light gate IR LED</text>
+          <path class="w n-gnd" stroke-width="2" d="M770 570 H800"/>
+          <path class="sym n-gnd w" d="M800 570 v8 M791 578 h18 M794 582 h12 M797 586 h6"/>
+          <text class="s" x="852" y="630">each load's GND joins the common ground</text>
+
+          <!-- divider yc=640 -->
+          <path class="w n-sense" stroke-width="2" d="M510 640 H560 M620 640 H700 M760 640 H800 V650"/>
+          <circle class="dot n-batt" cx="510" cy="640" r="4"/>
+          <rect class="box" x="560" y="632" width="60" height="16" rx="2"/>
+          <text class="s" x="590" y="626" text-anchor="middle">39 kΩ 1 %</text>
+          <circle class="dot n-sense" cx="660" cy="640" r="4"/>
+          <rect class="box" x="700" y="632" width="60" height="16" rx="2"/>
+          <text class="s" x="730" y="626" text-anchor="middle">8.2 kΩ 1 %</text>
+          <path class="sym n-gnd w" d="M800 650 v4 M791 654 h18 M794 658 h12 M797 662 h6"/>
+          <path class="w n-sense" stroke-width="2" d="M660 640 V680 H860"/>
+          <polygon class="dot n-sense" points="860,675 870,680 860,685"/>
+          <text class="t" x="878" y="684">GPIO 1 (ADC1_CH0)</text>
+          <path class="sym" d="M720 680 V690 M710 690 H730 M710 696 H730 M720 696 V702"/>
+          <path class="sym n-gnd w" d="M711 702 h18 M714 706 h12 M717 710 h6"/>
+          <text class="s" x="738" y="700">100 nF</text>
+          <text class="s" x="560" y="672">26 AWG, after the switch</text>
+        </svg>
+      </div>
+      <figcaption>Everything is downstream of the fuse and the main switch. A junction dot means the wires are joined; a wire that hops over a bus is not connected to it. The ⏚ symbol means "to the − bus".</figcaption>
+    </figure>
+    <ul class="notes">
+      <li>Put the fuse as close to battery + as you can, so it protects every wire after it, including the switch.</li>
+      <li>Two stalled SC15s draw 3.4 A, so the 7.5 V buck must be rated 5 A. The original 8 V MP1584 (3 A peak) is too small.</li>
+      <li>If an ESC has a BEC, leave its red servo-lead wire unconnected. Only signal and ground go to the ESP.</li>
+      <li class="warn">Turn the turret off before plugging in USB, unless you have checked that the Freenove board isolates VBUS from its 5V pin.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="sig-h">
+    <h2 id="sig-h">Signals</h2>
+    <figure>
+      <div class="scroll">
+        <svg class="diagram" viewBox="0 0 1200 790" role="img" aria-label="Signal wiring of the ESP32-S3: GPIO 14 and 21 run through a level shifter and the TTLinker to the SC15 servos; GPIO 17 and 18 drive the ESCs; GPIO 41 drives the pusher; GPIO 42 reads the light gate; GPIO 47 reads the arm switch; GPIO 6 and 7 talk to the TFmini Plus; GPIO 1 reads the battery divider.">
+          <defs>
+            <marker id="a-servo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--servo)"/></marker>
+            <marker id="a-pwm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--pwm)"/></marker>
+            <marker id="a-sense" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--sense)"/></marker>
+            <marker id="a-lidar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--lidar)"/></marker>
+            <marker id="a-beam" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-muted)"/></marker>
+          </defs>
+
+          <!-- ESP board -->
+          <rect class="box key" x="380" y="30" width="220" height="730" rx="8"/>
+          <text class="t" x="490" y="58" text-anchor="middle">ESP32-S3 (Freenove WROOM)</text>
+          <text class="s" x="490" y="76" text-anchor="middle">camera connector left empty</text>
+          <text class="p" x="390" y="114">5V</text>
+          <text class="p" x="390" y="164">GND</text>
+          <text class="p" x="390" y="214">3V3</text>
+          <text class="p" x="590" y="114" text-anchor="end">GPIO 14</text>
+          <text class="p" x="590" y="164" text-anchor="end">GPIO 21</text>
+          <text class="p" x="590" y="254" text-anchor="end">GPIO 17</text>
+          <text class="p" x="590" y="304" text-anchor="end">GPIO 18</text>
+          <text class="p" x="590" y="374" text-anchor="end">GPIO 41</text>
+          <text class="p" x="590" y="454" text-anchor="end">GPIO 42</text>
+          <text class="p" x="590" y="564" text-anchor="end">GPIO 47</text>
+          <text class="p" x="590" y="634" text-anchor="end">GPIO 6</text>
+          <text class="p" x="590" y="684" text-anchor="end">GPIO 7</text>
+          <text class="p" x="590" y="734" text-anchor="end">GPIO 1</text>
+
+          <!-- left side power -->
+          <path class="w n-v5" stroke-width="2.5" d="M380 110 H250"/>
+          <text class="tag n-v5" x="240" y="114" text-anchor="end">5 V buck</text>
+          <path class="w n-gnd" stroke-width="2.5" d="M380 160 H250"/>
+          <text class="tag n-gnd" x="240" y="164" text-anchor="end">− bus</text>
+          <path class="w n-v33" stroke-width="2.5" d="M380 210 H250"/>
+          <text class="tag n-v33" x="240" y="206" text-anchor="end">3V3 out</text>
+          <text class="s" x="240" y="224" text-anchor="end">to shifter LV and gate pull-up</text>
+
+          <!-- level shifter -->
+          <rect class="box" x="680" y="88" width="110" height="96" rx="5"/>
+          <text class="t" x="735" y="80" text-anchor="middle">Level shifter</text>
+          <text class="p" x="688" y="114">LV1</text>
+          <text class="p" x="688" y="164">LV2</text>
+          <text class="p" x="782" y="114" text-anchor="end">HV1</text>
+          <text class="p" x="782" y="164" text-anchor="end">HV2</text>
+          <text class="s" x="735" y="202" text-anchor="middle">LV 3V3 · HV 5 V · GND</text>
+          <path class="w n-servo" stroke-width="2" d="M600 110 H676" marker-end="url(#a-servo)"/>
+          <path class="w n-servo" stroke-width="2" d="M680 160 H604" marker-end="url(#a-servo)"/>
+          <text class="s" x="640" y="102" text-anchor="middle">TX</text>
+          <text class="s" x="640" y="152" text-anchor="middle">RX</text>
+
+          <!-- TTLinker -->
+          <rect class="box" x="860" y="88" width="110" height="96" rx="5"/>
+          <text class="t" x="915" y="80" text-anchor="middle">TTLinker</text>
+          <text class="p" x="868" y="114">RXD</text>
+          <text class="p" x="868" y="164">TXD</text>
+          <text class="s" x="915" y="202" text-anchor="middle">VIN 7.5 V · 5 V · GND</text>
+          <path class="w n-servo" stroke-width="2" d="M790 110 H856" marker-end="url(#a-servo)"/>
+          <path class="w n-servo" stroke-width="2" d="M860 160 H794" marker-end="url(#a-servo)"/>
+
+          <!-- servo bus -->
+          <path class="w n-servo" stroke-width="2.5" d="M970 136 H1030 M1075 162 V196"/>
+          <text class="s" x="1000" y="128" text-anchor="middle">bus</text>
+          <rect class="box" x="1030" y="112" width="100" height="50" rx="5"/>
+          <text class="t" x="1046" y="134">SC15 pan</text>
+          <text class="s" x="1046" y="151">ID 0</text>
+          <rect class="box" x="1030" y="196" width="100" height="50" rx="5"/>
+          <text class="t" x="1046" y="218">SC15 tilt</text>
+          <text class="s" x="1046" y="235">ID 1</text>
+
+          <!-- ESCs -->
+          <path class="w n-pwm" stroke-width="2" d="M600 250 H856" marker-end="url(#a-pwm)"/>
+          <path class="w n-pwm" stroke-width="2" d="M600 300 H856" marker-end="url(#a-pwm)"/>
+          <text class="s" x="730" y="242" text-anchor="middle">PWM 50 Hz, 1000–2000 µs</text>
+          <rect class="box" x="860" y="232" width="110" height="36" rx="5"/>
+          <text class="t" x="876" y="255">ESC left</text>
+          <rect class="box" x="860" y="282" width="110" height="36" rx="5"/>
+          <text class="t" x="876" y="305">ESC right</text>
+          <text class="s" x="985" y="284">signal + GND only</text>
+          <text class="s" x="985" y="300">red BEC wire unused</text>
+
+          <!-- pusher -->
+          <path class="w n-pwm" stroke-width="2" d="M600 370 H856" marker-end="url(#a-pwm)"/>
+          <text class="s" x="730" y="362" text-anchor="middle">PWM 50 Hz, 514–847 µs</text>
+          <rect class="box" x="860" y="352" width="110" height="36" rx="5"/>
+          <text class="t" x="876" y="375">Pusher servo</text>
+          <text class="s" x="985" y="375">powered from 6 V through pole A</text>
+
+          <!-- light gate -->
+          <path class="w n-sense" stroke-width="2" d="M600 450 H782"/>
+          <circle class="dot n-sense" cx="700" cy="450" r="4"/>
+          <path class="w n-sense" stroke-width="2" d="M700 450 V440 M700 410 V402"/>
+          <rect class="box" x="693" y="410" width="14" height="30" rx="2"/>
+          <text class="s" x="686" y="430" text-anchor="end">10 kΩ</text>
+          <text class="tag n-v33" x="700" y="396" text-anchor="middle">3V3</text>
+          <circle class="sym" cx="800" cy="450" r="18"/>
+          <text class="s" x="800" y="454" text-anchor="middle">PT</text>
+          <path class="w n-gnd" stroke-width="2" d="M800 468 V476"/>
+          <path class="sym n-gnd w" d="M791 476 h18 M794 480 h12 M797 484 h6"/>
+          <text class="t" x="800" y="512" text-anchor="middle">IR phototransistor</text>
+          <text class="s" x="800" y="528" text-anchor="middle">C to GPIO 42, E to GND</text>
+          <path class="w" stroke="var(--ink-muted)" stroke-width="1.5" stroke-dasharray="4 4" d="M896 446 H824" marker-end="url(#a-beam)"/>
+          <text class="s" x="860" y="438" text-anchor="middle">IR beam</text>
+          <path class="sym" d="M900 432 L920 432 L910 452 Z M900 452 H920"/>
+          <path class="w n-v5" stroke-width="2" d="M910 432 V420 H940 M990 420 H1010"/>
+          <path class="w n-gnd" stroke-width="2" d="M910 452 V468"/>
+          <path class="sym n-gnd w" d="M901 468 h18 M904 472 h12 M907 476 h6"/>
+          <rect class="box" x="940" y="412" width="50" height="16" rx="2"/>
+          <text class="s" x="965" y="406" text-anchor="middle">330 Ω</text>
+          <text class="tag n-v5" x="1016" y="424">5 V</text>
+          <text class="t" x="930" y="500" text-anchor="start">IR LED</text>
+          <text class="s" x="930" y="516" text-anchor="start">faces the phototransistor</text>
+          <text class="s" x="930" y="532" text-anchor="start">across the barrel</text>
+
+          <!-- arm switch pole B -->
+          <path class="w n-sense" stroke-width="2" d="M600 560 H700 M750 560 H790 V566"/>
+          <circle class="dot n-sense" cx="700" cy="560" r="4"/>
+          <circle class="dot n-sense" cx="750" cy="560" r="4"/>
+          <path class="sym" d="M700 560 L745 544"/>
+          <path class="sym n-gnd w" d="M781 566 h18 M784 570 h12 M787 574 h6"/>
+          <text class="t" x="725" y="534" text-anchor="middle">Arm switch, pole B</text>
+          <text class="s" x="820" y="564">closed = on: GPIO 47 reads low (internal pull-up)</text>
+
+          <!-- TFmini -->
+          <rect class="box" x="860" y="610" width="110" height="90" rx="5"/>
+          <text class="t" x="915" y="602" text-anchor="middle">TFmini Plus</text>
+          <text class="p" x="868" y="634">TX</text>
+          <text class="p" x="868" y="684">RX</text>
+          <path class="w n-lidar" stroke-width="2" d="M860 630 H604" marker-end="url(#a-lidar)"/>
+          <path class="w n-lidar" stroke-width="2" d="M600 680 H856" marker-end="url(#a-lidar)"/>
+          <text class="s" x="730" y="622" text-anchor="middle">UART2 115200, 3.3 V levels</text>
+          <text class="s" x="985" y="650">red 5 V, black GND</text>
+          <text class="s" x="985" y="666">no level shifter needed</text>
+
+          <!-- battery sense -->
+          <path class="w n-sense" stroke-width="2" d="M700 730 H604" marker-end="url(#a-sense)"/>
+          <text class="tag n-sense" x="708" y="734">battery divider midpoint (power diagram)</text>
+        </svg>
+      </div>
+      <figcaption>Arrows point the way data travels. Signal wires are 26 AWG. Every module's GND, including each ESC's signal ground, goes to the common ground.</figcaption>
+    </figure>
+    <ul class="notes">
+      <li>If <code>ping 0</code> gets no answer, swap the TTLinker RXD and TXD wires. These boards do not agree on whose side the labels name.</li>
+      <li>BSS138 level shifters are slow. If the servo bus shows errors at 1 Mbaud, use a 74AHCT125 buffer or lower the servo baud rate.</li>
+      <li>The light gate reads low while the beam is lit and high while a dart blocks it. The original wired the phototransistor from 5 V, which can push more than 3.3 V into the pin.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="pins-h">
+    <h2 id="pins-h">Pin map</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>GPIO</th><th>Function</th><th>Was</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="num">14</td><td><span class="swatch" style="--c: var(--servo)"></span>Servo bus TX (UART1)</td><td class="num">33</td><td>Through the level shifter to TTLinker RXD</td></tr>
+          <tr><td class="num">21</td><td><span class="swatch" style="--c: var(--servo)"></span>Servo bus RX (UART1)</td><td class="num">34</td><td>From TTLinker TXD through the level shifter</td></tr>
+          <tr><td class="num">17</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC left</td><td class="num">17</td><td>Camera pin, free with no camera</td></tr>
+          <tr><td class="num">18</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC right</td><td class="num">18</td><td>Camera pin, free with no camera</td></tr>
+          <tr><td class="num">41</td><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher servo</td><td class="num">39</td><td>39 is the SD card clock on this board</td></tr>
+          <tr><td class="num">42</td><td><span class="swatch" style="--c: var(--sense)"></span>Light gate</td><td class="num">38</td><td>38 is the SD card command line on this board</td></tr>
+          <tr><td class="num">47</td><td><span class="swatch" style="--c: var(--sense)"></span>Arm switch sense</td><td class="num">–</td><td>Closed to GND = on</td></tr>
+          <tr><td class="num">6</td><td><span class="swatch" style="--c: var(--lidar)"></span>TFmini Plus TX → ESP</td><td class="num">–</td><td>UART2, roadmap step 3</td></tr>
+          <tr><td class="num">7</td><td><span class="swatch" style="--c: var(--lidar)"></span>ESP → TFmini Plus RX</td><td class="num">–</td><td>UART2, roadmap step 3</td></tr>
+          <tr><td class="num">1</td><td><span class="swatch" style="--c: var(--sense)"></span>Battery divider</td><td class="num">16</td><td>ADC1, keeps reading with Wi-Fi on</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="meta">Do not use 0, 3, 45, 46 (strapping), 2 (LED), 48 (RGB LED), 19/20 (USB), 43/44 (onboard USB-UART), 35–37 (PSRAM) or 38–40 (SD card). GPIO 33 and 34 are not broken out.</p>
+  </section>
+
+  <div class="two">
+    <section aria-labelledby="awg-h">
+      <h2 id="awg-h">Wire gauges</h2>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Run</th><th>AWG</th><th>Current</th></tr></thead>
+          <tbody>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Battery, fuse, switch, buses</td><td class="num">14</td><td>30–40 A spin-up peaks</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Bus to each ESC</td><td class="num">16</td><td>up to ~20 A each</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--phase)"></span>ESC to motor</td><td class="num">as supplied</td><td>usually 18–20 AWG</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Bus to buck inputs</td><td class="num">20</td><td>under 3 A</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--v75)"></span>7.5 V servos, 6 V pusher</td><td class="num">20</td><td>up to 3.4 A stalled</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--v5)"></span>5 V logic</td><td class="num">22</td><td>under 1 A</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--sense)"></span>Signals, divider, sensors</td><td class="num">26</td><td>milliamps</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="meta">Use stranded silicone wire throughout so it survives the pan and tilt movement, and strain-relieve it where it crosses the gimbal axes.</p>
+    </section>
+
+    <section aria-labelledby="check-h">
+      <h2 id="check-h">First power-on</h2>
+      <ol class="check">
+        <li>With nothing on the buck outputs, set them to 7.5 V, 6.0 V and 5.0 V with a multimeter.</li>
+        <li>Check that the + bus and − bus are not shorted, with the battery disconnected.</li>
+        <li>First power-on: arm switch off, no darts, flywheel motors unplugged from the ESCs.</li>
+        <li>Run <code>B</code> on the console and compare with a multimeter across the pack.</li>
+        <li>Run <code>ping 0</code> and <code>ping 1</code>. No reply: swap TTLinker RXD/TXD.</li>
+        <li>Run <code>status</code> and flip the arm switch; it should show on and off.</li>
+        <li>Calibrate both ESCs to 1000–2000 µs before the first spin-up.</li>
+      </ol>
+    </section>
+  </div>
+
+  <section aria-labelledby="bom-h">
+    <h2 id="bom-h">Bill of materials</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Qty</th><th>Part</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Freenove ESP32-S3 WROOM board</td><td>Turret controller, camera left unplugged</td></tr>
+          <tr><td class="num">2</td><td>Waveshare SC15 serial bus servo</td><td>Pan ID 0, tilt ID 1; 4.8–8.4 V, 1.7 A stall</td></tr>
+          <tr><td class="num">1</td><td>Feetech TTLinker (mini)</td><td>UART to half-duplex servo bus</td></tr>
+          <tr><td class="num">1</td><td>4-channel BSS138 level shifter</td><td>3.3 V ↔ 5 V for the TTLinker</td></tr>
+          <tr><td class="num">2</td><td>2206 2300 KV brushless motor</td><td>Original: Armattan Oomph 2206/2300 KV. Check that a substitute fits the printed mounts</td></tr>
+          <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed</td></tr>
+          <tr><td class="num">1</td><td>Standard-size metal-gear RC servo</td><td>Dart pusher, 6 V</td></tr>
+          <tr><td class="num">4</td><td>High-drain 18650 cell</td><td>Molicel P28A (35 A); Samsung 30Q (15 A) at minimum</td></tr>
+          <tr><td class="num">1</td><td>4S BMS, ≥30 A continuous</td><td>Over-discharge and short protection; balance-charge externally</td></tr>
+          <tr><td class="num">1</td><td>4S 18650 holder, or spot-welded pack</td><td></td></tr>
+          <tr><td class="num">1</td><td>Buck converter 7.5 V, ≥5 A</td><td>Pololu D36V50F7, or XL4015 set to 7.5 V</td></tr>
+          <tr><td class="num">1</td><td>Buck converter 6 V, ≥3 A</td><td>Pololu D36V28F6, or MP1584 for a small pusher servo</td></tr>
+          <tr><td class="num">1</td><td>Buck converter 5 V, ≥2 A</td><td>Pololu D36V28F5, or MP1584 set to 5 V</td></tr>
+          <tr><td class="num">1</td><td>Inline mini blade (ATM) fuse holder, 14 AWG</td><td></td></tr>
+          <tr><td class="num">2</td><td>25 A mini blade fuse</td><td>One spare; never above 30 A on 14 AWG</td></tr>
+          <tr><td class="num">1</td><td>Main power switch</td><td>RC anti-spark switch, 2–6S, ≥40 A; or a mechanical switch rated ≥20 A at ≥24 V DC</td></tr>
+          <tr><td class="num">1</td><td>DPST toggle or key switch, ≥3 A DC</td><td>Arm switch</td></tr>
+          <tr><td class="num">1</td><td>XT60 connector pair</td><td>Battery to turret</td></tr>
+          <tr><td class="num">1</td><td>39 kΩ and 8.2 kΩ 1 % resistors, 100 nF capacitor</td><td>Battery divider</td></tr>
+          <tr><td class="num">1</td><td>IR LED, IR phototransistor, 330 Ω, 10 kΩ</td><td>Light gate</td></tr>
+          <tr><td class="num">1</td><td>TFmini Plus</td><td>Roadmap step 3</td></tr>
+          <tr><td class="num">–</td><td>Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors</td><td></td></tr>
+          <tr><td class="num">–</td><td>16 mm carbon tube ×1, 12 mm ×2, M3 screws</td><td>Frame, from the original build</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const sheet = document.getElementById('sheet');
+  const chips = [...document.querySelectorAll('.chip')];
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      const net = chip.dataset.net;
+      const on = sheet.dataset.focus !== net;
+      if (on) sheet.dataset.focus = net; else delete sheet.dataset.focus;
+      for (const other of chips) other.setAttribute('aria-pressed', String(on && other === chip));
+    });
+  }
+})();
+</script>
+</body>
+</html>
