@@ -11,11 +11,11 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
         │ Vision node (ESP32-S3)   │ ───────────── targets ─────────────▶ │ Turret controller (S3)   │
         │ camera + PSRAM           │ ◀──────────── status ─────────────── │                          │
         │ face detect / recognize  │                                      │ gimbal, flywheels,       │
-        └──────────────────────────┘                                      │ pusher, lidar, BLE       │
-                                                                          └────────────┬─────────────┘
-                                                                                       │ BLE (bonded, binary)
-                                                                                ┌──────┴──────┐
-                                                                                │ Phone PWA   │
+        └────────────┬─────────────┘                                      │ pusher, lidar, BLE       │
+                     │ Wi-Fi softAP                                       └────────────┬─────────────┘
+                     │ video, display only                                             │ BLE (bonded, binary)
+                     │                                                          ┌──────┴──────┐
+                     └─────────────────────────────────────────────────────────▶│ Phone PWA   │
                                                                                 └─────────────┘
 ```
 
@@ -57,11 +57,26 @@ Open with `espflash monitor` (or `cargo run`). Typed characters are echoed; Ente
 
 ### Vision node (`firmware/vision`, not created yet)
 
-An ESP32-S3 camera board with PSRAM (XIAO ESP32S3 Sense, ESP32-S3-EYE or similar). Face detection and recognition use Espressif's esp-dl / ESP-WHO models, linked into the Rust app as an ESP-IDF component through FFI. Output per frame: target box in normalized image coordinates, authorized/unauthorized, and confidence. Enrolled face embeddings stay on the device.
+An ESP32-S3 camera board with PSRAM; the planned board is the Freenove ESP32-S3 WROOM CAM (OV2640 with hardware JPEG, 8 MB PSRAM). Face detection and recognition use Espressif's esp-dl / ESP-WHO models, linked into the Rust app as an ESP-IDF component through FFI. Output per frame: target box in normalized image coordinates, authorized/unauthorized, and confidence. Enrolled face embeddings stay on the device.
 
 ### Inter-node link (*open*)
 
 Default: ESP-NOW with `turret-proto` messages encoded by postcard. That needs no cable through the gimbal and has low latency without a router. If the camera ends up wired next to the controller, a UART link carries the same messages instead.
+
+### Video stream to the phone (*open*)
+
+The phone app shows the camera view with a crosshair for manual targeting. Video does not go over BLE: Web Bluetooth moves roughly 20–100 KB/s, a QVGA JPEG is 8–15 KB, and the frames would compete with Aim and Fire writes. The video also originates on the vision node, which has no BLE link to the phone.
+
+- BLE stays the only control channel. The video link is display-only and carries no commands.
+- The vision node runs a Wi-Fi softAP and serves frames from the OV2640's hardware JPEG, as MJPEG over HTTP or JPEG frames over a WebSocket. The phone joins the AP.
+- The softAP and ESP-NOW share the radio and must use the same channel.
+- Streaming and face detection share the CPU. Detection runs at about 5–10 fps on QVGA, so the stream may be limited to the frames that went through detection.
+- With the camera on the gimbal, the crosshair is a fixed overlay at the boresight point, calibrated once for the camera-to-barrel offset. Tap-to-aim would need a calibration from image coordinates to pan/tilt; that maths goes in `turret-core`.
+- The vision node can send its face boxes and classifications alongside the frames so the app draws them over the video.
+
+Open questions:
+- **Mixed content.** The PWA is served over HTTPS (Web Bluetooth needs a secure context), and the camera serves plain HTTP on a private address, which Chrome blocks from an HTTPS page. Candidates: Chrome Local Network Access (`fetch(url, { targetAddressSpace: 'local' })` after a permission prompt, drawn to a `<canvas>`; check support on Android Chrome first), or HTTPS on the vision node with a self-signed certificate accepted once per phone (costs CPU next to detection). Serving the PWA from the ESP does not work, because a plain HTTP origin is not a secure context.
+- **Faces in manual aim.** A camera view makes it easy to put the crosshair on a face. Decide whether manual aiming from the app also gets the torso offset or a face lockout from the vision node's boxes before the stream ships.
 
 ## Targeting loop
 
@@ -175,5 +190,6 @@ Develop with `npm start` in `app/` and open `http://localhost:4200` in Windows C
    b. BLE peripheral with our own protocol (see [BLE protocol](#ble-protocol)), passkey bonding, disarm on link loss. *(done, tested on hardware)*
    c. Angular PWA in `app/` over Web Bluetooth: pair, arm/disarm, joystick aim, fire modes, state and shot telemetry, installable. Runs in Chromium browsers on Android and desktop; iOS Safari has no Web Bluetooth. *(done, tested against a simulated GATT server; pairing and aim tuning still to be checked on the turret)*
 3. TFmini Plus driver and range-based elevation table.
-4. Vision node: camera, esp-dl face detection and recognition, enrollment.
+4. a. Vision node: camera, esp-dl face detection and recognition, enrollment.
+   b. Video stream to the phone app with a crosshair overlay (see [Video stream to the phone](#video-stream-to-the-phone-open)); settle mixed content and face handling in manual aim first.
 5. ESP-NOW link, autonomous mode and the safety gates above.
