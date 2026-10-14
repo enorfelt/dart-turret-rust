@@ -16,7 +16,7 @@ The original pins do not fit this board: GPIO 33–37 are taken by the octal PSR
 | Servo bus RX (UART1) | 21 | 34 | Through the level shifter to the TTLinker |
 | ESC left | 17 | 17 | Camera pin, unused here |
 | ESC right | 18 | 18 | Camera pin, unused here |
-| Pusher servo | 41 | 39 | JTAG MTDI, free while debugging over USB |
+| Pusher servo | 41 | 39 | Through the level shifter (channel 3). JTAG MTDI, free while debugging over USB |
 | Light gate | 42 | 38 | JTAG MTMS, free while debugging over USB |
 | Battery divider | 1 | 16 | ADC1_CH0, so readings keep working with Wi-Fi / ESP-NOW on |
 | TFmini Plus RX (ESP receives) | 6 | – | UART2, step 3 |
@@ -77,10 +77,15 @@ The drawing assumes the long channel in the back cover sits over the bottom row.
 | B1 | Front-left bridge | BMS B1 | 26 |
 | B2 | Back bridge | BMS B2 | 26 |
 | B3 | Front-right bridge | BMS B3 | 26 |
+| Back bridge link | Flat plate on C2 | Spring plate on C3 | 14, or nickel strip ≥8 mm wide and 0.3 mm thick (two layers of 0.15 mm) |
 | Output − | BMS P− | XT60 −, then the − bus | 14 |
 
 - Pack leads and B2 leave through the hole in the back cover. The front cover has no hole: drill a 3 mm hole or file a notch for B1 and B3, and run them back along the frame.
-- Solder to the plate tabs before the plates go into the covers, with the cells out. Nickel-plated steel takes solder with a hot iron and flux. Glue or strain-relieve the wires at the cover so swapping cells does not flex the joints.
+- The back bridge link carries the full pack current, like the pack leads. Lay it in the long channel of the back cover.
+- Solder to the plate tabs before the plates go into the covers, with the cells out. Nickel-plated steel takes solder with a hot iron and flux.
+- Let the cover slots locate the plates; test-fit a plate before gluing. Then fix them with 2-part epoxy on the edges and tabs only, never on the contact face or the spring coils. Avoid hot glue, which softens near 60 °C, and superglue, which cracks with repeated cell swaps. Heat-staking the plate over a printed pin also works.
+- Strain-relieve every wire on the cover a few cm from its solder joint, with a zip tie through a printed loop or epoxy over the wire. Pulled wires are what tear plates loose.
+- After assembly, every spring should be visibly compressed, the covers should close without bulging, and the pack should read 12.8–16.8 V.
 - Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses `arm` and reports a battery fault.
 - Use unprotected flat-top or button-top high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.
 - The 8 contacts in the chain are the weak point: at a 35 A spin-up peak, about 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA rather than PLA, and measure the drop across a contact during a spin-up; more than about 0.1 V means that contact needs attention.
@@ -111,7 +116,7 @@ The guard only sees the whole pack. The BMS is what protects each cell.
 
  ESP GPIO 17 ─────────── ESC left signal      (ESC GND to common GND)
  ESP GPIO 18 ─────────── ESC right signal
- ESP GPIO 41 ─────────── pusher servo signal
+ ESP GPIO 41 ──LV3┤ level shifter ├HV3── pusher servo signal   (same shifter, channel 3)
 
  Light gate:  5 V ── 330 Ω ── IR LED ── GND
               3V3 ── 10 kΩ ──┬── GPIO 42
@@ -126,6 +131,8 @@ The guard only sees the whole pack. The BMS is what protects each cell.
 - If `ping 0` gets no answer, swap TTLinker RXD/TXD. The labels on these boards are not consistent about whose side they name.
 - The light gate phototransistor pulls GPIO 42 down while lit. The original wired it from 5 V, which can push more than 3.3 V into the pin; the pull-up to 3V3 avoids that.
 - The arm switch is the hardware arm interlock from the safety requirements. With pole A open the pusher has no power, so no dart can fire even if the flywheels spin. Pole B lets the firmware refuse `arm` while the switch is off and disarm when it is turned off.
+- The pusher signal goes through the shifter like in the original. Most RC servos read 3.3 V as high, but some digital servos on 6 V are marginal and jitter. A BSS138 is fast enough for a 50 Hz pulse. Its 10 kΩ pull-up holds the line high until the firmware starts the PWM; servos ignore that as an invalid pulse.
+- The ESCs stay on 3.3 V signals, as in the original; BLHeli ESCs read them fine.
 - BSS138 shifters are slow. If the servo bus gets errors at 1 Mbaud, use a 74AHCT125 buffer or lower the servo baud rate.
 
 ## Wire gauges
@@ -149,7 +156,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | Freenove ESP32-S3 WROOM board | Turret controller, camera connector left empty |
 | 2 | Waveshare SC15 serial bus servo | Pan (ID 0) and tilt (ID 1) |
 | 1 | Feetech TTLinker (mini) | UART to half-duplex servo bus |
-| 1 | 4-channel BSS138 level shifter | 3.3 V ↔ 5 V for the TTLinker |
+| 1 | 4-channel BSS138 level shifter | 3.3 V ↔ 5 V for the TTLinker (channels 1–2) and the pusher signal (channel 3) |
 | 2 | 2206 2300 KV brushless motor | Original uses Armattan Oomph 2206/2300 KV; any 2206–2207, 2300–2500 KV with a 5 mm shaft and 16×19 mm M3 mount should fit the printed mounts (check) |
 | 2 | 30 A BLHeli_S or BLHeli_32 ESC, 2–4S | Original uses Racerstar RS30A; no BEC needed |
 | 1 | Standard-size RC servo (metal gear) | Dart pusher, 6 V |
@@ -157,7 +164,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | 4S BMS, ≥30 A continuous | Over-discharge and short protection. No balancing needed, as the cells are charged out of the holder; prefer one that recovers by itself when cells are reinserted |
 | 1 | Printed 2×2 battery holder and covers | From the original; print the covers in PETG or ASA |
 | 2 | 18650 double contact plate, spring + button | Front cover bridges, one per stack. Match the plate's cell pitch to the holder's stack spacing; nickel-plated steel at least 0.3 mm, or phosphor bronze |
-| 1 | 18650 spring plate + 1 button plate, joined with 16 AWG or nickel strip | Back cover bridge across the two stacks. Use one double plate instead if one matches that span |
+| 1 | 18650 spring plate + 1 button plate, joined with 14 AWG or nickel strip | Back cover bridge across the two stacks. Use one double plate instead if one matches that span |
 | 1 | 18650 single spring plate | Back cover, pack − |
 | 1 | 18650 single button plate | Back cover, pack + |
 | 1 | 4-bay Li-ion charger, 4.2 V per cell | e.g. Nitecore or XTAR; charges each cell separately |
@@ -172,5 +179,6 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | Resistors 39 kΩ, 8.2 kΩ (1 %), 100 nF capacitor | Battery divider |
 | 1 | IR LED, IR phototransistor, 330 Ω, 10 kΩ | Light gate |
 | 1 | TFmini Plus | Step 3 |
+| – | 2-part epoxy | Fixes the battery contact plates in the covers |
 | – | Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors | |
 | – | 16 mm carbon tube ×1, 12 mm ×2, M3 screws | Frame, from the original |

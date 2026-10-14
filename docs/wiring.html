@@ -473,12 +473,16 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
             <tr><td><span class="swatch" style="--c: var(--sense)"></span>B1</td><td>Front-left bridge</td><td>BMS B1</td><td class="num">26</td></tr>
             <tr><td><span class="swatch" style="--c: var(--sense)"></span>B2</td><td>Back bridge</td><td>BMS B2</td><td class="num">26</td></tr>
             <tr><td><span class="swatch" style="--c: var(--sense)"></span>B3</td><td>Front-right bridge</td><td>BMS B3</td><td class="num">26</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Back bridge link</td><td>Flat plate on C2</td><td>Spring plate on C3</td><td class="num">14</td></tr>
             <tr><td><span class="swatch" style="--c: var(--gnd)"></span>Output −</td><td>BMS P−</td><td>XT60 −, then the − bus</td><td class="num">14</td></tr>
           </tbody>
         </table>
       </div>
       <ul class="notes">
-        <li>Solder the plate tabs before the plates go into the covers, with the cells out. Strain-relieve the wires at the cover so swapping cells does not flex the joints.</li>
+        <li>The back bridge link carries the full pack current: 14 AWG, or nickel strip at least 8 mm wide and 0.3 mm thick. Lay it in the long channel of the back cover.</li>
+        <li>Solder the plate tabs before the plates go into the covers, with the cells out.</li>
+        <li>Let the cover slots locate the plates, then fix them with 2-part epoxy on the edges and tabs only, never on the contact face or the spring coils. Avoid hot glue (softens near 60 °C) and superglue (cracks with cell swaps).</li>
+        <li>Strain-relieve every wire on the cover a few cm from its solder joint. Pulled wires are what tear plates loose.</li>
         <li class="warn">Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses to arm.</li>
         <li>Use unprotected high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.</li>
         <li>The 8 contacts are the weak point: at a 35 A spin-up peak, 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA, and measure the drop across a contact during a spin-up; over 0.1 V needs attention.</li>
@@ -505,7 +509,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <h2 id="sig-h">Signals</h2>
     <figure>
       <div class="scroll">
-        <svg class="diagram" viewBox="0 0 1200 790" role="img" aria-label="Signal wiring of the ESP32-S3: GPIO 14 and 21 run through a level shifter and the TTLinker to the SC15 servos; GPIO 17 and 18 drive the ESCs; GPIO 41 drives the pusher; GPIO 42 reads the light gate; GPIO 47 reads the arm switch; GPIO 6 and 7 talk to the TFmini Plus; GPIO 1 reads the battery divider.">
+        <svg class="diagram" viewBox="0 0 1200 790" role="img" aria-label="Signal wiring of the ESP32-S3: GPIO 14 and 21 run through a level shifter and the TTLinker to the SC15 servos; GPIO 17 and 18 drive the ESCs; GPIO 41 drives the pusher through channel 3 of the level shifter; GPIO 42 reads the light gate; GPIO 47 reads the arm switch; GPIO 6 and 7 talk to the TFmini Plus; GPIO 1 reads the battery divider.">
           <defs>
             <marker id="a-servo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--servo)"/></marker>
             <marker id="a-pwm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--pwm)"/></marker>
@@ -585,8 +589,14 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <text class="s" x="985" y="300">red BEC wire unused</text>
 
           <!-- pusher -->
-          <path class="w n-pwm" stroke-width="2" d="M600 370 H856" marker-end="url(#a-pwm)"/>
-          <text class="s" x="730" y="362" text-anchor="middle">PWM 50 Hz, 514–847 µs</text>
+          <path class="w n-pwm" stroke-width="2" d="M600 370 H676" marker-end="url(#a-pwm)"/>
+          <path class="w n-pwm" stroke-width="2" d="M790 370 H856" marker-end="url(#a-pwm)"/>
+          <rect class="box" x="680" y="352" width="110" height="36" rx="5"/>
+          <text class="p" x="688" y="374">LV3</text>
+          <text class="p" x="782" y="374" text-anchor="end">HV3</text>
+          <text class="s" x="640" y="362" text-anchor="middle">3.3 V</text>
+          <text class="s" x="823" y="362" text-anchor="middle">5 V</text>
+          <text class="s" x="735" y="342" text-anchor="middle">PWM 50 Hz, 514–847 µs · same shifter, channel 3</text>
           <rect class="box" x="860" y="352" width="110" height="36" rx="5"/>
           <text class="t" x="876" y="375">Pusher servo</text>
           <text class="s" x="985" y="375">powered from 6 V through pole A</text>
@@ -646,6 +656,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     </figure>
     <ul class="notes">
       <li>If <code>ping 0</code> gets no answer, swap the TTLinker RXD and TXD wires. These boards do not agree on whose side the labels name.</li>
+      <li>The pusher signal goes through the shifter like in the original: some digital servos on 6 V read 3.3 V poorly and jitter. The ESCs stay on 3.3 V signals, which BLHeli reads fine.</li>
       <li>BSS138 level shifters are slow. If the servo bus shows errors at 1 Mbaud, use a 74AHCT125 buffer or lower the servo baud rate.</li>
       <li>The light gate reads low while the beam is lit and high while a dart blocks it. The original wired the phototransistor from 5 V, which can push more than 3.3 V into the pin.</li>
     </ul>
@@ -661,7 +672,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">21</td><td><span class="swatch" style="--c: var(--servo)"></span>Servo bus RX (UART1)</td><td class="num">34</td><td>From TTLinker TXD through the level shifter</td></tr>
           <tr><td class="num">17</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC left</td><td class="num">17</td><td>Camera pin, free with no camera</td></tr>
           <tr><td class="num">18</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC right</td><td class="num">18</td><td>Camera pin, free with no camera</td></tr>
-          <tr><td class="num">41</td><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher servo</td><td class="num">39</td><td>39 is the SD card clock on this board</td></tr>
+          <tr><td class="num">41</td><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher servo</td><td class="num">39</td><td>Through the level shifter, channel 3. 39 is the SD card clock on this board</td></tr>
           <tr><td class="num">42</td><td><span class="swatch" style="--c: var(--sense)"></span>Light gate</td><td class="num">38</td><td>38 is the SD card command line on this board</td></tr>
           <tr><td class="num">47</td><td><span class="swatch" style="--c: var(--sense)"></span>Arm switch sense</td><td class="num">–</td><td>Closed to GND = on</td></tr>
           <tr><td class="num">6</td><td><span class="swatch" style="--c: var(--lidar)"></span>TFmini Plus TX → ESP</td><td class="num">–</td><td>UART2, roadmap step 3</td></tr>
@@ -717,7 +728,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>Freenove ESP32-S3 WROOM board</td><td>Turret controller, camera left unplugged</td></tr>
           <tr><td class="num">2</td><td>Waveshare SC15 serial bus servo</td><td>Pan ID 0, tilt ID 1; 4.8–8.4 V, 1.7 A stall</td></tr>
           <tr><td class="num">1</td><td>Feetech TTLinker (mini)</td><td>UART to half-duplex servo bus</td></tr>
-          <tr><td class="num">1</td><td>4-channel BSS138 level shifter</td><td>3.3 V ↔ 5 V for the TTLinker</td></tr>
+          <tr><td class="num">1</td><td>4-channel BSS138 level shifter</td><td>3.3 V ↔ 5 V: TTLinker on channels 1–2, pusher signal on channel 3</td></tr>
           <tr><td class="num">2</td><td>2206 2300 KV brushless motor</td><td>Original: Armattan Oomph 2206/2300 KV. Check that a substitute fits the printed mounts</td></tr>
           <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed</td></tr>
           <tr><td class="num">1</td><td>Standard-size metal-gear RC servo</td><td>Dart pusher, 6 V</td></tr>
@@ -725,7 +736,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>4S BMS, ≥30 A continuous</td><td>Over-discharge and short protection; no balancing needed. Prefer one that recovers by itself when cells are reinserted</td></tr>
           <tr><td class="num">1</td><td>Printed 2×2 battery holder and covers</td><td>From the original; covers in PETG or ASA</td></tr>
           <tr><td class="num">2</td><td>18650 double contact plate, spring + button</td><td>Front cover, one per stack. Match the plate's pitch to the stack spacing; nickel-plated steel ≥0.3 mm, or phosphor bronze</td></tr>
-          <tr><td class="num">1</td><td>18650 spring plate + button plate, joined with 16 AWG or nickel strip</td><td>Back cover bridge across the stacks; a double plate if one matches the span</td></tr>
+          <tr><td class="num">1</td><td>18650 spring plate + button plate, joined with 14 AWG or nickel strip</td><td>Back cover bridge across the stacks; a double plate if one matches the span</td></tr>
           <tr><td class="num">1</td><td>18650 single spring plate</td><td>Back cover, pack −</td></tr>
           <tr><td class="num">1</td><td>18650 single button plate</td><td>Back cover, pack +</td></tr>
           <tr><td class="num">1</td><td>4-bay Li-ion charger, 4.2 V per cell</td><td>e.g. Nitecore or XTAR; charges each cell separately</td></tr>
@@ -740,6 +751,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>39 kΩ and 8.2 kΩ 1 % resistors, 100 nF capacitor</td><td>Battery divider</td></tr>
           <tr><td class="num">1</td><td>IR LED, IR phototransistor, 330 Ω, 10 kΩ</td><td>Light gate</td></tr>
           <tr><td class="num">1</td><td>TFmini Plus</td><td>Roadmap step 3</td></tr>
+          <tr><td class="num">–</td><td>2-part epoxy</td><td>Fixes the battery contact plates in the covers</td></tr>
           <tr><td class="num">–</td><td>Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors</td><td></td></tr>
           <tr><td class="num">–</td><td>16 mm carbon tube ×1, 12 mm ×2, M3 screws</td><td>Frame, from the original build</td></tr>
         </tbody>

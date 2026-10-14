@@ -25,7 +25,7 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
 |---|---|---|---|
 | Pan/tilt | TX 14, RX 21 | 2x Waveshare SC15 on UART1 through a level shifter and a Feetech TTLinker, 1 Mbaud, Feetech SCS protocol, IDs 0 (pan) / 1 (tilt) | `REG_WRITE` both, then broadcast `ACTION` so the axes move together; positions clamped to 0–1023 until the mechanical limits are measured |
 | Flywheels | 17, 18 | 2x ESC, 1000–2000 µs at 50 Hz via LEDC (14-bit) | Standard RC range, unlike the original 500–1000 µs; **calibrate the ESCs to it before the first spin-up** |
-| Pusher | 41 | RC servo, 50 Hz via LEDC | Retracted 847 µs, extended 514 µs: the original's positions converted to µs, to be checked on the printed pusher |
+| Pusher | 41 | RC servo, 50 Hz via LEDC, 5 V signal through the level shifter | Retracted 847 µs, extended 514 µs: the original's positions converted to µs, to be checked on the printed pusher |
 | Range | RX 6, TX 7 | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m (step 3) |
 | Dart speed | 42 | IR light gate, any-edge GPIO interrupt | Time between the two edges over a 70 mm dart gives km/h |
 | Battery | 1 | 4S Li-ion through a 39k/8k2 divider to ADC1_CH0 | 16.8 V reads ≈ 2.92 V. ADC1, so readings keep working with Wi-Fi and ESP-NOW on. Read every 5 s while the flywheels are idle; below 3.3 V per cell, or below 10 V (a reversed or dead cell), `arm` is refused and an armed turret disarms. Below 5 V counts as no pack (USB power) and does not block arming |
