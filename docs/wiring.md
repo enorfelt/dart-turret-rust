@@ -29,8 +29,8 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 
 ```
  4S1P 18650 pack (+ 4S BMS)
-   +  ──[ 25 A blade fuse ]──[ main switch ]──┬────────────────────────────────── + bus (14 AWG)
-   −  ────────────────────────────────────────┼────────────────────────────────── − bus (14 AWG)
+   +  ──[ 25 A blade fuse ]──[ XT60 + ]───────┬────────────────────────────────── + bus (PDB)
+   −  ──────────────────────[ XT60 − ]────────┼────────────────────────────────── − bus (PDB)
                                               │
      + bus / − bus (keep short) feeds:        │
        ├── ESC left   (16 AWG) ─── motor left   (3 phase)
@@ -39,17 +39,37 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
        ├── Buck 6 V,   ≥3 A (20 AWG) ─── arm switch pole A ─── pusher servo +
        ├── Buck 5 V,   ≥2 A (22 AWG) ─── ESP 5V pin, TFmini 5 V, level shifter HV,
        │                                  TTLinker 5 V, light gate LED
-       └── 39 kΩ ──┬── 8.2 kΩ ── − bus        (26 AWG)
-                   ├── 100 nF ── − bus
-                   └── GPIO 1
+       └── 39 kΩ at PDB VCC pad ──(26 AWG)──┬── 8.2 kΩ ── − bus
+                                            ├── 100 nF ── − bus
+                                            └── GPIO 1
 ```
 
-- The fuse goes as close to the battery + as possible, so it protects everything downstream, the switch included.
-- The divider sits after the switch so its 0.36 mA does not drain the pack while off.
+- The XT60 is the power switch: unplug it to turn the turret off. At 4S the spark from the ESC input capacitors is small; plug in quickly and firmly, without wiggling.
+- The ESC capacitor inrush on plug-in can trip the BMS short-circuit protection. Plug in a few times on the bench; if the turret ever stays dark, use a BMS that recovers by itself or an anti-spark XT60 with a pre-charge resistor.
+- The fuse goes as close to the battery + as possible, on the pack side of the XT60, so it protects everything downstream.
+- The + and − buses are a quadcopter power distribution board (PDB). Every + pad on it is the same copper, and so is every − pad, so each lead in the PDB pads table below can go on any pad of the right polarity. Soldered copper adds well under 1 mΩ and does not loosen from flywheel vibration.
+- Without a PDB, use two Wago 221-415 lever connectors per rail, joined by a short 14 AWG jumper. Each rail has six leads (feed, two ESCs, three bucks) and a 221-415 takes five. Solder the 26 AWG divider wires to a buck input lead instead, as they are below the Wago's minimum. Do not use screw terminals on bare stranded wire, as they loosen under vibration.
+- Solder the 39 kΩ directly to the PDB VCC pad and put the 8.2 kΩ and 100 nF next to the ESP. The 26 AWG wire then carries only the divided voltage, so a chafed wire shorted to ground draws under 0.5 mA instead of burning before the 25 A fuse blows. The 100 nF filters noise picked up on the long wire.
+- The divider sits on the turret side of the XT60 so its 0.36 mA does not drain the pack while unplugged.
 - All grounds are common: buck outputs, ESC signal grounds, ESP GND, TTLinker GND, TFmini GND.
 - Connect only signal and ground from the ESC servo leads. If an ESC has a BEC, leave its red wire unconnected.
 - The SC15 is rated 4.8–8.4 V and stalls at 1.7 A, so two stalled servos need 3.4 A. The original 8 V MP1584 (3 A peak) is undersized for that.
-- Turn the turret off before plugging in USB, unless the board's schematic shows that VBUS and the 5V pin are isolated by a diode.
+- Unplug the XT60 before plugging in USB, unless the board's schematic shows that VBUS and the 5V pin are isolated by a diode.
+
+### PDB pads
+
+| PDB pad | Connect |
+|---|---|
+| Battery input (the two large holes) | XT60 pigtail, 14 AWG |
+| Pad pair 1 | ESC left, 16 AWG |
+| Pad pair 2 | ESC right, 16 AWG |
+| Pad pair 3 | 7.5 V buck input, 20 AWG |
+| Pad pair 4 | 6 V buck input, 20 AWG |
+| Pad pair 5 | 5 V buck input, 20 AWG |
+| Pad pair 6 | Spare |
+| Small VCC pad | 39 kΩ of the battery divider, soldered directly to the pad |
+| Small GND pad | Empty: the divider's 8.2 kΩ and 100 nF go to ESP GND |
+| 5 V / 12 V BEC pads | Empty: the PDB's own regulators are not used |
 
 ## Battery pack
 
@@ -73,7 +93,7 @@ The drawing assumes the long channel in the back cover sits over the bottom row.
 | Wire | From | To | AWG |
 |---|---|---|---|
 | Pack − | Back end plate, top-left | BMS B− | 14 |
-| Pack + | Back end plate, top-right | BMS B+, then the fuse | 14 |
+| Pack + | Back end plate, top-right | BMS B+, then the fuse and XT60 + | 14 |
 | B1 | Front-left bridge | BMS B1 | 26 |
 | B2 | Back bridge | BMS B2 | 26 |
 | B3 | Front-right bridge | BMS B3 | 26 |
@@ -141,7 +161,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 
 | Run | AWG | Why |
 |---|---|---|
-| Battery → fuse → switch → + / − bus | 14 | Flywheel spin-up peaks of 30–40 A for a fraction of a second |
+| Battery → fuse → XT60 → + / − bus | 14 | Flywheel spin-up peaks of 30–40 A for a fraction of a second |
 | Bus → each ESC | 16 | Up to ~20 A per ESC during spin-up; 18 is fine if the run is under 10 cm |
 | ESC → motor phases | As supplied | Usually 18–20 AWG on the motor |
 | Bus → buck converter inputs | 20 | Under 3 A on the 16 V side |
@@ -171,11 +191,11 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | Buck converter 7.5 V, ≥5 A | e.g. Pololu D36V50F7, or an adjustable XL4015 5 A set to 7.5 V |
 | 1 | Buck converter 6 V, ≥3 A | e.g. Pololu D36V28F6, or an MP1584 for a small pusher servo |
 | 1 | Buck converter 5 V, ≥2 A | e.g. Pololu D36V28F5, or an MP1584 set to 5 V |
+| 1 | Quadcopter power distribution board, ≥5 pad pairs plus a VCC / GND sense pad, 2 oz copper | e.g. Matek PDB-XT60 or a clone with 6 pad pairs. The + and − buses; any onboard BEC stays unused. Two Wago 221-415 per rail work as a solderless fallback |
 | 1 | Inline mini blade (ATM) fuse holder, 14 AWG leads | |
 | 2 | 25 A mini blade fuse | One spare. Never go above 30 A on 14 AWG |
-| 1 | Main power switch | An RC anti-spark electronic switch, 2–6S, ≥40 A, avoids the spark from the ESC capacitors. A mechanical switch must be rated ≥20 A at ≥24 V DC |
 | 1 | DPST toggle or key switch, ≥3 A DC | Arm switch |
-| 1 | XT60 connector pair | Battery to turret |
+| 1 | XT60 connector pair | Battery to turret, also the power switch. An anti-spark XT60 if the BMS trips on plug-in |
 | 1 | Resistors 39 kΩ, 8.2 kΩ (1 %), 100 nF capacitor | Battery divider |
 | 1 | IR LED, IR phototransistor, 330 Ω, 10 kΩ | Light gate |
 | 1 | TFmini Plus | Step 3 |

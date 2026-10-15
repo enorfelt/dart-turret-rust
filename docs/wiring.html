@@ -241,7 +241,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <h2 id="power-h">Power</h2>
     <figure>
       <div class="scroll">
-        <svg class="diagram" viewBox="0 0 1200 730" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the main switch onto a plus and minus bus. The bus feeds both ESCs, a 7.5 V buck for the servo bus, a 6 V buck for the pusher through the arm switch, a 5 V buck for the logic, and the battery divider into GPIO 1.">
+        <svg class="diagram" viewBox="0 0 1200 730" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the XT60, which is the power switch, onto a plus and minus bus. The bus feeds both ESCs, a 7.5 V buck for the servo bus, a 6 V buck for the pusher through the arm switch, a 5 V buck for the logic, and the battery divider into GPIO 1.">
           <!-- battery -->
           <rect class="box key" x="20" y="50" width="160" height="130" rx="6"/>
           <text class="t" x="36" y="78">Battery</text>
@@ -250,18 +250,20 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <text class="p" x="164" y="80" text-anchor="end">+</text>
           <text class="p" x="164" y="155" text-anchor="end">−</text>
 
-          <!-- + path: fuse, switch -->
+          <!-- + path: fuse, XT60 -->
           <path class="w n-batt" stroke-width="4" d="M180 85 H230 M310 85 H350 M460 85 H510"/>
           <rect class="box" x="230" y="72" width="80" height="26" rx="4"/>
           <text class="t" x="270" y="90" text-anchor="middle">25 A fuse</text>
           <rect class="box" x="350" y="72" width="110" height="26" rx="4"/>
-          <text class="t" x="405" y="90" text-anchor="middle">Main switch</text>
+          <text class="t" x="405" y="90" text-anchor="middle">XT60 +</text>
+          <rect class="box" x="350" y="137" width="110" height="26" rx="4"/>
+          <text class="t" x="405" y="155" text-anchor="middle">XT60 −</text>
           <text class="s" x="270" y="62" text-anchor="middle">mini blade, at the battery</text>
-          <text class="s" x="405" y="62" text-anchor="middle">anti-spark, ≥40 A</text>
+          <text class="s" x="405" y="62" text-anchor="middle">power switch: unplug</text>
           <text class="s" x="345" y="122" text-anchor="middle">14 AWG battery to bus</text>
 
           <!-- − path -->
-          <path class="w n-gnd" stroke-width="4" d="M180 150 H480"/>
+          <path class="w n-gnd" stroke-width="4" d="M180 150 H350 M460 150 H480"/>
 
           <!-- buses -->
           <path class="w n-batt" stroke-width="6" d="M510 85 V660"/>
@@ -270,7 +272,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <circle class="dot n-gnd" cx="480" cy="150" r="5"/>
           <text class="t" x="470" y="684" text-anchor="end">− bus</text>
           <text class="t" x="520" y="684" text-anchor="start">+ bus</text>
-          <text class="s" x="495" y="702" text-anchor="middle">14 AWG, short</text>
+          <text class="s" x="495" y="702" text-anchor="middle">PDB, keep short</text>
 
           <!-- row: ESC left yc=170 -->
           <path class="w n-batt" stroke-width="3" d="M510 160 H620"/>
@@ -384,17 +386,37 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <path class="sym" d="M720 680 V690 M710 690 H730 M710 696 H730 M720 696 V702"/>
           <path class="sym n-gnd w" d="M711 702 h18 M714 706 h12 M717 710 h6"/>
           <text class="s" x="738" y="700">100 nF</text>
-          <text class="s" x="560" y="672">26 AWG, after the switch</text>
+          <text class="s" x="560" y="672">39 kΩ at the PDB VCC pad, 26 AWG to the ESP</text>
         </svg>
       </div>
-      <figcaption>Everything is downstream of the fuse and the main switch. A junction dot means the wires are joined; a wire that hops over a bus is not connected to it. The ⏚ symbol means "to the − bus".</figcaption>
+      <figcaption>Everything is downstream of the fuse and the XT60, which is the power switch. A junction dot means the wires are joined; a wire that hops over a bus is not connected to it. The ⏚ symbol means "to the − bus".</figcaption>
     </figure>
     <ul class="notes">
-      <li>Put the fuse as close to battery + as you can, so it protects every wire after it, including the switch.</li>
+      <li>Unplug the XT60 to turn the turret off. At 4S the spark from the ESC capacitors is small; plug in quickly and firmly, without wiggling.</li>
+      <li>The ESC capacitor inrush on plug-in can trip the BMS short-circuit protection. Plug in a few times on the bench; if the turret ever stays dark, use a BMS that recovers by itself or an anti-spark XT60 with a pre-charge resistor.</li>
+      <li>Put the fuse as close to battery + as you can, on the pack side of the XT60, so it protects every wire after it.</li>
+      <li>The + and − buses are a quadcopter power distribution board (PDB). Every + pad on it is the same copper, and so is every − pad, so each lead in the table below can go on any pad of the right polarity.</li>
+      <li>Without a PDB, use two Wago 221-415 lever connectors per rail, joined by a short 14 AWG jumper: each rail has six leads and a 221-415 takes five. Solder the 26 AWG divider wires to a buck input lead, as they are below the Wago's minimum. Do not use screw terminals on bare stranded wire; they loosen under vibration.</li>
+      <li>Solder the 39 kΩ directly to the PDB VCC pad and put the 8.2 kΩ and 100 nF next to the ESP. The 26 AWG wire then carries only the divided voltage, so a chafed wire shorted to ground draws under 0.5 mA instead of burning before the 25 A fuse blows.</li>
       <li>Two stalled SC15s draw 3.4 A, so the 7.5 V buck must be rated 5 A. The original 8 V MP1584 (3 A peak) is too small.</li>
       <li>If an ESC has a BEC, leave its red servo-lead wire unconnected. Only signal and ground go to the ESP.</li>
-      <li class="warn">Turn the turret off before plugging in USB, unless you have checked that the Freenove board isolates VBUS from its 5V pin.</li>
+      <li class="warn">Unplug the XT60 before plugging in USB, unless you have checked that the Freenove board isolates VBUS from its 5V pin.</li>
     </ul>
+    <table>
+      <thead><tr><th>PDB pad</th><th>Connect</th></tr></thead>
+      <tbody>
+        <tr><td>Battery input (the two large holes)</td><td>XT60 pigtail, 14 AWG</td></tr>
+        <tr><td>Pad pair 1</td><td>ESC left, 16 AWG</td></tr>
+        <tr><td>Pad pair 2</td><td>ESC right, 16 AWG</td></tr>
+        <tr><td>Pad pair 3</td><td>7.5 V buck input, 20 AWG</td></tr>
+        <tr><td>Pad pair 4</td><td>6 V buck input, 20 AWG</td></tr>
+        <tr><td>Pad pair 5</td><td>5 V buck input, 20 AWG</td></tr>
+        <tr><td>Pad pair 6</td><td>Spare</td></tr>
+        <tr><td>Small VCC pad</td><td>39 kΩ of the battery divider, soldered directly to the pad</td></tr>
+        <tr><td>Small GND pad</td><td>Empty: the divider's 8.2 kΩ and 100 nF go to ESP GND</td></tr>
+        <tr><td>5 V / 12 V BEC pads</td><td>Empty: the PDB's own regulators are not used</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <section aria-labelledby="pack-h">
@@ -469,7 +491,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <thead><tr><th>Wire</th><th>From</th><th>To</th><th>AWG</th></tr></thead>
           <tbody>
             <tr><td><span class="swatch" style="--c: var(--gnd)"></span>Pack −</td><td>Back end plate, C1</td><td>BMS B−</td><td class="num">14</td></tr>
-            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Pack +</td><td>Back end plate, C4</td><td>BMS B+, then the fuse</td><td class="num">14</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Pack +</td><td>Back end plate, C4</td><td>BMS B+, then the fuse and XT60 +</td><td class="num">14</td></tr>
             <tr><td><span class="swatch" style="--c: var(--sense)"></span>B1</td><td>Front-left bridge</td><td>BMS B1</td><td class="num">26</td></tr>
             <tr><td><span class="swatch" style="--c: var(--sense)"></span>B2</td><td>Back bridge</td><td>BMS B2</td><td class="num">26</td></tr>
             <tr><td><span class="swatch" style="--c: var(--sense)"></span>B3</td><td>Front-right bridge</td><td>BMS B3</td><td class="num">26</td></tr>
@@ -691,7 +713,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         <table>
           <thead><tr><th>Run</th><th>AWG</th><th>Current</th></tr></thead>
           <tbody>
-            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Battery, fuse, switch, buses</td><td class="num">14</td><td>30–40 A spin-up peaks</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Battery, fuse, XT60, buses</td><td class="num">14</td><td>30–40 A spin-up peaks</td></tr>
             <tr><td><span class="swatch" style="--c: var(--batt)"></span>Bus to each ESC</td><td class="num">16</td><td>up to ~20 A each</td></tr>
             <tr><td><span class="swatch" style="--c: var(--phase)"></span>ESC to motor</td><td class="num">as supplied</td><td>usually 18–20 AWG</td></tr>
             <tr><td><span class="swatch" style="--c: var(--batt)"></span>Bus to buck inputs</td><td class="num">20</td><td>under 3 A</td></tr>
@@ -743,11 +765,11 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>Buck converter 7.5 V, ≥5 A</td><td>Pololu D36V50F7, or XL4015 set to 7.5 V</td></tr>
           <tr><td class="num">1</td><td>Buck converter 6 V, ≥3 A</td><td>Pololu D36V28F6, or MP1584 for a small pusher servo</td></tr>
           <tr><td class="num">1</td><td>Buck converter 5 V, ≥2 A</td><td>Pololu D36V28F5, or MP1584 set to 5 V</td></tr>
+          <tr><td class="num">1</td><td>Quadcopter power distribution board, ≥5 pad pairs plus a VCC / GND sense pad, 2 oz copper</td><td>e.g. Matek PDB-XT60 or a clone with 6 pad pairs; the + and − buses, onboard BEC unused. Two Wago 221-415 per rail as a solderless fallback</td></tr>
           <tr><td class="num">1</td><td>Inline mini blade (ATM) fuse holder, 14 AWG</td><td></td></tr>
           <tr><td class="num">2</td><td>25 A mini blade fuse</td><td>One spare; never above 30 A on 14 AWG</td></tr>
-          <tr><td class="num">1</td><td>Main power switch</td><td>RC anti-spark switch, 2–6S, ≥40 A; or a mechanical switch rated ≥20 A at ≥24 V DC</td></tr>
           <tr><td class="num">1</td><td>DPST toggle or key switch, ≥3 A DC</td><td>Arm switch</td></tr>
-          <tr><td class="num">1</td><td>XT60 connector pair</td><td>Battery to turret</td></tr>
+          <tr><td class="num">1</td><td>XT60 connector pair</td><td>Battery to turret, also the power switch; anti-spark XT60 if the BMS trips on plug-in</td></tr>
           <tr><td class="num">1</td><td>39 kΩ and 8.2 kΩ 1 % resistors, 100 nF capacitor</td><td>Battery divider</td></tr>
           <tr><td class="num">1</td><td>IR LED, IR phototransistor, 330 Ω, 10 kΩ</td><td>Light gate</td></tr>
           <tr><td class="num">1</td><td>TFmini Plus</td><td>Roadmap step 3</td></tr>
