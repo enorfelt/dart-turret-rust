@@ -72,19 +72,53 @@ The phone app shows the camera view with a crosshair for manual targeting. Video
 - The vision node runs a Wi-Fi softAP and serves frames from the OV2640's hardware JPEG, as MJPEG over HTTP or JPEG frames over a WebSocket. The phone joins the AP.
 - The softAP and ESP-NOW share the radio and must use the same channel.
 - Streaming and face detection share the CPU. Detection runs at about 5–10 fps on QVGA, so the stream may be limited to the frames that went through detection.
-- With the camera on the gimbal, the crosshair is a fixed overlay at the boresight point, calibrated once for the camera-to-barrel offset. Tap-to-aim would need a calibration from image coordinates to pan/tilt; that maths goes in `turret-core`.
+- The overlay has a fixed crosshair at the image center (camera boresight) and a floating impact reticle that shows where the next dart is expected to land (see [Sensor mounting and aim point](#sensor-mounting-and-aim-point-open)). Tap-to-aim would need a calibration from image coordinates to pan/tilt; that maths goes in `turret-core`.
 - The vision node can send its face boxes and classifications alongside the frames so the app draws them over the video.
 
 Open questions:
 - **Mixed content.** The PWA is served over HTTPS (Web Bluetooth needs a secure context), and the camera serves plain HTTP on a private address, which Chrome blocks from an HTTPS page. Candidates: Chrome Local Network Access (`fetch(url, { targetAddressSpace: 'local' })` after a permission prompt, drawn to a `<canvas>`; check support on Android Chrome first), or HTTPS on the vision node with a self-signed certificate accepted once per phone (costs CPU next to detection). Serving the PWA from the ESP does not work, because a plain HTTP origin is not a secure context.
 - **Faces in manual aim.** A camera view makes it easy to put the crosshair on a face. Decide whether manual aiming from the app also gets the torso offset or a face lockout from the vision node's boxes before the stream ships.
 
+## Sensor mounting and aim point (*open*)
+
+The camera and the TFmini Plus are mounted on the tilt stage, so they move with the barrel, with their axes parallel to the barrel rather than converged on it.
+
+```
+        [ camera ]      directly above the barrel, h ≈ 3–5 cm
+        [ TFmini ]      next to the camera
+  ══════(  barrel  )══════►
+```
+
+- **Camera directly above the barrel.** With no lateral offset, parallax and drop are both vertical, so the impact point moves along one image column and the calibration has one dimension. Any remaining lateral error is a constant trim.
+- **Parallel, not converged.** The camera-to-barrel offset `h` stays the same in metres at every range, so its angle is `atan(h / R)`. A converged mount is only right at one range.
+- **Lidar next to the camera.** The range must come from what is under the crosshair. The TFmini Plus beam spreads a few degrees (check the datasheet), roughly 15–35 cm across at 5 m, so a small target at range partly returns the background. The app can draw the beam footprint so an unreliable reading is visible.
+- **Mass and vibration.** Keep the sensors close to the tilt axis, and soft-mount the camera against flywheel vibration. The camera talks over ESP-NOW and only needs power through the gimbal; the lidar's UART runs through the gimbal to the controller.
+
+The impact point in the image, with the camera's vertical focal length `fy` in pixels and the dart's drop `drop(R, v)` at range `R` and dart speed `v`:
+
+```
+pixel_y = cy + fy · (h + drop(R, v)) / R
+```
+
+With h = 4 cm and the stock OV2640 lens at QVGA (fy ≈ 250–300 px), parallax alone is about 10 px at 1 m and 2 px at 5 m.
+
+- **Drop is measured, not modelled.** Drag, wobble and flywheel spin dominate foam-dart flight, and darts can rise at short range. Shoot groups at a board at about 1, 2, 3, 5 and 8 m and two or three throttles, record the mean impact in image pixels, and interpolate. Recording in pixels makes the focal length unnecessary.
+- **Indexed by dart speed, not throttle.** ESC throttle is open loop and drifts with pack voltage. The table is indexed by light gate speed, and the next shot's speed is estimated from recent shots at the same throttle (or from throttle and pack voltage until there are any).
+- **Spread.** The reticle is a circle that grows with range from the measured group size, not a point.
+
+The table and the interpolation live in `turret-core` and are unit-tested on the host. The same function serves every mode:
+- **Manual:** the app draws the floating reticle from the offset the controller reports.
+- **Assisted manual:** the user holds the fixed crosshair on the target and the controller adds the tilt offset before firing.
+- **Autonomous:** the controller adds the tilt offset so the impact point lands on the torso aim point.
+
+The app needs the range and the reticle offset, so State gets new fields in protocol version 3: range in cm with a valid flag, and the reticle offset and radius computed on the controller, so the table lives in one place. Video arrives over Wi-Fi and range over BLE with different delays; that is acceptable for the overlay, but the no-fire-without-range rule always uses the controller's own fresh reading.
+
 ## Targeting loop
 
 1. The vision node reports a face box and its classification.
 2. The aim point is placed **below** the face box (torso). The turret never aims at a face.
 3. The pixel error from the image center drives the pan/tilt controller.
-4. The TFmini Plus range gives elevation compensation from an empirically measured table.
+4. The TFmini Plus range and the expected dart speed give the elevation offset from the impact table (see [Sensor mounting and aim point](#sensor-mounting-and-aim-point-open)).
 5. All safety gates pass → spin up flywheels → push one dart → measure speed → ramp down.
 
 ## Safety requirements
@@ -190,7 +224,7 @@ Develop with `npm start` in `app/` and open `http://localhost:4200` in Windows C
 2. a. Turret drivers (SC15 gimbal, ESCs, pusher, light gate, battery) and the fire sequencer, driven from the USB console. *(done, bench-tested without actuators)*
    b. BLE peripheral with our own protocol (see [BLE protocol](#ble-protocol)), passkey bonding, disarm on link loss. *(done, tested on hardware)*
    c. Angular PWA in `app/` over Web Bluetooth: pair, arm/disarm, joystick aim, fire modes, state and shot telemetry, installable. Runs in Chromium browsers on Android and desktop; iOS Safari has no Web Bluetooth. *(done, tested against a simulated GATT server; pairing and aim tuning still to be checked on the turret)*
-3. TFmini Plus driver and range-based elevation table.
-4. a. Vision node: camera, esp-dl face detection and recognition, enrollment.
-   b. Video stream to the phone app with a crosshair overlay (see [Video stream to the phone](#video-stream-to-the-phone-open)); settle mixed content and face handling in manual aim first.
+3. TFmini Plus driver, the impact table indexed by range and dart speed, and range and reticle offset in State (protocol version 3).
+4. a. Vision node: camera on the tilt stage, esp-dl face detection and recognition, enrollment.
+   b. Video stream to the phone app with the fixed crosshair and floating impact reticle (see [Video stream to the phone](#video-stream-to-the-phone-open)); settle mixed content and face handling in manual aim first. Calibrate the impact table by shooting groups through the camera.
 5. ESP-NOW link, autonomous mode and the safety gates above.
