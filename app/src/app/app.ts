@@ -3,11 +3,15 @@ import { Turret } from './turret/turret';
 import { AppUpdate } from './update/app-update';
 import { ConnectPanel } from './ui/connect-panel';
 import { ControlPanel } from './ui/control-panel';
+import { Vision } from './vision/vision';
 
 @Component({
   selector: 'app-root',
   imports: [ConnectPanel, ControlPanel],
-  host: { '[class.armed]': 'turret.armed()' },
+  host: {
+    '[class.armed]': 'turret.armed()',
+    '[class.camera]': 'turret.connection() === "connected" && vision.active()',
+  },
   template: `
     @if (update.ready()) {
       <p class="banner update" role="status">
@@ -55,6 +59,11 @@ import { ControlPanel } from './ui/control-panel';
       }
     }
 
+    :host(.camera) {
+      height: 100dvh;
+      overflow: hidden;
+    }
+
     :host(.armed) {
       border-image: repeating-linear-gradient(-45deg, var(--hazard) 0 14px, var(--body) 14px 28px) 8;
     }
@@ -89,4 +98,5 @@ import { ControlPanel } from './ui/control-panel';
 export class App {
   protected readonly turret = inject(Turret);
   protected readonly update = inject(AppUpdate);
+  protected readonly vision = inject(Vision);
 }

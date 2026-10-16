@@ -17,6 +17,7 @@ import {
   placeTorsoMarker,
 } from '../vision/overlay';
 import { Vision, isStale } from '../vision/vision';
+import { enterFullscreen } from './fullscreen';
 
 const CLASS_COLORS: Record<FaceClass, string> = {
   unknown: '--hazard',
@@ -34,28 +35,25 @@ const CLASS_COLORS: Record<FaceClass, string> = {
           <p class="notice" aria-live="polite">{{ notice }}</p>
         }
       </div>
-    }
-    @if (vision.error(); as error) {
-      <p class="error" role="alert">{{ error }}</p>
-    }
-    <div class="controls">
-      @if (vision.active()) {
-        <button type="button" (click)="vision.disconnect()">Hide camera</button>
-      } @else {
-        <button type="button" (click)="vision.connect()">Show camera</button>
+    } @else {
+      @if (vision.error(); as error) {
+        <p class="error" role="alert">{{ error }}</p>
       }
-      <label>
-        <span>Camera</span>
-        <input
-          [value]="vision.address()"
-          [attr.aria-invalid]="addressInvalid()"
-          inputmode="url"
-          autocomplete="off"
-          spellcheck="false"
-          (change)="setAddress($event)"
-        />
-      </label>
-    </div>
+      <div class="controls">
+        <button type="button" (click)="showCamera()">Show camera</button>
+        <label>
+          <span>Camera</span>
+          <input
+            [value]="vision.address()"
+            [attr.aria-invalid]="addressInvalid()"
+            inputmode="url"
+            autocomplete="off"
+            spellcheck="false"
+            (change)="setAddress($event)"
+          />
+        </label>
+      </div>
+    }
   `,
   styles: `
     :host {
@@ -66,16 +64,16 @@ const CLASS_COLORS: Record<FaceClass, string> = {
 
     .frame {
       position: relative;
-      border-radius: var(--radius-control);
-      overflow: hidden;
+      flex: 1;
+      min-height: 0;
       background: #000;
     }
 
     canvas {
       display: block;
       width: 100%;
-      height: auto;
-      aspect-ratio: 4 / 3;
+      height: 100%;
+      object-fit: contain;
     }
 
     .stale canvas {
@@ -85,7 +83,11 @@ const CLASS_COLORS: Record<FaceClass, string> = {
 
     .notice {
       position: absolute;
-      inset: auto 8px 8px;
+      bottom: 12px;
+      left: 50%;
+      width: max-content;
+      max-width: min(calc(100% - 16px), 36ch);
+      transform: translateX(-50%);
       margin: 0;
       padding: 4px 8px;
       border-radius: 6px;
@@ -163,7 +165,7 @@ export class VideoView {
       case 'connecting':
         return `Connecting to ${this.vision.address()}…`;
       case 'lost':
-        return 'Camera lost, retrying…';
+        return this.vision.error() ?? 'Camera lost, retrying…';
       default:
         return this.stale() ? 'Stale' : null;
     }
@@ -176,6 +178,11 @@ export class VideoView {
       const frame = this.vision.frame();
       if (frame && this.canvas()) this.draw(frame);
     });
+  }
+
+  protected showCamera(): void {
+    void enterFullscreen();
+    this.vision.connect();
   }
 
   protected setAddress(event: Event): void {

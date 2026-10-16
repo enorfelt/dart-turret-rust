@@ -222,7 +222,7 @@ Angular 22 PWA over Web Bluetooth, for Chromium on Android and desktop. It is se
 | `aim/aim-controller.ts` | Rate-control joystick maths: deadzone, expo, integration, clamp to 0–1023, at most one Aim per 50 ms. Tunables are in `AIM_TUNING` |
 | `protocol/vision-stream.ts` | The [vision stream](#vision-stream-protocol) codec, the TypeScript twin of `vision_core::stream` |
 | `vision/` | `VisionLink` (WebSocket with Local Network Access) and the `Vision` service: connection, latest frame, retry, camera address kept in localStorage. `overlay.ts` holds the torso hint geometry and `OVERLAY_TUNING` |
-| `ui/` | Connect screen, control panel, joystick, hold-to-arm switch, fire panel (Signal Forms), telemetry, video view (camera canvas with crosshair, face boxes and torso hints; greyed out when a frame is over 500 ms old) |
+| `ui/` | Connect screen, control panel, joystick, hold-to-arm switch, fire panel (Signal Forms), telemetry, video view (camera canvas with crosshair, face boxes and torso hints; greyed out when a frame is over 500 ms old). With the camera on, the page goes full screen in landscape and the video fills it, with the status line, arm switch, joystick and a compact fire panel overlaid and the log hidden |
 
 The app adds these safety behaviours on top of the firmware's rules, without replacing them:
 - Arming needs a 1 s hold.

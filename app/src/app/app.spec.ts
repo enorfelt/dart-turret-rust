@@ -7,10 +7,13 @@ import { SwUpdate } from '@angular/service-worker';
 import { RELOAD } from './update/app-update';
 import { APP_VERSION_TOKEN } from './update/app-version';
 import { FakeSwUpdate } from './update/fake-sw-update';
+import { FakeVisionLink } from './vision/fake-vision-link';
+import { VISION_LINK } from './vision/vision-link';
 
 describe('App', () => {
   let link: FakeTurretLink;
   let sw: FakeSwUpdate;
+  let camera: FakeVisionLink;
 
   async function render() {
     TestBed.configureTestingModule({
@@ -18,6 +21,7 @@ describe('App', () => {
       providers: [
         { provide: TURRET_LINK, useValue: link },
         { provide: SwUpdate, useValue: sw },
+        { provide: VISION_LINK, useValue: camera },
         { provide: RELOAD, useValue: () => undefined },
         { provide: APP_VERSION_TOKEN, useValue: '2026-10-14-d7a9dbe' },
       ],
@@ -33,6 +37,7 @@ describe('App', () => {
   beforeEach(() => {
     link = new FakeTurretLink();
     sw = new FakeSwUpdate();
+    camera = new FakeVisionLink();
   });
 
   it('shows the app version on the connect panel', async () => {
@@ -125,5 +130,82 @@ describe('App', () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent).toContain('Did not fire: the turret is disarmed');
+  });
+
+  describe('with the camera on', () => {
+    let fullscreenElement: Element | null;
+    let requestFullscreen: ReturnType<typeof vi.fn>;
+    let exitFullscreen: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      localStorage.clear();
+      fullscreenElement = null;
+      requestFullscreen = vi.fn(async () => {
+        fullscreenElement = document.documentElement;
+      });
+      exitFullscreen = vi.fn(async () => {
+        fullscreenElement = null;
+      });
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        get: () => fullscreenElement,
+      });
+      Object.defineProperty(document, 'exitFullscreen', {
+        configurable: true,
+        value: exitFullscreen,
+      });
+      Object.defineProperty(document.documentElement, 'requestFullscreen', {
+        configurable: true,
+        value: requestFullscreen,
+      });
+    });
+
+    afterEach(() => {
+      delete (document as { fullscreenElement?: unknown }).fullscreenElement;
+      delete (document as { exitFullscreen?: unknown }).exitFullscreen;
+      delete (document.documentElement as { requestFullscreen?: unknown }).requestFullscreen;
+    });
+
+    async function showCamera() {
+      const fixture = await render();
+      const host: HTMLElement = fixture.nativeElement;
+      await TestBed.inject(Turret).connect();
+      await fixture.whenStable();
+      button(host, 'Show camera')!.click();
+      await fixture.whenStable();
+      return { fixture, host };
+    }
+
+    it('fills the screen with the video and overlays the controls', async () => {
+      const { fixture, host } = await showCamera();
+      link.notifyState(ARMED_READY_STATE);
+      await fixture.whenStable();
+
+      expect(requestFullscreen).toHaveBeenCalled();
+      expect(camera.opened).toHaveLength(1);
+      expect(host.classList).toContain('camera');
+      expect(host.querySelector('app-control-panel')!.classList).toContain('camera');
+      expect(host.querySelector('canvas')).not.toBeNull();
+      expect(host.querySelector('app-fire-panel')!.classList).toContain('compact');
+      expect(getComputedStyle(host.querySelector('app-telemetry')!).display).toBe('none');
+      expect(host.textContent).toContain('Last dart');
+      expect(button(host, 'Disconnect')).toBeUndefined();
+      expect(button(host, 'Disarm')).toBeDefined();
+      expect(button(host, 'Fire')).toBeDefined();
+      expect(host.querySelector('app-joystick')).not.toBeNull();
+    });
+
+    it('returns to the normal layout and leaves full screen when the camera is hidden', async () => {
+      const { fixture, host } = await showCamera();
+
+      button(host, 'Hide camera')!.click();
+      await fixture.whenStable();
+
+      expect(exitFullscreen).toHaveBeenCalled();
+      expect(host.classList).not.toContain('camera');
+      expect(host.querySelector('canvas')).toBeNull();
+      expect(button(host, 'Disconnect')).toBeDefined();
+      expect(button(host, 'Show camera')).toBeDefined();
+    });
   });
 });

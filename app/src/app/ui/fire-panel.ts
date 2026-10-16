@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormField, form, hidden, max, min } from '@angular/forms/signals';
 import { FireMode } from '../protocol/turret-protocol';
 import { Turret } from '../turret/turret';
@@ -15,6 +15,7 @@ export const MAX_BURST_SHOTS = 10;
 @Component({
   selector: 'app-fire-panel',
   imports: [FormField, FireButton],
+  host: { '[class.compact]': 'compact()' },
   template: `
     <fieldset class="modes">
       <legend>Mode</legend>
@@ -181,9 +182,49 @@ export const MAX_BURST_SHOTS = 10;
     .shots .caption {
       text-align: left;
     }
+
+    :host(.compact) {
+      gap: 8px;
+    }
+
+    :host(.compact) :is(legend, .caption) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    :host(.compact) .modes label {
+      min-height: 40px;
+      font-size: 1.125rem;
+    }
+
+    :host(.compact) .throttle {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+    }
+
+    :host(.compact) .throttle input {
+      grid-column: auto;
+    }
+
+    :host(.compact) :is(.throttle, .shots) output {
+      font-size: 1.125rem;
+    }
+
+    :host(.compact) .shots {
+      grid-template-columns: 44px 1fr 44px;
+    }
+
+    :host(.compact) .shots button {
+      height: 44px;
+    }
   `,
 })
 export class FirePanel {
+  readonly compact = input(false);
   protected readonly turret = inject(Turret);
   protected readonly maxShots = MAX_BURST_SHOTS;
 
