@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DART Vision</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f4f4f2;
+        --panel: #ffffff;
+        --text: #1d1d1b;
+        --muted: #6b6b66;
+        --line: #d8d8d2;
+        --unknown: #f2c94c;
+        --protected: #27ae60;
+        --target: #eb5757;
+        --accent: #2f6fde;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141413;
+          --panel: #1f1f1d;
+          --text: #ececea;
+          --muted: #9a9a94;
+          --line: #34342f;
+          --accent: #6b9cf0;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.4 system-ui, sans-serif;
+      }
+      main {
+        max-width: 560px;
+        margin: 0 auto;
+        display: grid;
+        gap: 16px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+      }
+      h2 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        background: #000;
+        border-radius: 6px;
+      }
+      .legend,
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .legend span::before {
+        content: '';
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin: 0 4px 0 10px;
+        border-radius: 2px;
+        background: var(--c);
+      }
+      form {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 8px;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        color: var(--text);
+        min-width: 0;
+      }
+      button {
+        cursor: pointer;
+      }
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      #status {
+        min-height: 1.4em;
+        margin: 8px 0 0;
+      }
+      #status.error {
+        color: var(--target);
+      }
+      #card {
+        color: var(--target);
+      }
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 8px;
+      }
+      li {
+        display: grid;
+        grid-template-columns: 56px 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+      li img {
+        width: 56px;
+        height: 42px;
+        object-fit: cover;
+        border-radius: 4px;
+        background: var(--line);
+      }
+      li .actions {
+        display: flex;
+        gap: 6px;
+      }
+      .role-target {
+        color: var(--target);
+      }
+      .role-protected {
+        color: var(--protected);
+      }
+      @media (max-width: 420px) {
+        form {
+          grid-template-columns: 1fr 1fr;
+        }
+        form input {
+          grid-column: 1 / -1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>DART Vision</h1>
+      <p id="card" hidden>No SD card: recognition and enrollment are off.</p>
+      <section>
+        <canvas id="view" width="320" height="240"></canvas>
+        <p class="legend">
+          <span style="--c: var(--unknown)">unknown</span>
+          <span style="--c: var(--protected)">protected</span>
+          <span style="--c: var(--target)">target</span>
+          <span id="fps"></span>
+          <span id="link">stream: connecting</span>
+        </p>
+      </section>
+      <section>
+        <h2>Enroll</h2>
+        <form id="enroll">
+          <input id="name" maxlength="24" placeholder="Name" required autocomplete="off" />
+          <select id="role">
+            <option value="protected">Protected</option>
+            <option value="target">Target</option>
+          </select>
+          <button class="primary" type="submit">Enroll</button>
+        </form>
+        <p class="muted">One face in view, facing the camera, until enrollment finishes.</p>
+        <p id="status" role="status"></p>
+      </section>
+      <section>
+        <h2>People</h2>
+        <ul id="people"></ul>
+        <p id="nobody" class="muted" hidden>Nobody enrolled yet.</p>
+      </section>
+    </main>
+    <script>
+      const COLORS = ['--unknown', '--protected', '--target'];
+      const view = document.getElementById('view');
+      const ctx = view.getContext('2d');
+      const statusLine = document.getElementById('status');
+      let frames = 0;
+
+      function color(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name);
+      }
+
+      function decodeFrame(buffer) {
+        const v = new DataView(buffer);
+        if (v.byteLength < 9 || v.getUint8(0) !== 1) return null;
+        const count = v.getUint8(8);
+        const faces = [];
+        let at = 9;
+        for (let i = 0; i < count; i++, at += 11) {
+          faces.push({
+            track: v.getUint8(at),
+            cls: v.getUint8(at + 1),
+            confidence: v.getUint8(at + 2),
+            x: v.getUint16(at + 3, true),
+            y: v.getUint16(at + 5, true),
+            w: v.getUint16(at + 7, true),
+            h: v.getUint16(at + 9, true),
+          });
+        }
+        return {
+          width: v.getUint16(4, true),
+          height: v.getUint16(6, true),
+          faces,
+          jpeg: buffer.slice(at),
+        };
+      }
+
+      async function draw(frame) {
+        const bitmap = await createImageBitmap(new Blob([frame.jpeg], { type: 'image/jpeg' }));
+        view.width = frame.width;
+        view.height = frame.height;
+        ctx.drawImage(bitmap, 0, 0);
+        bitmap.close();
+        ctx.lineWidth = 2;
+        ctx.font = '12px system-ui';
+        for (const face of frame.faces) {
+          ctx.strokeStyle = ctx.fillStyle = color(COLORS[face.cls] ?? '--unknown');
+          ctx.strokeRect(face.x, face.y, face.w, face.h);
+          const label = face.cls === 0 ? `#${face.track}` : `#${face.track} ${face.confidence}%`;
+          ctx.fillText(label, face.x + 2, Math.max(12, face.y - 4));
+        }
+      }
+
+      const link = document.getElementById('link');
+
+      function connect() {
+        const ws = new WebSocket(`ws://${location.host}/stream`);
+        ws.binaryType = 'arraybuffer';
+        let busy = false;
+        ws.onopen = () => {
+          ws.send(new Uint8Array([1]));
+          link.textContent = 'stream: open, waiting for frames';
+        };
+        ws.onmessage = async (event) => {
+          frames++;
+          if (busy) return;
+          const frame = decodeFrame(event.data);
+          if (!frame) {
+            link.textContent = `stream: unreadable frame (${event.data.byteLength} B)`;
+            return;
+          }
+          busy = true;
+          try {
+            await draw(frame);
+            link.textContent = `stream: ${frame.width}x${frame.height}, JPEG ${frame.jpeg.byteLength} B`;
+          } catch (error) {
+            link.textContent = `stream: cannot draw frame: ${error.message}`;
+          } finally {
+            busy = false;
+          }
+        };
+        ws.onclose = (event) => {
+          link.textContent = `stream: closed (code ${event.code}), retrying`;
+          setTimeout(connect, 1000);
+        };
+      }
+
+      setInterval(() => {
+        document.getElementById('fps').textContent = `${frames} fps`;
+        frames = 0;
+      }, 1000);
+
+      function say(text, error = false) {
+        statusLine.textContent = text;
+        statusLine.className = error ? 'error' : '';
+      }
+
+      async function request(method, url) {
+        const response = await fetch(url, { method });
+        const body = response.status === 204 ? {} : await response.json();
+        if (!response.ok) throw new Error(body.error ?? response.statusText);
+        return body;
+      }
+
+      async function follow() {
+        for (;;) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          const status = await request('GET', '/api/enrollment');
+          if (status.state === 'running') continue;
+          if (status.state === 'failed') say(status.reason, true);
+          if (status.state === 'done') say('Enrolled.');
+          await loadPeople();
+          return;
+        }
+      }
+
+      async function enroll(url) {
+        setBusy(true);
+        say('Look at the camera…');
+        try {
+          await request('POST', url);
+          await follow();
+        } catch (error) {
+          say(error.message, true);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      function setBusy(busy) {
+        for (const button of document.querySelectorAll('button')) button.disabled = busy;
+      }
+
+      document.getElementById('enroll').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const role = document.getElementById('role').value;
+        const query = new URLSearchParams({ name, role });
+        enroll(`/api/people?${query}`).then(() => {
+          if (statusLine.className !== 'error') document.getElementById('name').value = '';
+        });
+      });
+
+      async function loadPeople() {
+        const { card, people } = await request('GET', '/api/people');
+        document.getElementById('card').hidden = card;
+        document.getElementById('nobody').hidden = people.length > 0;
+        const list = document.getElementById('people');
+        list.replaceChildren(
+          ...people.map((person) => {
+            const item = document.createElement('li');
+            const photo = document.createElement('img');
+            photo.src = `/api/people/${person.id}/photo?t=${person.samples}`;
+            photo.alt = '';
+            const text = document.createElement('div');
+            const name = document.createElement('strong');
+            name.textContent = person.name;
+            const role = document.createElement('div');
+            role.className = `muted role-${person.role}`;
+            role.textContent = `${person.role}, ${person.samples} sample${person.samples === 1 ? '' : 's'}`;
+            text.append(name, role);
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+            const add = document.createElement('button');
+            add.textContent = 'Add sample';
+            add.onclick = () => enroll(`/api/people/${person.id}/samples`);
+            const remove = document.createElement('button');
+            remove.textContent = 'Remove';
+            remove.onclick = async () => {
+              if (!confirm(`Remove ${person.name}?`)) return;
+              await request('DELETE', `/api/people/${person.id}`);
+              setTimeout(loadPeople, 300);
+            };
+            actions.append(add, remove);
+            item.append(photo, text, actions);
+            return item;
+          }),
+        );
+      }
+
+      connect();
+      loadPeople().catch((error) => say(error.message, true));
+    </script>
+  </body>
+</html>

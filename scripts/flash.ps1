@@ -16,6 +16,10 @@ if (-not (Test-Path $elf)) {
 
 $espflashArgs = @('flash', '--monitor')
 if ($Port) { $espflashArgs += @('--port', $Port) }
+$partitionTable = Join-Path $PSScriptRoot "..\firmware\$Firmware\partitions.csv"
+if (Test-Path $partitionTable) {
+    $espflashArgs += @('--flash-size', '8mb', '--partition-table', (Resolve-Path $partitionTable).ProviderPath)
+}
 $espflashArgs += (Resolve-Path $elf).ProviderPath
 
 & espflash @espflashArgs

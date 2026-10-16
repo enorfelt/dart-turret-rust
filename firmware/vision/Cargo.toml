@@ -1,0 +1,33 @@
+[package]
+name = "vision"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+license = "MIT"
+
+[[bin]]
+name = "vision"
+harness = false
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true
+opt-level = "z"
+
+[dependencies]
+anyhow = "1"
+log = "0.4"
+esp-idf-svc = "0.53"
+heapless = "0.8"
+turret-core = { path = "../../crates/turret-core" }
+vision-core = { path = "../../crates/vision-core" }
+
+[build-dependencies]
+embuild = "0.33"
+
+[[package.metadata.esp-idf-sys.extra_components]]
+component_dirs = ["components"]
+bindings_header = "components/face/include/bindings.h"
+bindings_module = "vision"

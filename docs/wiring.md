@@ -39,7 +39,8 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
        ├── Buck 6 V,   ≥3 A (20 AWG) ─── arm switch pole A ──┬── pusher servo +
        │                                                     └── + 1000 µF − ── pusher servo −
        ├── Buck 5 V,   ≥2 A (22 AWG) ─── ESP 5V pin, TFmini 5 V, level shifter HV,
-       │                                  TTLinker 5 V, light gate LED
+       │                                  TTLinker 5 V, light gate LED,
+       │                                  vision board 5V pin (through the gimbal)
        └── 39 kΩ at PDB VCC pad ──(26 AWG)──┬── 8.2 kΩ ── − bus
                                             ├── 100 nF ── − bus
                                             └── GPIO 1
@@ -52,7 +53,7 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 - Without a PDB, use two Wago 221-415 lever connectors per rail, joined by a short 14 AWG jumper. Each rail has six leads (feed, two ESCs, three bucks) and a 221-415 takes five. Solder the 26 AWG divider wires to a buck input lead instead, as they are below the Wago's minimum. Do not use screw terminals on bare stranded wire, as they loosen under vibration.
 - Solder the 39 kΩ directly to the PDB VCC pad and put the 8.2 kΩ and 100 nF next to the ESP. The 26 AWG wire then carries only the divided voltage, so a chafed wire shorted to ground draws under 0.5 mA instead of burning before the 25 A fuse blows. The 100 nF filters noise picked up on the long wire.
 - The divider sits on the turret side of the XT60 so its 0.36 mA does not drain the pack while unplugged.
-- All grounds are common: buck outputs, ESC signal grounds, ESP GND, TTLinker GND, TFmini GND.
+- All grounds are common: buck outputs, ESC signal grounds, ESP GND, TTLinker GND, TFmini GND, vision board GND.
 - Connect only signal and ground from the ESC servo leads. If an ESC has a BEC, leave its red wire unconnected.
 - The SC15 is rated 4.8–8.4 V and stalls at 1.7 A, so two stalled servos need 3.4 A. The original 8 V MP1584 (3 A peak) is undersized for that.
 - The pusher servo (MG996R class) stalls at about 2.5 A and draws spikes of that size every time it starts to move. A 1000 µF, ≥16 V low-ESR electrolytic capacitor across its leads supplies those spikes, so they do not sag the 6 V rail or bounce the shared ground. Solder it at the servo end, after pole A: + to the servo's red lead, − to its brown lead. Check the polarity, as a reversed electrolytic heats up and can burst.
@@ -158,6 +159,15 @@ The guard only sees the whole pack. The BMS is what protects each cell.
 - The ESCs stay on 3.3 V signals, as in the original; BLHeli ESCs read them fine.
 - BSS138 shifters are slow. If the servo bus gets errors at 1 Mbaud, use a 74AHCT125 buffer or lower the servo baud rate.
 
+## Vision node
+
+The vision node is a second Freenove board with its camera (a GC0308 on ours) on the camera connector. It sits on the tilt stage directly above the barrel (see [Sensor mounting](architecture.md#sensor-mounting-and-aim-point-open)). Only 5 V and GND run to it through the gimbal; it has no signal wires to the controller, because it talks to the phone over its own Wi-Fi and to the controller over ESP-NOW in step 5. With Wi-Fi and the camera running, it draws up to about 500 mA, well within the 5 V buck.
+
+| Function | GPIO | Notes |
+|---|---|---|
+| Camera | XCLK 15, SIOD 4, SIOC 5, D0–D7 11, 9, 8, 10, 12, 18, 17, 16, VSYNC 6, HREF 7, PCLK 13 | Freenove's (ESP32-S3-EYE) camera map, assigned in `firmware/vision/src/board.rs` |
+| microSD | CMD 38, CLK 39, D0 40 | SDMMC 1-bit, FAT32. Holds the enrolled people; detection runs without a card |
+
 ## Wire gauges
 
 Use stranded silicone wire everywhere; it survives the pan and tilt movement. Add strain relief where wires cross the gimbal axes.
@@ -177,6 +187,8 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | Qty | Part | Notes |
 |---|---|---|
 | 1 | Freenove ESP32-S3 WROOM board | Turret controller, camera connector left empty |
+| 1 | Freenove ESP32-S3 WROOM CAM board | Vision node, step 4. Ships with a GC0308 sensor; an OV2640 module fits the same connector |
+| 1 | microSD card, FAT32 | Vision node: enrolled people. Any size; 1 GB is plenty |
 | 2 | Waveshare SC15 serial bus servo | Pan (ID 0) and tilt (ID 1) |
 | 1 | Feetech TTLinker (mini) | UART to half-duplex servo bus |
 | 1 | 4-channel BSS138 level shifter | 3.3 V ↔ 5 V for the TTLinker (channels 1–2) and the pusher signal (channel 3) |

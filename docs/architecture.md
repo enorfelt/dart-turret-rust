@@ -56,28 +56,47 @@ Open with `espflash monitor` (or `cargo run`). Typed characters are echoed; Ente
 | `B` | Battery voltage, percent and health |
 | `unpair` | Forget all bonded phones |
 
-### Vision node (`firmware/vision`, not created yet)
+### Vision node (`firmware/vision`)
 
-An ESP32-S3 camera board with PSRAM; the planned board is the Freenove ESP32-S3 WROOM CAM (OV2640 with hardware JPEG, 8 MB PSRAM). Face detection and recognition use Espressif's esp-dl / ESP-WHO models, linked into the Rust app as an ESP-IDF component through FFI. Output per frame: target box in normalized image coordinates, authorized/unauthorized, and confidence. Enrolled face embeddings stay on the device.
+A Freenove ESP32-S3 WROOM CAM (8 MB octal PSRAM, 8 MB flash) with a microSD card. Its camera is a GC0308, a VGA sensor without hardware JPEG; an OV2640 on the same connector works unchanged; pins and power are in [wiring.md](wiring.md#vision-node). Face detection (`espressif/human_face_detect`, MSR+MNP) and face features (`espressif/human_face_recognition`, MFN) are esp-dl components fetched by the ESP-IDF component manager. A small C++ shim (`firmware/vision/components/face`) gives them a C API that is bound into Rust. The models are compiled into flash, so detection does not need the card.
+
+Each QVGA frame goes: RGB565 capture → software JPEG encode for the stream → detect on the raw pixels → IoU tracker → at most one face feature → identity → stream. `status` on the vision console prints the frame rate and the time of each stage. The hardware-independent parts are in `crates/vision-core` and unit-tested on the host: tracker, gallery matching, identity policy, recognition schedule, enrollment rules, people file and stream codec. Thresholds are in `VisionConfig`.
+
+Recognition:
+- Every enrolled person is either *protected* or a *target*. Unknown faces are never engaged (see [Safety requirements](#safety-requirements)), so only people enrolled as targets can ever be engaged: being a target is opt-in.
+- A face matches a person by cosine similarity of the L2-normalised features against each of the person's samples (`match_similarity`), with a clear margin over the next person (`match_margin`).
+- A track becomes *target* only after `target_confirmations` agreeing recognitions of the same target person. One failed recheck drops it back to unknown. A track that ever matches a protected person, as best match or runner-up, stays protected until the track is lost.
+- A face feature costs about 250 ms, so detection runs on every frame and recognition runs per track: new and unconfirmed tracks first, then confirmed targets every `recheck_ms`.
+- Enrollment needs exactly one face in view and takes `enroll_samples` samples. It is refused when the face already matches someone, so a protected person cannot be enrolled again as a target under another name. An extra sample must match the person it is added to.
+- People are stored on the card as `people.bin` (postcard with a format version and the feature length, so a model change is detected) plus one enrollment snapshot each in `people/<id>.jpg`. Without a card, detection and the stream still run, every face is unknown, and enrollment is off.
+
+Camera choice:
+- **Range is set by the lens and the models, not the sensor.** The detector scales each frame down to 160×120 and recognition works on 112×112 face crops, so QVGA is enough and a higher resolution buys little. With a lens of about 60° across, a 15 cm face is roughly 30 px wide at 1.5 m and 15 px at 3 m, so expect reliable detection and recognition to about 1.5–2.5 m. A narrower lens (40–50°) makes faces larger and extends that range, at the cost of a smaller view that the gimbal partly makes up for. A wide-angle lens shortens it.
+- **GC0308 drawbacks** (the board's stock sensor): no hardware JPEG, so the S3 encodes every frame on the same core as detection and recognition; a noisier image with weaker colour and exposure in poor indoor light, which hurts both models; and fewer exposure and white-balance controls in esp32-camera. It is fine for bring-up.
+- **Alternatives on the same 24-pin connector, all supported by esp32-camera:** the OV2640 has a much better image, hardware JPEG and many lens options, and is cheap and common. The OV3660 is better again in low light. The OV5640 has the best image and autofocus versions, but more power and heat, mostly wasted at QVGA.
+- **Plan:** keep the GC0308 until the node works on hardware, then move to an OV2640 with a normal or narrow lens. With it, capture the sensor's hardware JPEG and decode it in software for detection, so the stream needs no encode. Choose the pipeline from the detected sensor in `camera.rs` and the face shim, rather than hard-coding one.
+
+Network:
+- WPA2 softAP `DART Vision` on a fixed channel 1, password compiled in from `VISION_WIFI_PASSWORD` (8–63 characters). The channel is fixed because ESP-NOW (step 5) shares the radio. The password is the only access control for enrollment.
+- `http://192.168.71.1/` serves the enrollment page: the live view with face boxes, enroll by name and role, add samples, remove people.
+- `ws://192.168.71.1/stream` carries the [vision stream](#vision-stream-protocol), at most 3 clients.
+- JSON API used by the page: `GET /api/people`, `POST /api/people?name=…&role=target|protected`, `POST /api/people/{id}/samples`, `DELETE /api/people/{id}`, `GET /api/people/{id}/photo`, `GET /api/enrollment` (idle, running, done with the id, or failed with a reason). Enrollment runs on the vision thread; the page polls its status.
+- The vision console is on UART0, the board's CH343 USB port, with the log mirrored to the native USB port. It has `help`, `status` and `people`. A startup failure is logged and the node stops instead of rebooting in a loop.
 
 ### Inter-node link (*open*)
 
 Default: ESP-NOW with `turret-proto` messages encoded by postcard. That needs no cable through the gimbal and has low latency without a router. If the camera ends up wired next to the controller, a UART link carries the same messages instead.
 
-### Video stream to the phone (*open*)
+### Video stream to the phone
 
 The phone app shows the camera view with a crosshair for manual targeting. Video does not go over BLE: Web Bluetooth moves roughly 20–100 KB/s, a QVGA JPEG is 8–15 KB, and the frames would compete with Aim and Fire writes. The video also originates on the vision node, which has no BLE link to the phone.
 
 - BLE stays the only control channel. The video link is display-only and carries no commands.
-- The vision node runs a Wi-Fi softAP and serves frames from the OV2640's hardware JPEG, as MJPEG over HTTP or JPEG frames over a WebSocket. The phone joins the AP.
+- The phone joins the vision node's softAP and opens `ws://192.168.71.1/stream`. Each message is one [vision stream](#vision-stream-protocol) frame: a software-encoded JPEG plus the face boxes and classes from the same frame. Only frames that went through detection are sent, so the stream rate is the detection rate.
 - The softAP and ESP-NOW share the radio and must use the same channel.
-- Streaming and face detection share the CPU. Detection runs at about 5–10 fps on QVGA, so the stream may be limited to the frames that went through detection.
-- The overlay has a fixed crosshair at the image center (camera boresight) and a floating impact reticle that shows where the next dart is expected to land (see [Sensor mounting and aim point](#sensor-mounting-and-aim-point-open)). Tap-to-aim would need a calibration from image coordinates to pan/tilt; that maths goes in `turret-core`.
-- The vision node can send its face boxes and classifications alongside the frames so the app draws them over the video.
-
-Open questions:
-- **Mixed content.** The PWA is served over HTTPS (Web Bluetooth needs a secure context), and the camera serves plain HTTP on a private address, which Chrome blocks from an HTTPS page. Candidates: Chrome Local Network Access (`fetch(url, { targetAddressSpace: 'local' })` after a permission prompt, drawn to a `<canvas>`; check support on Android Chrome first), or HTTPS on the vision node with a self-signed certificate accepted once per phone (costs CPU next to detection). Serving the PWA from the ESP does not work, because a plain HTTP origin is not a secure context.
-- **Faces in manual aim.** A camera view makes it easy to put the crosshair on a face. Decide whether manual aiming from the app also gets the torso offset or a face lockout from the vision node's boxes before the stream ships.
+- **Mixed content** is handled with Chrome Local Network Access. The PWA is served over HTTPS and the camera over plain HTTP; the app opens the WebSocket with `{ targetAddressSpace: 'local' }` (Chrome 154+), and a private IP literal counts as local. Chrome asks once for the local network permission. To check on the phone: Android keeps routing to an AP without internet while mobile data is on (otherwise choose "stay connected" or turn mobile data off), and BLE to the turret keeps working at the same time. The fallback is a `fetch()`-streamed multipart MJPEG, which LNA also allows.
+- **Faces in manual aim.** The app draws each face box in its class colour and a torso hint below it, but never blocks Fire: in manual mode the operator is responsible. Autonomous mode (step 5) places the aim point below the face on the controller.
+- The overlay has a fixed crosshair at the image centre (camera boresight). The floating impact reticle, which shows where the next dart is expected to land, comes after step 3 (see [Sensor mounting and aim point](#sensor-mounting-and-aim-point-open)). Tap-to-aim would need a calibration from image coordinates to pan/tilt; that maths goes in `turret-core`.
 
 ## Sensor mounting and aim point (*open*)
 
@@ -177,6 +196,20 @@ Events, sent whatever started the action (console or app); a pending State chang
 | `0x04` | Fire rejected | `reason u8`: 0 disarmed, 1 busy, 2 cooling down, 3 no throttle |
 | `0x05` | Gimbal move failed | – |
 
+## Vision stream protocol
+
+The contract between the vision node and the phone app (and the enrollment page). After the WebSocket opens, the client sends one message of any content to subscribe: ESP-IDF 5.5 answers the handshake without calling the server's handler, so the node only learns about a client from its first message. The node then sends frames only while at least one client is subscribed. Each WebSocket binary message from the node is one frame, little-endian. The codec is `vision_core::stream` on the node and `app/src/app/protocol/vision-stream.ts` in the app, with the same byte vectors in both test suites.
+
+| Byte | Field |
+|---|---|
+| 0 | Stream version, currently 1; the app refuses versions it does not know |
+| 1 | Flags: bit 0 recognition on (card mounted and someone enrolled), bit 1 enrollment running |
+| 2–3 | Frame sequence number, wrapping |
+| 4–5, 6–7 | Image width, height in pixels |
+| 8 | Face count `n`, at most 8 |
+| 9 … | `n` faces of 11 bytes: `track u8`, `class u8` (0 unknown, 1 protected, 2 target), `confidence u8` (similarity in %, 0 when unknown), `x, y, w, h u16` in image pixels |
+| 9 + 11·n … | The JPEG image |
+
 ## Phone app (`app/`)
 
 Angular 22 PWA over Web Bluetooth, for Chromium on Android and desktop. It is served from GitHub Pages and can be installed to the home screen. It is zoneless and signal-based: Bluetooth notifications write straight into signals, and commands are only sent from user input.
@@ -187,7 +220,9 @@ Angular 22 PWA over Web Bluetooth, for Chromium on Android and desktop. It is se
 | `link/` | `TurretLink` interface and the Web Bluetooth implementation. `CommandQueue` keeps one write in flight: a newer Aim replaces a queued one, Disarm drops everything queued, and Cease fire jumps ahead of queued Fire |
 | `turret/turret.ts` | Connection, state, event log and shots as signals; the only place commands are sent from |
 | `aim/aim-controller.ts` | Rate-control joystick maths: deadzone, expo, integration, clamp to 0–1023, at most one Aim per 50 ms. Tunables are in `AIM_TUNING` |
-| `ui/` | Connect screen, control panel, joystick, hold-to-arm switch, fire panel (Signal Forms), telemetry |
+| `protocol/vision-stream.ts` | The [vision stream](#vision-stream-protocol) codec, the TypeScript twin of `vision_core::stream` |
+| `vision/` | `VisionLink` (WebSocket with Local Network Access) and the `Vision` service: connection, latest frame, retry, camera address kept in localStorage. `overlay.ts` holds the torso hint geometry and `OVERLAY_TUNING` |
+| `ui/` | Connect screen, control panel, joystick, hold-to-arm switch, fire panel (Signal Forms), telemetry, video view (camera canvas with crosshair, face boxes and torso hints; greyed out when a frame is over 500 ms old) |
 
 The app adds these safety behaviours on top of the firmware's rules, without replacing them:
 - Arming needs a 1 s hold.
@@ -225,6 +260,6 @@ Develop with `npm start` in `app/` and open `http://localhost:4200` in Windows C
    b. BLE peripheral with our own protocol (see [BLE protocol](#ble-protocol)), passkey bonding, disarm on link loss. *(done, tested on hardware)*
    c. Angular PWA in `app/` over Web Bluetooth: pair, arm/disarm, joystick aim, fire modes, state and shot telemetry, installable. Runs in Chromium browsers on Android and desktop; iOS Safari has no Web Bluetooth. *(done, tested against a simulated GATT server; pairing and aim tuning still to be checked on the turret)*
 3. TFmini Plus driver, the impact table indexed by range and dart speed, and range and reticle offset in State (protocol version 3).
-4. a. Vision node: camera on the tilt stage, esp-dl face detection and recognition, enrollment.
-   b. Video stream to the phone app with the fixed crosshair and floating impact reticle (see [Video stream to the phone](#video-stream-to-the-phone-open)); settle mixed content and face handling in manual aim first. Calibrate the impact table by shooting groups through the camera.
+4. a. Vision node: camera on the tilt stage, esp-dl face detection and recognition, enrollment from a web page on its softAP, people on the SD card. *(done, tested on the board with the GC0308)*
+   b. Video stream to the phone app with the fixed crosshair, face boxes and torso hints (see [Video stream to the phone](#video-stream-to-the-phone)). *(done, to be tested on a phone)* After step 3: the floating impact reticle, and calibrating the impact table by shooting groups through the camera.
 5. ESP-NOW link, autonomous mode and the safety gates above.
