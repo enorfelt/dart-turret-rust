@@ -49,7 +49,7 @@ import { VideoView } from './video-view';
     </header>
 
     <app-video-view class="video" />
-    <app-arm-switch class="arm" />
+    <app-arm-switch class="arm" [compact]="vision.active()" />
     <app-aim-pad class="aim" />
     <app-fire-panel class="fire" [compact]="vision.active()" />
     <app-telemetry class="telemetry" />
@@ -156,26 +156,13 @@ import { VideoView } from './video-view';
     :host(.camera) {
       position: relative;
       grid-template-areas:
-        'header header'
-        '. arm'
-        '. .'
-        'aim fire';
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      grid-template-rows: auto auto minmax(0, 1fr) auto;
+        'header header arm'
+        'aim . fire';
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr);
       gap: 8px;
       min-height: 0;
       padding: 8px;
-    }
-
-    @media (orientation: landscape) {
-      :host(.camera) {
-        grid-template-areas:
-          'header header arm'
-          '. . .'
-          'aim . fire';
-        grid-template-columns: auto minmax(0, 1fr) min(34vw, 260px);
-        grid-template-rows: auto minmax(0, 1fr) auto;
-      }
     }
 
     :host(.camera) .video {
@@ -190,28 +177,46 @@ import { VideoView } from './video-view';
 
     :host(.camera) :is(header, .arm, .fire) {
       border-radius: var(--radius-control);
-      background: rgb(0 0 0 / 70%);
-    }
-
-    :host(.camera) :is(header, .fire) {
-      padding: 6px 12px;
+      background: rgb(0 0 0 / 60%);
     }
 
     :host(.camera) header {
       align-self: start;
-      gap: 4px 16px;
+      justify-self: start;
+      gap: 2px 12px;
+      padding: 4px 4px 4px 10px;
+      text-shadow: 0 1px 2px #000;
     }
 
     :host(.camera) .arming {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
+    }
+
+    :host(.camera) dl {
+      gap: 2px 12px;
+    }
+
+    :host(.camera) dl > div {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
     }
 
     :host(.camera) dt {
+      font-size: 0.75rem;
       color: var(--ink);
     }
 
     :host(.camera) dd {
-      font-size: 1.125rem;
+      font-size: 1rem;
+    }
+
+    :host(.camera) .end {
+      min-height: 32px;
+      margin-left: 0;
+      padding: 0 10px;
+      font-size: 0.875rem;
+      background: rgb(0 0 0 / 40%);
     }
 
     :host(.camera) .arm {
@@ -226,6 +231,7 @@ import { VideoView } from './video-view';
 
     :host(.camera) .fire {
       align-self: end;
+      padding: 8px;
     }
 
     :host(.camera) .telemetry {

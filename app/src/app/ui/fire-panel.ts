@@ -12,26 +12,36 @@ export interface FireSettings {
 
 export const MAX_BURST_SHOTS = 10;
 
+const MODES: readonly FireMode[] = ['single', 'burst', 'auto'];
+const MODE_LABELS: Record<FireMode, string> = { single: 'Single', burst: 'Burst', auto: 'Auto' };
+
 @Component({
   selector: 'app-fire-panel',
   imports: [FormField, FireButton],
   host: { '[class.compact]': 'compact()' },
   template: `
-    <fieldset class="modes">
-      <legend>Mode</legend>
-      <label [class.selected]="fireForm.mode().value() === 'single'">
-        <input type="radio" value="single" [formField]="fireForm.mode" />
-        Single
-      </label>
-      <label [class.selected]="fireForm.mode().value() === 'burst'">
-        <input type="radio" value="burst" [formField]="fireForm.mode" />
-        Burst
-      </label>
-      <label [class.selected]="fireForm.mode().value() === 'auto'">
-        <input type="radio" value="auto" [formField]="fireForm.mode" />
-        Auto
-      </label>
-    </fieldset>
+    @if (compact()) {
+      <button type="button" class="cycle" (click)="nextMode()">
+        <span class="cycle-caption">Mode</span>
+        <span class="cycle-value">{{ modeLabel() }}</span>
+      </button>
+    } @else {
+      <fieldset class="modes">
+        <legend>Mode</legend>
+        <label [class.selected]="fireForm.mode().value() === 'single'">
+          <input type="radio" value="single" [formField]="fireForm.mode" />
+          Single
+        </label>
+        <label [class.selected]="fireForm.mode().value() === 'burst'">
+          <input type="radio" value="burst" [formField]="fireForm.mode" />
+          Burst
+        </label>
+        <label [class.selected]="fireForm.mode().value() === 'auto'">
+          <input type="radio" value="auto" [formField]="fireForm.mode" />
+          Auto
+        </label>
+      </fieldset>
+    }
 
     <label class="throttle">
       <span class="caption">Flywheel speed</span>
@@ -63,6 +73,7 @@ export const MAX_BURST_SHOTS = 10;
     }
 
     <app-fire-button
+      [compact]="compact()"
       [mode]="fireForm.mode().value()"
       [disabled]="!canFire()"
       (fire)="fire()"
@@ -184,10 +195,16 @@ export const MAX_BURST_SHOTS = 10;
     }
 
     :host(.compact) {
+      display: grid;
+      grid-template-columns: auto 96px;
       gap: 8px;
     }
 
-    :host(.compact) :is(legend, .caption) {
+    :host(.compact) > :not(.throttle) {
+      grid-column: 2;
+    }
+
+    :host(.compact) .caption {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -196,30 +213,63 @@ export const MAX_BURST_SHOTS = 10;
       white-space: nowrap;
     }
 
-    :host(.compact) .modes label {
-      min-height: 40px;
-      font-size: 1.125rem;
+    .cycle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 48px;
+      padding: 2px 0 4px;
+      border: 2px solid var(--panel-raised);
+      border-radius: var(--radius-control);
+      background: var(--panel);
+      font-family: var(--font-label);
+      line-height: 1.1;
+    }
+
+    .cycle-caption {
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+    }
+
+    .cycle-value {
+      font-size: 1.25rem;
+      font-weight: 700;
     }
 
     :host(.compact) .throttle {
-      grid-template-columns: auto minmax(0, 1fr);
+      display: flex;
+      flex-direction: column;
       align-items: center;
+      gap: 4px;
+      grid-column: 1;
+      grid-row: 1 / span 3;
+    }
+
+    :host(.compact) .throttle output {
+      font-size: 1rem;
     }
 
     :host(.compact) .throttle input {
-      grid-column: auto;
-    }
-
-    :host(.compact) :is(.throttle, .shots) output {
-      font-size: 1.125rem;
+      flex: 1;
+      width: 28px;
+      height: auto;
+      min-height: 96px;
+      writing-mode: vertical-lr;
+      direction: rtl;
     }
 
     :host(.compact) .shots {
-      grid-template-columns: 44px 1fr 44px;
+      grid-template-columns: 32px 1fr 32px;
+      gap: 4px;
+    }
+
+    :host(.compact) .shots output {
+      font-size: 1.125rem;
     }
 
     :host(.compact) .shots button {
-      height: 44px;
+      height: 36px;
+      font-size: 1.25rem;
     }
   `,
 })
@@ -237,11 +287,19 @@ export class FirePanel {
     hidden(field.shots, ({ valueOf }) => valueOf(field.mode) !== 'burst');
   });
 
+  protected readonly modeLabel = computed(() => MODE_LABELS[this.settings().mode]);
   protected readonly canFire = computed(() => this.turret.canFire() && this.fireForm().valid());
 
   protected fire(): void {
     const { mode, throttle, shots } = this.settings();
     this.turret.fire(mode, throttle, mode === 'burst' ? shots : 1);
+  }
+
+  protected nextMode(): void {
+    this.settings.update((settings) => ({
+      ...settings,
+      mode: MODES[(MODES.indexOf(settings.mode) + 1) % MODES.length],
+    }));
   }
 
   protected stepShots(delta: number): void {

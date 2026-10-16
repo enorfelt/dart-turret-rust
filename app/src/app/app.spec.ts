@@ -195,6 +195,21 @@ describe('App', () => {
       expect(host.querySelector('app-joystick')).not.toBeNull();
     });
 
+    it('fires a burst after cycling the mode from one button', async () => {
+      const { fixture, host } = await showCamera();
+      link.notifyState(ARMED_READY_STATE);
+      await fixture.whenStable();
+      const mode = host.querySelector<HTMLButtonElement>('button.cycle')!;
+
+      mode.click();
+      await fixture.whenStable();
+      expect(mode.textContent).toContain('Burst');
+      button(host, 'Fire')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      await fixture.whenStable();
+
+      expect(link.written).toEqual([[0x04, 0x01, 50, 3]]);
+    });
+
     it('returns to the normal layout and leaves full screen when the camera is hidden', async () => {
       const { fixture, host } = await showCamera();
 

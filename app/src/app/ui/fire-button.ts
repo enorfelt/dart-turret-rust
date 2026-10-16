@@ -1,8 +1,11 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { FireMode } from '../protocol/turret-protocol';
+import { Icon } from './icon';
 
 @Component({
   selector: 'app-fire-button',
+  imports: [Icon],
+  host: { '[class.compact]': 'compact()' },
   template: `
     <button
       type="button"
@@ -19,6 +22,9 @@ import { FireMode } from '../protocol/turret-protocol';
       (keyup.space)="letGo()"
       (contextmenu)="$event.preventDefault()"
     >
+      @if (compact()) {
+        <app-icon name="target" />
+      }
       {{ label() }}
     </button>
   `,
@@ -50,11 +56,31 @@ import { FireMode } from '../protocol/turret-protocol';
       color: var(--ink-muted);
       box-shadow: none;
     }
+
+    :host(.compact) button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      width: 96px;
+      height: 96px;
+      min-height: 0;
+      padding: 0 8px;
+      border-radius: 50%;
+      font-size: 1.125rem;
+      line-height: 1;
+    }
+
+    :host(.compact) app-icon {
+      font-size: 2rem;
+    }
   `,
 })
 export class FireButton {
   readonly mode = input.required<FireMode>();
   readonly disabled = input(false);
+  readonly compact = input(false);
   readonly fire = output<void>();
   readonly cease = output<void>();
 
