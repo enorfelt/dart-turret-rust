@@ -8,8 +8,14 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { FaceClass, VisionFrame } from '../protocol/vision-stream';
-import { OVERLAY_TUNING, describeFaces, torsoHint } from '../vision/overlay';
+import { FaceClass, VisionFace, VisionFrame } from '../protocol/vision-stream';
+import {
+  OVERLAY_TUNING,
+  TorsoMarker,
+  describeFaces,
+  labelTop,
+  placeTorsoMarker,
+} from '../vision/overlay';
 import { Vision, isStale } from '../vision/vision';
 
 const CLASS_COLORS: Record<FaceClass, string> = {
@@ -207,30 +213,78 @@ export class VideoView {
 
     const style = getComputedStyle(this.host.nativeElement);
     const color = (name: string) => style.getPropertyValue(name).trim();
-    context.lineWidth = 2;
     context.font = '12px sans-serif';
+    context.textBaseline = 'top';
     for (const face of frame.faces) {
-      context.strokeStyle = context.fillStyle = color(CLASS_COLORS[face.faceClass]);
-      context.strokeRect(face.x, face.y, face.width, face.height);
-      const label =
-        face.faceClass === 'unknown' ? `#${face.track}` : `#${face.track} ${face.confidence}%`;
-      context.fillText(label, face.x + 2, Math.max(12, face.y - 4));
-
-      const torso = torsoHint(face);
-      const r = OVERLAY_TUNING.torsoMarkerRadius;
-      context.setLineDash([3, 3]);
-      context.beginPath();
-      context.arc(torso.x, torso.y, r, 0, Math.PI * 2);
-      context.moveTo(torso.x - r * 2, torso.y);
-      context.lineTo(torso.x + r * 2, torso.y);
-      context.stroke();
-      context.setLineDash([]);
+      const faceColor = color(CLASS_COLORS[face.faceClass]);
+      outlined(context, faceColor, () => {
+        context.beginPath();
+        context.rect(face.x, face.y, face.width, face.height);
+      });
+      drawLabel(context, face, faceColor);
+      drawTorsoMarker(context, placeTorsoMarker(face, frame.width, frame.height), faceColor);
     }
+    drawCrosshair(context, frame.width / 2, frame.height / 2, color('--ink'));
+  }
+}
 
-    const cx = frame.width / 2;
-    const cy = frame.height / 2;
-    const r = OVERLAY_TUNING.crosshairRadius;
-    context.strokeStyle = color('--ink');
+const OUTLINE = 'rgb(0 0 0 / 65%)';
+
+function outlined(context: CanvasRenderingContext2D, stroke: string, path: () => void): void {
+  path();
+  context.lineWidth = 4;
+  context.strokeStyle = OUTLINE;
+  context.stroke();
+  context.lineWidth = 2;
+  context.strokeStyle = stroke;
+  context.stroke();
+}
+
+function drawLabel(context: CanvasRenderingContext2D, face: VisionFace, fill: string): void {
+  const text =
+    face.faceClass === 'unknown' ? `#${face.track}` : `#${face.track} ${face.confidence}%`;
+  const top = labelTop(face);
+  context.fillStyle = OUTLINE;
+  context.fillRect(face.x, top, context.measureText(text).width + 6, OVERLAY_TUNING.labelHeight);
+  context.fillStyle = fill;
+  context.fillText(text, face.x + 3, top + 2);
+}
+
+function drawTorsoMarker(
+  context: CanvasRenderingContext2D,
+  marker: TorsoMarker,
+  stroke: string,
+): void {
+  const r = OVERLAY_TUNING.torsoMarkerRadius;
+  if (marker.offscreen) {
+    outlined(context, stroke, () => {
+      context.beginPath();
+      context.moveTo(marker.x - r, marker.y - r);
+      context.lineTo(marker.x, marker.y);
+      context.lineTo(marker.x + r, marker.y - r);
+      context.moveTo(marker.x, marker.y);
+      context.lineTo(marker.x, marker.y - r * 2);
+    });
+    return;
+  }
+  context.setLineDash([3, 3]);
+  outlined(context, stroke, () => {
+    context.beginPath();
+    context.arc(marker.x, marker.y, r, 0, Math.PI * 2);
+    context.moveTo(marker.x - r * 2, marker.y);
+    context.lineTo(marker.x + r * 2, marker.y);
+  });
+  context.setLineDash([]);
+}
+
+function drawCrosshair(
+  context: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  stroke: string,
+): void {
+  const r = OVERLAY_TUNING.crosshairRadius;
+  outlined(context, stroke, () => {
     context.beginPath();
     context.moveTo(cx - r * 2, cy);
     context.lineTo(cx - r / 2, cy);
@@ -240,6 +294,5 @@ export class VideoView {
     context.lineTo(cx, cy - r / 2);
     context.moveTo(cx, cy + r / 2);
     context.lineTo(cx, cy + r * 2);
-    context.stroke();
-  }
+  });
 }
