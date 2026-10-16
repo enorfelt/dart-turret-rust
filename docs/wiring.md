@@ -36,7 +36,8 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
        ├── ESC left   (16 AWG) ─── motor left   (3 phase)
        ├── ESC right  (16 AWG) ─── motor right  (3 phase)
        ├── Buck 7.5 V, ≥5 A (20 AWG) ─── TTLinker VIN ─── SC15 pan ─── SC15 tilt
-       ├── Buck 6 V,   ≥3 A (20 AWG) ─── arm switch pole A ─── pusher servo +
+       ├── Buck 6 V,   ≥3 A (20 AWG) ─── arm switch pole A ──┬── pusher servo +
+       │                                                     └── + 1000 µF − ── pusher servo −
        ├── Buck 5 V,   ≥2 A (22 AWG) ─── ESP 5V pin, TFmini 5 V, level shifter HV,
        │                                  TTLinker 5 V, light gate LED
        └── 39 kΩ at PDB VCC pad ──(26 AWG)──┬── 8.2 kΩ ── − bus
@@ -54,6 +55,8 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 - All grounds are common: buck outputs, ESC signal grounds, ESP GND, TTLinker GND, TFmini GND.
 - Connect only signal and ground from the ESC servo leads. If an ESC has a BEC, leave its red wire unconnected.
 - The SC15 is rated 4.8–8.4 V and stalls at 1.7 A, so two stalled servos need 3.4 A. The original 8 V MP1584 (3 A peak) is undersized for that.
+- The pusher servo (MG996R class) stalls at about 2.5 A and draws spikes of that size every time it starts to move. A 1000 µF, ≥16 V low-ESR electrolytic capacitor across its leads supplies those spikes, so they do not sag the 6 V rail or bounce the shared ground. Solder it at the servo end, after pole A: + to the servo's red lead, − to its brown lead. Check the polarity, as a reversed electrolytic heats up and can burst.
+- With pole A open, the capacitor holds enough charge to run the servo for a few milliseconds, far too short to push a dart, so the arm switch still cuts the pusher.
 - Unplug the XT60 before plugging in USB, unless the board's schematic shows that VBUS and the 5V pin are isolated by a diode.
 
 ### PDB pads
@@ -179,7 +182,8 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | 4-channel BSS138 level shifter | 3.3 V ↔ 5 V for the TTLinker (channels 1–2) and the pusher signal (channel 3) |
 | 2 | 2206 2300 KV brushless motor | Original uses Armattan Oomph 2206/2300 KV; any 2206–2207, 2300–2500 KV with a 5 mm shaft and 16×19 mm M3 mount should fit the printed mounts (check) |
 | 2 | 30 A BLHeli_S or BLHeli_32 ESC, 2–4S | Original uses Racerstar RS30A; no BEC needed |
-| 1 | Standard-size RC servo (metal gear) | Dart pusher, 6 V |
+| 1 | Standard-size positional RC servo (metal gear) | Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, stalls at about 2.5 A. Not a continuous-rotation (360°) servo, which has no position feedback |
+| 1 | 1000 µF ≥16 V low-ESR electrolytic capacitor | Across the pusher servo's supply, at the servo |
 | 4 | High-drain 18650 cell | e.g. Molicel P28A (35 A); Samsung 30Q (15 A) is the minimum |
 | 1 | 4S BMS, ≥30 A continuous | Over-discharge and short protection. No balancing needed, as the cells are charged out of the holder; prefer one that recovers by itself when cells are reinserted |
 | 1 | Printed 2×2 battery holder and covers | From the original; print the covers in PETG or ASA |
@@ -189,7 +193,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | 18650 single button plate | Back cover, pack + |
 | 1 | 4-bay Li-ion charger, 4.2 V per cell | e.g. Nitecore or XTAR; charges each cell separately |
 | 1 | Buck converter 7.5 V, ≥5 A | e.g. Pololu D36V50F7, or an adjustable XL4015 5 A set to 7.5 V |
-| 1 | Buck converter 6 V, ≥3 A | e.g. Pololu D36V28F6, or an MP1584 for a small pusher servo |
+| 1 | Buck converter 6 V, ≥3 A | e.g. Pololu D36V28F6. An MP1584 module (3 A peak) handles normal pushes with the 1000 µF capacitor, but overheats and cuts out during a sustained stall; lock its trim pot after setting it, as above 7.2 V the MG996R is damaged |
 | 1 | Buck converter 5 V, ≥2 A | e.g. Pololu D36V28F5, or an MP1584 set to 5 V |
 | 1 | Quadcopter power distribution board, ≥5 pad pairs plus a VCC / GND sense pad, 2 oz copper | e.g. Matek PDB-XT60 or a clone with 6 pad pairs. The + and − buses; any onboard BEC stays unused. Two Wago 221-415 per rail work as a solderless fallback |
 | 1 | Inline mini blade (ATM) fuse holder, 14 AWG leads | |

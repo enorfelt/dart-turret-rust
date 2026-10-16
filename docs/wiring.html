@@ -241,7 +241,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <h2 id="power-h">Power</h2>
     <figure>
       <div class="scroll">
-        <svg class="diagram" viewBox="0 0 1200 730" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the XT60, which is the power switch, onto a plus and minus bus. The bus feeds both ESCs, a 7.5 V buck for the servo bus, a 6 V buck for the pusher through the arm switch, a 5 V buck for the logic, and the battery divider into GPIO 1.">
+        <svg class="diagram" viewBox="0 0 1200 730" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the XT60, which is the power switch, onto a plus and minus bus. The bus feeds both ESCs, a 7.5 V buck for the servo bus, a 6 V buck for the pusher through the arm switch with a 1000 µF capacitor at the servo, a 5 V buck for the logic, and the battery divider into GPIO 1.">
           <!-- battery -->
           <rect class="box key" x="20" y="50" width="160" height="130" rx="6"/>
           <text class="t" x="36" y="78">Battery</text>
@@ -343,11 +343,18 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <circle class="dot n-v6" cx="870" cy="435" r="4"/>
           <circle class="dot n-v6" cx="920" cy="435" r="4"/>
           <path class="sym" d="M870 435 L914 418"/>
+          <path class="w n-v6" stroke-width="2" d="M965 435 V441"/>
+          <path class="w n-gnd" stroke-width="2" d="M965 446 V455"/>
+          <path class="sym" stroke-width="2.2" d="M952 441 H978 M952 451 Q965 443 978 451"/>
+          <circle class="dot n-v6" cx="965" cy="435" r="4"/>
+          <circle class="dot n-gnd" cx="965" cy="455" r="4"/>
+          <text class="p" x="949" y="447" text-anchor="end">+</text>
+          <text class="s" x="958" y="474" text-anchor="end">1000 µF ≥16 V</text>
           <text class="t" x="895" y="406" text-anchor="middle">Arm switch, pole A</text>
           <text class="s" x="815" y="427" text-anchor="middle">6 V</text>
           <rect class="box" x="1000" y="417" width="130" height="56" rx="5"/>
           <text class="t" x="1016" y="441">Pusher servo</text>
-          <text class="s" x="1016" y="459">metal gear, 6 V</text>
+          <text class="s" x="1016" y="459">MG996R, 6 V</text>
           <text class="s" x="960" y="493" text-anchor="middle">switch off: pusher has no power, no dart can fire</text>
 
           <!-- row: buck 5 V yc=560 -->
@@ -399,6 +406,8 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <li>Without a PDB, use two Wago 221-415 lever connectors per rail, joined by a short 14 AWG jumper: each rail has six leads and a 221-415 takes five. Solder the 26 AWG divider wires to a buck input lead, as they are below the Wago's minimum. Do not use screw terminals on bare stranded wire; they loosen under vibration.</li>
       <li>Solder the 39 kΩ directly to the PDB VCC pad and put the 8.2 kΩ and 100 nF next to the ESP. The 26 AWG wire then carries only the divided voltage, so a chafed wire shorted to ground draws under 0.5 mA instead of burning before the 25 A fuse blows.</li>
       <li>Two stalled SC15s draw 3.4 A, so the 7.5 V buck must be rated 5 A. The original 8 V MP1584 (3 A peak) is too small.</li>
+      <li>The MG996R pusher stalls at about 2.5 A and draws spikes that size each time it starts to move. Solder a 1000 µF, ≥16 V low-ESR electrolytic across its leads at the servo end, after pole A: + to the red lead, − to the brown lead. A reversed electrolytic heats up and can burst.</li>
+      <li>With pole A open, the capacitor runs the servo for only a few milliseconds, far too short to push a dart, so the arm switch still cuts the pusher.</li>
       <li>If an ESC has a BEC, leave its red servo-lead wire unconnected. Only signal and ground go to the ESP.</li>
       <li class="warn">Unplug the XT60 before plugging in USB, unless you have checked that the Freenove board isolates VBUS from its 5V pin.</li>
     </ul>
@@ -753,7 +762,8 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>4-channel BSS138 level shifter</td><td>3.3 V ↔ 5 V: TTLinker on channels 1–2, pusher signal on channel 3</td></tr>
           <tr><td class="num">2</td><td>2206 2300 KV brushless motor</td><td>Original: Armattan Oomph 2206/2300 KV. Check that a substitute fits the printed mounts</td></tr>
           <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed</td></tr>
-          <tr><td class="num">1</td><td>Standard-size metal-gear RC servo</td><td>Dart pusher, 6 V</td></tr>
+          <tr><td class="num">1</td><td>Standard-size positional metal-gear RC servo</td><td>Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, about 2.5 A stall. Not a continuous-rotation (360°) servo</td></tr>
+          <tr><td class="num">1</td><td>1000 µF ≥16 V low-ESR electrolytic capacitor</td><td>Across the pusher servo's supply, at the servo</td></tr>
           <tr><td class="num">4</td><td>High-drain 18650 cell</td><td>Molicel P28A (35 A); Samsung 30Q (15 A) at minimum</td></tr>
           <tr><td class="num">1</td><td>4S BMS, ≥30 A continuous</td><td>Over-discharge and short protection; no balancing needed. Prefer one that recovers by itself when cells are reinserted</td></tr>
           <tr><td class="num">1</td><td>Printed 2×2 battery holder and covers</td><td>From the original; covers in PETG or ASA</td></tr>
@@ -763,7 +773,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>18650 single button plate</td><td>Back cover, pack +</td></tr>
           <tr><td class="num">1</td><td>4-bay Li-ion charger, 4.2 V per cell</td><td>e.g. Nitecore or XTAR; charges each cell separately</td></tr>
           <tr><td class="num">1</td><td>Buck converter 7.5 V, ≥5 A</td><td>Pololu D36V50F7, or XL4015 set to 7.5 V</td></tr>
-          <tr><td class="num">1</td><td>Buck converter 6 V, ≥3 A</td><td>Pololu D36V28F6, or MP1584 for a small pusher servo</td></tr>
+          <tr><td class="num">1</td><td>Buck converter 6 V, ≥3 A</td><td>Pololu D36V28F6. An MP1584 (3 A peak) handles normal pushes with the 1000 µF capacitor but cuts out during a sustained stall; lock its trim pot, as above 7.2 V the MG996R is damaged</td></tr>
           <tr><td class="num">1</td><td>Buck converter 5 V, ≥2 A</td><td>Pololu D36V28F5, or MP1584 set to 5 V</td></tr>
           <tr><td class="num">1</td><td>Quadcopter power distribution board, ≥5 pad pairs plus a VCC / GND sense pad, 2 oz copper</td><td>e.g. Matek PDB-XT60 or a clone with 6 pad pairs; the + and − buses, onboard BEC unused. Two Wago 221-415 per rail as a solderless fallback</td></tr>
           <tr><td class="num">1</td><td>Inline mini blade (ATM) fuse holder, 14 AWG</td><td></td></tr>
