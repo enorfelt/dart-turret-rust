@@ -5,10 +5,11 @@ import { ArmSwitch } from './arm-switch';
 import { FirePanel } from './fire-panel';
 import { Telemetry } from './telemetry';
 import { phaseText } from './turret-text';
+import { VideoView } from './video-view';
 
 @Component({
   selector: 'app-control-panel',
-  imports: [AimPad, ArmSwitch, FirePanel, Telemetry],
+  imports: [AimPad, ArmSwitch, FirePanel, Telemetry, VideoView],
   template: `
     <header>
       <p class="arming" [class.armed]="turret.armed()">{{ turret.armed() ? 'Armed' : 'Safe' }}</p>
@@ -31,6 +32,7 @@ import { phaseText } from './turret-text';
       <button type="button" class="disconnect" (click)="turret.disconnect()">Disconnect</button>
     </header>
 
+    <app-video-view class="video" />
     <app-arm-switch class="arm" />
     <app-aim-pad class="aim" />
     <app-fire-panel class="fire" />
@@ -42,6 +44,7 @@ import { phaseText } from './turret-text';
       flex: 1;
       grid-template-areas:
         'header'
+        'video'
         'arm'
         'aim'
         'fire'
@@ -54,7 +57,7 @@ import { phaseText } from './turret-text';
       :host {
         grid-template-areas:
           'header header header'
-          'aim arm fire'
+          'video arm fire'
           'aim telemetry fire';
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
         grid-template-rows: auto auto minmax(0, 1fr);
@@ -111,6 +114,10 @@ import { phaseText } from './turret-text';
       border: 2px solid var(--panel-raised);
       border-radius: var(--radius-control);
       background: transparent;
+    }
+
+    .video {
+      grid-area: video;
     }
 
     .aim {
