@@ -56,7 +56,7 @@ impl Default for TurretConfig {
             },
             pusher: PusherConfig {
                 retracted_us: 500,
-                extended_us: 833,
+                extended_us: 1140,
             },
             gimbal: GimbalConfig {
                 pan_id: 0,

@@ -15,8 +15,8 @@ impl Default for FireTiming {
     fn default() -> Self {
         Self {
             spin_up_ms: 300,
-            push_ms: 300,
-            retract_ms: 300,
+            push_ms: 450,
+            retract_ms: 450,
             spin_down_ms: 400,
             cooldown_ms: 500,
             max_shots: 10,
