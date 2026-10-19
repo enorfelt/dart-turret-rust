@@ -6,8 +6,10 @@ export const STATE_UUID = characteristicUuid('0003');
 export const EVENT_UUID = characteristicUuid('0004');
 export const DEVICE_NAME_PREFIX = 'DART';
 
-export const PROTOCOL_VERSION = 2;
-const STATE_LENGTH = 10;
+export const PROTOCOL_VERSION = 3;
+export const PUSHER_MIN_US = 500;
+export const PUSHER_MAX_US = 2500;
+const STATE_LENGTH = 12;
 const UNKNOWN = 0xffff;
 
 export type FireMode = 'single' | 'burst' | 'auto';
@@ -23,7 +25,8 @@ export type Command =
   | { op: 'disarm' }
   | { op: 'aim'; pan: number; tilt: number; panSpeed: number; tiltSpeed: number }
   | { op: 'fire'; mode: FireMode; throttlePct: number; shots: number }
-  | { op: 'cease-fire' };
+  | { op: 'cease-fire' }
+  | { op: 'pusher'; pulseUs: number | null };
 
 export type AimCommand = Omit<Extract<Command, { op: 'aim' }>, 'op'>;
 
@@ -40,6 +43,7 @@ export interface TurretState {
   batteryMv: number | null;
   batteryPct: number;
   gimbal: GimbalPosition | null;
+  heldPusherUs: number | null;
 }
 
 export type TurretEvent =
@@ -86,6 +90,13 @@ export function encodeCommand(command: Command): Uint8Array<ArrayBuffer> {
       );
     case 'cease-fire':
       return Uint8Array.of(0x05);
+    case 'pusher': {
+      const bytes = new Uint8Array(3);
+      const view = new DataView(bytes.buffer);
+      view.setUint8(0, 0x06);
+      view.setUint16(1, command.pulseUs ?? 0, true);
+      return bytes;
+    }
   }
 }
 
@@ -108,6 +119,7 @@ export function decodeState(view: DataView): TurretState {
   const batteryMv = view.getUint16(3, true);
   const pan = view.getUint16(6, true);
   const tilt = view.getUint16(8, true);
+  const heldPusherUs = view.getUint16(10, true);
   return {
     armed: (flags & 0b001) !== 0,
     ready: (flags & 0b010) !== 0,
@@ -116,6 +128,7 @@ export function decodeState(view: DataView): TurretState {
     batteryMv: batteryMv === 0 ? null : batteryMv,
     batteryPct: view.getUint8(5),
     gimbal: pan === UNKNOWN || tilt === UNKNOWN ? null : { pan, tilt },
+    heldPusherUs: heldPusherUs === 0 ? null : heldPusherUs,
   };
 }
 

@@ -27,6 +27,13 @@ describe('turret protocol', () => {
       expect([...encodeCommand({ op: 'cease-fire' })]).toEqual([0x05]);
     });
 
+    it('encodes pusher hold and release', () => {
+      expect([...encodeCommand({ op: 'pusher', pulseUs: 1200 })]).toEqual([0x06, 0xb0, 0x04]);
+      expect([...encodeCommand({ op: 'pusher', pulseUs: 500 })]).toEqual([0x06, 0xf4, 0x01]);
+      expect([...encodeCommand({ op: 'pusher', pulseUs: 2500 })]).toEqual([0x06, 0xc4, 0x09]);
+      expect([...encodeCommand({ op: 'pusher', pulseUs: null })]).toEqual([0x06, 0x00, 0x00]);
+    });
+
     it('encodes aim little-endian', () => {
       const bytes = encodeCommand({ op: 'aim', pan: 512, tilt: 300, panSpeed: 100, tiltSpeed: 50 });
 
@@ -49,7 +56,9 @@ describe('turret protocol', () => {
 
   describe('decodeState', () => {
     it('decodes a full state', () => {
-      expect(decodeState(view(2, 0b101, 2, 0xf0, 0x3c, 71, 0x00, 0x02, 0x2c, 0x01))).toEqual({
+      expect(
+        decodeState(view(3, 0b101, 2, 0xf0, 0x3c, 71, 0x00, 0x02, 0x2c, 0x01, 0xb0, 0x04)),
+      ).toEqual({
         armed: true,
         ready: false,
         armSwitch: true,
@@ -57,11 +66,12 @@ describe('turret protocol', () => {
         batteryMv: 15_600,
         batteryPct: 71,
         gimbal: { pan: 512, tilt: 300 },
+        heldPusherUs: 1200,
       });
     });
 
     it('decodes unknown values as null', () => {
-      expect(decodeState(view(2, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff))).toEqual({
+      expect(decodeState(view(3, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff, 0, 0))).toEqual({
         armed: false,
         ready: true,
         armSwitch: false,
@@ -69,18 +79,19 @@ describe('turret protocol', () => {
         batteryMv: null,
         batteryPct: 0,
         gimbal: null,
+        heldPusherUs: null,
       });
     });
 
     it('refuses other protocol versions', () => {
-      expect(() => decodeState(view(1, 0, 0, 0, 0, 0, 0, 0, 0, 0))).toThrow(
+      expect(() => decodeState(view(2, 0, 0, 0, 0, 0, 0, 0, 0, 0))).toThrow(
         UnsupportedProtocolVersion,
       );
     });
 
     it('rejects a short payload or an unknown phase', () => {
-      expect(() => decodeState(view(2, 0, 0))).toThrow(ProtocolError);
-      expect(() => decodeState(view(2, 0, 9, 0, 0, 0, 0, 0, 0, 0))).toThrow(ProtocolError);
+      expect(() => decodeState(view(3, 0, 0, 0, 0, 0, 0, 0, 0, 0))).toThrow(ProtocolError);
+      expect(() => decodeState(view(3, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0))).toThrow(ProtocolError);
     });
   });
 

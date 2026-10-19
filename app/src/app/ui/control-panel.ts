@@ -6,12 +6,13 @@ import { ArmSwitch } from './arm-switch';
 import { FirePanel } from './fire-panel';
 import { exitFullscreen } from './fullscreen';
 import { Telemetry } from './telemetry';
+import { PusherCalibration } from './pusher-calibration';
 import { phaseText } from './turret-text';
 import { VideoView } from './video-view';
 
 @Component({
   selector: 'app-control-panel',
-  imports: [AimPad, ArmSwitch, FirePanel, Telemetry, VideoView],
+  imports: [AimPad, ArmSwitch, FirePanel, PusherCalibration, Telemetry, VideoView],
   host: { '[class.camera]': 'vision.active()' },
   template: `
     <header>
@@ -53,6 +54,9 @@ import { VideoView } from './video-view';
     <app-aim-pad class="aim" />
     <app-fire-panel class="fire" [compact]="vision.active()" />
     <app-telemetry class="telemetry" />
+    @if (turret.canCalibratePusher() && !vision.active()) {
+      <app-pusher-calibration class="calibration" />
+    }
   `,
   styles: `
     :host {
@@ -64,7 +68,8 @@ import { VideoView } from './video-view';
         'arm'
         'aim'
         'fire'
-        'telemetry';
+        'telemetry'
+        'calibration';
       gap: 12px;
       padding: 8px 16px 16px;
     }
@@ -74,9 +79,10 @@ import { VideoView } from './video-view';
         grid-template-areas:
           'header header header'
           'video arm fire'
-          'aim telemetry fire';
+          'aim telemetry fire'
+          'aim telemetry calibration';
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-        grid-template-rows: auto auto minmax(0, 1fr);
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
         gap: 12px 20px;
         min-height: 0;
       }
@@ -151,6 +157,10 @@ import { VideoView } from './video-view';
 
     .fire {
       grid-area: fire;
+    }
+
+    .calibration {
+      grid-area: calibration;
     }
 
     :host(.camera) {

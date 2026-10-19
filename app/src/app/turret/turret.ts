@@ -67,6 +67,10 @@ export class Turret {
   readonly armed = computed(() => this.connected() && this.state()?.armed === true);
   readonly armSwitchOn = computed(() => this.state()?.armSwitch === true);
   readonly canFire = computed(() => this.armed() && this.state()?.ready === true);
+  readonly canCalibratePusher = computed(
+    () => this.connected() && this.state()?.armed === false && this.state()?.phase === 'idle',
+  );
+  readonly heldPusherUs = computed(() => this.state()?.heldPusherUs ?? null);
   readonly lastShot = computed(() => this.shots()[0] ?? null);
   readonly batteryVolts = computed(() => {
     const millivolts = this.state()?.batteryMv;
@@ -75,14 +79,17 @@ export class Turret {
 
   constructor() {
     const document = inject(DOCUMENT);
-    const disarmWhenHidden = () => {
-      if (document.visibilityState === 'hidden' && this.armed()) {
+    const makeSafeWhenHidden = () => {
+      if (document.visibilityState !== 'hidden') return;
+      if (this.armed()) {
         this.queue.push({ op: 'disarm' });
+      } else if (this.connected() && this.heldPusherUs() !== null) {
+        this.queue.push({ op: 'pusher', pulseUs: null });
       }
     };
-    document.addEventListener('visibilitychange', disarmWhenHidden);
+    document.addEventListener('visibilitychange', makeSafeWhenHidden);
     inject(DestroyRef).onDestroy(() =>
-      document.removeEventListener('visibilitychange', disarmWhenHidden),
+      document.removeEventListener('visibilitychange', makeSafeWhenHidden),
     );
   }
 
@@ -131,6 +138,16 @@ export class Turret {
 
   ceaseFire(): void {
     this.send({ op: 'cease-fire' });
+  }
+
+  holdPusher(pulseUs: number): void {
+    if (this.canCalibratePusher()) {
+      this.send({ op: 'pusher', pulseUs });
+    }
+  }
+
+  releasePusher(): void {
+    this.send({ op: 'pusher', pulseUs: null });
   }
 
   private send(command: Command): void {

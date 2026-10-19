@@ -48,6 +48,19 @@ describe('CommandQueue', () => {
     expect(sent).toEqual([aim(1), aim(3)]);
   });
 
+  it('replaces a queued pusher command with the newer one', async () => {
+    const { queue, sent, completeWrite } = harness();
+    const pusher = (pulseUs: number | null): Command => ({ op: 'pusher', pulseUs });
+
+    queue.push(pusher(800));
+    queue.push(pusher(810));
+    queue.push(pusher(null));
+    await completeWrite();
+    await completeWrite();
+
+    expect(sent).toEqual([pusher(800), pusher(null)]);
+  });
+
   it('drops everything queued when disarming', async () => {
     const { queue, sent, completeWrite } = harness();
 

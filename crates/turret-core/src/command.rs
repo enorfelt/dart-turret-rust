@@ -1,3 +1,7 @@
+use core::ops::RangeInclusive;
+
+pub const PUSHER_TEST_US: RangeInclusive<u16> = 500..=2500;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FireMode {
     Single,
@@ -48,6 +52,7 @@ pub enum Command {
     Disarm,
     Status,
     Ping(u8),
+    Pusher(Option<u16>),
     Unpair,
     Help,
 }
@@ -125,10 +130,23 @@ fn parse_console(line: &str) -> Result<Command, ParseError> {
         Command::Help
     } else if verb.eq_ignore_ascii_case("ping") {
         Command::Ping(field(&mut words, "id")?)
+    } else if verb.eq_ignore_ascii_case("pusher") {
+        parse_pusher(&mut words)?
     } else {
         return Err(ParseError::Unknown);
     };
     Ok(command)
+}
+
+fn parse_pusher<'a>(words: &mut impl Iterator<Item = &'a str>) -> Result<Command, ParseError> {
+    let word = words.next().ok_or(ParseError::Missing("pulse"))?;
+    if word.eq_ignore_ascii_case("off") {
+        return Ok(Command::Pusher(None));
+    }
+    match word.parse() {
+        Ok(pulse_us) if PUSHER_TEST_US.contains(&pulse_us) => Ok(Command::Pusher(Some(pulse_us))),
+        _ => Err(ParseError::Invalid("pulse")),
+    }
 }
 
 fn field<'a, T: core::str::FromStr>(
@@ -236,6 +254,22 @@ mod tests {
         assert_eq!(parse("help"), Ok(Command::Help));
         assert_eq!(parse("ping 1"), Ok(Command::Ping(1)));
         assert_eq!(parse("Unpair"), Ok(Command::Unpair));
+    }
+
+    #[test]
+    fn parses_pusher_test_pulse() {
+        assert_eq!(parse("pusher 1200"), Ok(Command::Pusher(Some(1200))));
+        assert_eq!(parse("Pusher OFF"), Ok(Command::Pusher(None)));
+        assert_eq!(parse("pusher 500"), Ok(Command::Pusher(Some(500))));
+        assert_eq!(parse("pusher 2500"), Ok(Command::Pusher(Some(2500))));
+    }
+
+    #[test]
+    fn rejects_pusher_pulses_outside_the_servo_range() {
+        assert_eq!(parse("pusher"), Err(ParseError::Missing("pulse")));
+        assert_eq!(parse("pusher 499"), Err(ParseError::Invalid("pulse")));
+        assert_eq!(parse("pusher 2501"), Err(ParseError::Invalid("pulse")));
+        assert_eq!(parse("pusher far"), Err(ParseError::Invalid("pulse")));
     }
 
     #[test]

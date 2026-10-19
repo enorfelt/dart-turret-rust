@@ -17,10 +17,11 @@ export class CommandQueue {
       case 'cease-fire':
         this.pending = [command, ...this.pending.filter((queued) => queued.op !== 'fire')];
         break;
-      case 'aim': {
-        const queuedAim = this.pending.findIndex((queued) => queued.op === 'aim');
-        if (queuedAim >= 0) {
-          this.pending[queuedAim] = command;
+      case 'aim':
+      case 'pusher': {
+        const queued = this.pending.findIndex((pending) => pending.op === command.op);
+        if (queued >= 0) {
+          this.pending[queued] = command;
         } else {
           this.pending.push(command);
         }

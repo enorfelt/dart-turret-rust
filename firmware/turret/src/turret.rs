@@ -25,6 +25,7 @@ commands:
                           and a battery that is not empty or faulty)
   status                  show arming, arm switch, fire phase, battery and gimbal
   ping <id>               ping a serial bus servo
+  pusher <us> | off       hold the pusher at a pulse (500-2500 us) for calibration, disarmed only
   P;pan;tilt;vpan;vtilt   move the gimbal in servo units
   F;1;mode;throttle;burst fire: mode 0 single, 1 burst, 2 auto; throttle 0-100 %
   F;0                     cease fire
@@ -90,6 +91,7 @@ impl Turret {
                         );
                     }
                     Input::RemoteLost => {
+                        state.held_pusher_us = None;
                         if let Some(event) = fire.disarm(now_ms) {
                             report(event, &remote);
                         }
@@ -108,7 +110,7 @@ impl Turret {
             if fire.phase() == Phase::Pushing && phase_before != Phase::Pushing {
                 light_gate.reset();
             }
-            if let Err(error) = actuators.apply(&fire.outputs(now_ms)) {
+            if let Err(error) = actuators.apply(&fire.outputs(now_ms), state.held_pusher_us) {
                 log::error!("actuator update failed: {error}");
             }
 
@@ -146,6 +148,7 @@ impl Turret {
 struct State {
     battery: Option<Reading>,
     gimbal: Option<(u16, u16)>,
+    held_pusher_us: Option<u16>,
     next_battery_ms: u64,
 }
 
@@ -161,6 +164,7 @@ impl State {
                 .map(|reading| u16::try_from(reading.pack_mv).unwrap_or(u16::MAX)),
             battery_pct: self.battery.map_or(0, |reading| reading.percent),
             gimbal: self.gimbal,
+            held_pusher_us: self.held_pusher_us,
         }
     }
 }
@@ -183,6 +187,7 @@ fn handle(
         {
             Some(health) => println!("not armed: battery {}", describe_health(health)),
             None => {
+                state.held_pusher_us = None;
                 fire.arm();
                 println!("armed");
             }
@@ -226,6 +231,19 @@ fn handle(
             ),
             Err(error) => println!("servo {id}: {error}"),
         },
+        Command::Pusher(_) if fire.is_armed() => println!("pusher test refused: disarm first"),
+        Command::Pusher(Some(pulse_us)) => {
+            state.held_pusher_us = Some(pulse_us);
+            if arm_switch_on {
+                println!("pusher held at {pulse_us} us");
+            } else {
+                println!("pusher held at {pulse_us} us, but the arm switch is off so the servo has no power");
+            }
+        }
+        Command::Pusher(None) => {
+            state.held_pusher_us = None;
+            println!("pusher released to retracted");
+        }
         Command::Battery => match state.battery {
             Some(reading) => println!(
                 "battery {} mV, {}%, {}",
@@ -237,10 +255,13 @@ fn handle(
         },
         Command::Status => {
             println!(
-                "{}, arm switch {}, fire phase {:?}, battery {}, gimbal {}",
+                "{}, arm switch {}, fire phase {:?}, pusher {}, battery {}, gimbal {}",
                 if fire.is_armed() { "armed" } else { "disarmed" },
                 if arm_switch_on { "on" } else { "off" },
                 fire.phase(),
+                state
+                    .held_pusher_us
+                    .map_or("normal".into(), |pulse_us| format!("held at {pulse_us} us")),
                 state.battery.map_or("unknown".into(), |reading| format!(
                     "{} mV {}%",
                     reading.pack_mv, reading.percent

@@ -36,19 +36,26 @@ impl Actuators {
             _timer: timer,
             config,
         };
-        actuators.apply(&Outputs {
-            throttle_permille: 0,
-            pusher: Pusher::Retracted,
-        })?;
+        actuators.apply(
+            &Outputs {
+                throttle_permille: 0,
+                pusher: Pusher::Retracted,
+            },
+            None,
+        )?;
         Ok(actuators)
     }
 
-    pub fn apply(&mut self, outputs: &Outputs) -> Result<(), EspError> {
+    pub fn apply(
+        &mut self,
+        outputs: &Outputs,
+        held_pusher_us: Option<u16>,
+    ) -> Result<(), EspError> {
         let esc_us = self.config.esc.at_permille(outputs.throttle_permille);
-        let pusher_us = match outputs.pusher {
+        let pusher_us = held_pusher_us.unwrap_or(match outputs.pusher {
             Pusher::Retracted => self.config.pusher.retracted_us,
             Pusher::Extended => self.config.pusher.extended_us,
-        };
+        });
         let period_us = self.config.pwm_period_us();
         set_pulse(&mut self.esc_left, esc_us, period_us)?;
         set_pulse(&mut self.esc_right, esc_us, period_us)?;

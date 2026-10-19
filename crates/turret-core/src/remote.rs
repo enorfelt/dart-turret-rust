@@ -1,10 +1,10 @@
 use heapless::Vec;
 
-use crate::command::{Command, FireMode, FireRequest};
+use crate::command::{Command, FireMode, FireRequest, PUSHER_TEST_US};
 use crate::fire::{Event, Phase, Rejection};
 
-pub const PROTOCOL_VERSION: u8 = 2;
-pub const STATE_LEN: usize = 10;
+pub const PROTOCOL_VERSION: u8 = 3;
+pub const STATE_LEN: usize = 12;
 pub const MAX_EVENT_LEN: usize = 4;
 pub const UNKNOWN_POSITION: u16 = 0xFFFF;
 pub const NO_SPEED: u16 = 0xFFFF;
@@ -17,6 +17,7 @@ const OP_DISARM: u8 = 0x02;
 const OP_AIM: u8 = 0x03;
 const OP_FIRE: u8 = 0x04;
 const OP_CEASE_FIRE: u8 = 0x05;
+const OP_PUSHER: u8 = 0x06;
 
 const EVENT_SHOT: u8 = 0x01;
 const EVENT_FINISHED: u8 = 0x02;
@@ -47,6 +48,7 @@ pub fn decode_command(bytes: &[u8]) -> Result<Command, CommandError> {
         OP_AIM => decode_aim(args),
         OP_FIRE => decode_fire(args),
         OP_CEASE_FIRE => without_args(args, Command::CeaseFire),
+        OP_PUSHER => decode_pusher(args),
         _ => Err(CommandError::UnknownOp),
     }
 }
@@ -86,6 +88,17 @@ fn decode_fire(args: &[u8]) -> Result<Command, CommandError> {
     }))
 }
 
+fn decode_pusher(args: &[u8]) -> Result<Command, CommandError> {
+    let &[lo, hi] = args else {
+        return Err(CommandError::Malformed);
+    };
+    match u16::from_le_bytes([lo, hi]) {
+        0 => Ok(Command::Pusher(None)),
+        pulse_us if PUSHER_TEST_US.contains(&pulse_us) => Ok(Command::Pusher(Some(pulse_us))),
+        _ => Err(CommandError::Malformed),
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StateSnapshot {
     pub armed: bool,
@@ -95,6 +108,7 @@ pub struct StateSnapshot {
     pub battery_mv: Option<u16>,
     pub battery_pct: u8,
     pub gimbal: Option<(u16, u16)>,
+    pub held_pusher_us: Option<u16>,
 }
 
 impl StateSnapshot {
@@ -105,6 +119,7 @@ impl StateSnapshot {
         let (pan, tilt) = self.gimbal.unwrap_or((UNKNOWN_POSITION, UNKNOWN_POSITION));
         let [pan_lo, pan_hi] = pan.to_le_bytes();
         let [tilt_lo, tilt_hi] = tilt.to_le_bytes();
+        let [pusher_lo, pusher_hi] = self.held_pusher_us.unwrap_or(0).to_le_bytes();
         [
             PROTOCOL_VERSION,
             flags,
@@ -116,6 +131,8 @@ impl StateSnapshot {
             pan_hi,
             tilt_lo,
             tilt_hi,
+            pusher_lo,
+            pusher_hi,
         ]
     }
 }
@@ -219,6 +236,39 @@ mod tests {
     }
 
     #[test]
+    fn decodes_pusher_hold_and_release() {
+        assert_eq!(
+            decode_command(&[0x06, 0xB0, 0x04]),
+            Ok(Command::Pusher(Some(1200)))
+        );
+        assert_eq!(
+            decode_command(&[0x06, 0xF4, 0x01]),
+            Ok(Command::Pusher(Some(500)))
+        );
+        assert_eq!(
+            decode_command(&[0x06, 0xC4, 0x09]),
+            Ok(Command::Pusher(Some(2500)))
+        );
+        assert_eq!(
+            decode_command(&[0x06, 0x00, 0x00]),
+            Ok(Command::Pusher(None))
+        );
+    }
+
+    #[test]
+    fn rejects_pusher_pulses_outside_the_servo_range() {
+        assert_eq!(
+            decode_command(&[0x06, 0xF3, 0x01]),
+            Err(CommandError::Malformed)
+        );
+        assert_eq!(
+            decode_command(&[0x06, 0xC5, 0x09]),
+            Err(CommandError::Malformed)
+        );
+        assert_eq!(decode_command(&[0x06, 0xB0]), Err(CommandError::Malformed));
+    }
+
+    #[test]
     fn rejects_unknown_ops_and_bad_payloads() {
         assert_eq!(decode_command(&[0x09]), Err(CommandError::UnknownOp));
         assert_eq!(decode_command(&[]), Err(CommandError::Malformed));
@@ -250,11 +300,12 @@ mod tests {
             battery_mv: Some(15_600),
             battery_pct: 71,
             gimbal: Some((512, 300)),
+            held_pusher_us: Some(1200),
         };
 
         assert_eq!(
             state.encode(),
-            [2, 0b101, 2, 0xF0, 0x3C, 71, 0x00, 0x02, 0x2C, 0x01]
+            [3, 0b101, 2, 0xF0, 0x3C, 71, 0x00, 0x02, 0x2C, 0x01, 0xB0, 0x04]
         );
     }
 
@@ -268,11 +319,12 @@ mod tests {
             battery_mv: None,
             battery_pct: 0,
             gimbal: None,
+            held_pusher_us: None,
         };
 
         assert_eq!(
             state.encode(),
-            [2, 0b010, 0, 0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF]
+            [3, 0b010, 0, 0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0]
         );
     }
 

@@ -2,8 +2,10 @@ import type { LinkListener, TurretLink } from './turret-link';
 
 const view = (bytes: readonly number[]) => new DataView(new Uint8Array(bytes).buffer);
 
-export const IDLE_STATE = [2, 0b110, 0, 0xf0, 0x3c, 71, 0x00, 0x02, 0x2c, 0x01] as const;
-export const ARMED_READY_STATE = [2, 0b111, 0, 0xf0, 0x3c, 71, 0x00, 0x02, 0x2c, 0x01] as const;
+export const IDLE_STATE = [3, 0b110, 0, 0xf0, 0x3c, 71, 0x00, 0x02, 0x2c, 0x01, 0, 0] as const;
+export const ARMED_READY_STATE = [
+  3, 0b111, 0, 0xf0, 0x3c, 71, 0x00, 0x02, 0x2c, 0x01, 0, 0,
+] as const;
 
 export class FakeTurretLink implements TurretLink {
   supported = true;

@@ -42,16 +42,17 @@ describe('Turret', () => {
       batteryMv: 15_600,
       batteryPct: 71,
       gimbal: { pan: 512, tilt: 300 },
+      heldPusherUs: null,
     });
     expect(turret.batteryVolts()).toBe(15.6);
   });
 
   it('refuses a turret with an unknown protocol version', async () => {
-    link.initialState = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    link.initialState = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     const turret = await connected();
 
     expect(turret.connection()).toBe('idle');
-    expect(turret.error()).toContain('version 1');
+    expect(turret.error()).toContain('version 2');
     expect(link.closed).toBe(1);
   });
 
@@ -91,7 +92,7 @@ describe('Turret', () => {
     const turret = await connected();
     expect(turret.armSwitchOn()).toBe(true);
 
-    link.notifyState([2, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff]);
+    link.notifyState([3, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff, 0, 0]);
 
     expect(turret.armSwitchOn()).toBe(false);
   });
@@ -99,7 +100,7 @@ describe('Turret', () => {
   it('cannot fire while armed but busy', async () => {
     const turret = await connected();
 
-    link.notifyState([2, 0b101, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff]);
+    link.notifyState([3, 0b101, 1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff, 0, 0]);
 
     expect(turret.armed()).toBe(true);
     expect(turret.canFire()).toBe(false);
@@ -152,6 +153,46 @@ describe('Turret', () => {
       [0x05],
       [0x02],
     ]);
+  });
+
+  it('holds and releases the pusher and follows the held pulse', async () => {
+    const turret = await connected();
+    expect(turret.canCalibratePusher()).toBe(true);
+
+    turret.holdPusher(1200);
+    await settle();
+    link.notifyState([...IDLE_STATE.slice(0, 10), 0xb0, 0x04]);
+    expect(turret.heldPusherUs()).toBe(1200);
+    turret.releasePusher();
+    await settle();
+
+    expect(link.written).toEqual([
+      [0x06, 0xb0, 0x04],
+      [0x06, 0x00, 0x00],
+    ]);
+  });
+
+  it('does not calibrate the pusher while armed', async () => {
+    const turret = await connected();
+    link.notifyState(ARMED_READY_STATE);
+
+    turret.holdPusher(1200);
+    await settle();
+
+    expect(turret.canCalibratePusher()).toBe(false);
+    expect(link.written).toEqual([]);
+  });
+
+  it('releases a held pusher when the page is hidden', async () => {
+    await connected();
+    link.notifyState([...IDLE_STATE.slice(0, 10), 0xb0, 0x04]);
+    const document = TestBed.inject(DOCUMENT);
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+
+    document.dispatchEvent(new Event('visibilitychange'));
+    await settle();
+
+    expect(link.written).toEqual([[0x06, 0x00, 0x00]]);
   });
 
   it('sends nothing while disconnected', async () => {

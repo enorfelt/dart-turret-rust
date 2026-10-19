@@ -25,7 +25,7 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
 |---|---|---|---|
 | Pan/tilt | TX 14, RX 21 | 2x Waveshare SC15 on UART1 through a level shifter and a Feetech TTLinker, 1 Mbaud, Feetech SCS protocol, IDs 0 (pan) / 1 (tilt) | `REG_WRITE` both, then broadcast `ACTION` so the axes move together; positions clamped to 0–1023 until the mechanical limits are measured |
 | Flywheels | 17, 18 | 2x ESC, 1000–2000 µs at 50 Hz via LEDC (14-bit) | Standard RC range, unlike the original 500–1000 µs; **calibrate the ESCs to it before the first spin-up** |
-| Pusher | 41 | RC servo, 50 Hz via LEDC, 5 V signal through the level shifter | Retracted 847 µs, extended 514 µs: the original's positions converted to µs, to be checked on the printed pusher |
+| Pusher | 41 | RC servo, 50 Hz via LEDC, 5 V signal through the level shifter | Retracted 500 µs, extended 833 µs: the original's 333 µs (about 30°) of travel, reversed to suit the printed pusher |
 | Range | RX 6, TX 7 | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m (step 3) |
 | Dart speed | 42 | IR light gate, any-edge GPIO interrupt | Time between the two edges over a 70 mm dart gives km/h |
 | Battery | 1 | 4S Li-ion through a 39k/8k2 divider to ADC1_CH0 | 16.8 V reads ≈ 2.92 V. ADC1, so readings keep working with Wi-Fi and ESP-NOW on. Read every 5 s while the flywheels are idle; below 3.3 V per cell, or below 10 V (a reversed or dead cell), `arm` is refused and an armed turret disarms. Below 5 V counts as no pack (USB power) and does not block arming |
@@ -50,6 +50,7 @@ Open with `espflash monitor` (or `cargo run`). Typed characters are echoed; Ente
 | `arm` / `disarm` | Allow / stop flywheels and pusher (boots disarmed); `arm` needs the arm switch on and a battery that is not empty or faulty |
 | `status` | Arming, fire phase, battery, last gimbal target |
 | `ping <id>` | Ping a serial bus servo |
+| `pusher <µs>` / `pusher off` | Hold the pusher at a pulse of 500–2500 µs to calibrate it, or release it to retracted. Disarmed only; `arm` and losing the BLE link release it. The servo only has power with the arm switch on |
 | `P;pan;tilt;vpan;vtilt` | Move the gimbal, servo units |
 | `F;1;mode;throttle;burst` | Fire; mode 0 single, 1 burst, 2 auto; throttle 0–100 % |
 | `F;0` | Cease fire after the current shot |
@@ -162,7 +163,7 @@ The turret is a BLE peripheral for our own [phone app](#phone-app-app). This sec
 | Characteristic | UUID | Properties | Payload |
 |---|---|---|---|
 | Command | `8d6f0002-…` | Write with response | `op u8` + arguments |
-| State | `8d6f0003-…` | Read, Notify | 10 bytes, below |
+| State | `8d6f0003-…` | Read, Notify | 12 bytes, below |
 | Event | `8d6f0004-…` | Notify | `kind u8` + arguments |
 
 Commands. A write that does not decode is answered with ATT error `0x80` (unknown op) or `0x81` (bad length or value); otherwise the outcome arrives as State and Event notifications.
@@ -174,17 +175,19 @@ Commands. A write that does not decode is answered with ATT error `0x80` (unknow
 | `0x03` | Aim | `pan u16, tilt u16, pan_speed u16, tilt_speed u16`, servo units, clamped to the gimbal limits |
 | `0x04` | Fire | `mode u8` (0 single, 1 burst, 2 auto), `throttle u8` (0–100 %, 0 is rejected), `shots u8` (burst only, capped at `max_shots`) |
 | `0x05` | Cease fire | – |
+| `0x06` | Pusher calibration | `pulse_us u16`: 500–2500 holds the pusher at that pulse, 0 releases it to retracted. Ignored while armed; `arm` and losing the link release it |
 
 State, notified on change at most every 50 ms, once when notifications are turned on, and readable at any time:
 
 | Byte | Field |
 |---|---|
-| 0 | Protocol version, currently 2; the app refuses versions it does not know |
+| 0 | Protocol version, currently 3; the app refuses versions it does not know |
 | 1 | Flags: bit 0 armed, bit 1 fire sequencer idle and cooled down, bit 2 physical arm switch on |
 | 2 | Fire phase: 0 idle, 1 spin-up, 2 pushing, 3 retracting, 4 spin-down |
 | 3–4 | Battery pack mV, 0 until the first reading |
 | 5 | Battery percent |
 | 6–7, 8–9 | Last commanded pan, tilt; `0xFFFF` before the first move |
+| 10–11 | Pulse the pusher is held at for calibration, µs; 0 when not held |
 
 Events, sent whatever started the action (console or app); a pending State change is flushed first so the two stay in order:
 
@@ -217,17 +220,17 @@ Angular 22 PWA over Web Bluetooth, for Chromium on Android and desktop. It is se
 | Path (`app/src/app/`) | Role |
 |---|---|
 | `protocol/turret-protocol.ts` | The [BLE protocol](#ble-protocol) codec, the TypeScript twin of `turret_core::remote`. Its tests use the same byte vectors as the Rust tests |
-| `link/` | `TurretLink` interface and the Web Bluetooth implementation. `CommandQueue` keeps one write in flight: a newer Aim replaces a queued one, Disarm drops everything queued, and Cease fire jumps ahead of queued Fire |
+| `link/` | `TurretLink` interface and the Web Bluetooth implementation. `CommandQueue` keeps one write in flight: a newer Aim or Pusher command replaces a queued one, Disarm drops everything queued, and Cease fire jumps ahead of queued Fire |
 | `turret/turret.ts` | Connection, state, event log and shots as signals; the only place commands are sent from |
 | `aim/aim-controller.ts` | Rate-control joystick maths: deadzone, expo, integration, clamp to 0–1023, at most one Aim per 50 ms. Tunables are in `AIM_TUNING` |
 | `protocol/vision-stream.ts` | The [vision stream](#vision-stream-protocol) codec, the TypeScript twin of `vision_core::stream` |
 | `vision/` | `VisionLink` (WebSocket with Local Network Access) and the `Vision` service: connection, latest frame, retry, camera address kept in localStorage. `overlay.ts` holds the torso hint geometry and `OVERLAY_TUNING` |
-| `ui/` | Connect screen, control panel, joystick, hold-to-arm switch, fire panel (Signal Forms), telemetry, video view (camera canvas with crosshair, face boxes and torso hints; greyed out when a frame is over 500 ms old). With the camera on, the page goes full screen in landscape and the video fills it, with the status line, arm switch, joystick and a compact fire panel overlaid and the log hidden |
+| `ui/` | Connect screen, control panel, joystick, hold-to-arm switch, fire panel (Signal Forms), telemetry, pusher calibration (shown while disarmed and idle, without the camera), video view (camera canvas with crosshair, face boxes and torso hints; greyed out when a frame is over 500 ms old). With the camera on, the page goes full screen in landscape and the video fills it, with the status line, arm switch, joystick and a compact fire panel overlaid and the log hidden |
 
 The app adds these safety behaviours on top of the firmware's rules, without replacing them:
 - Arming needs a 1 s hold.
 - Disarm is one tap and always visible while armed.
-- The page disarms the turret when it is hidden.
+- The page disarms the turret when it is hidden, and releases a held pusher.
 - Auto fire only runs while the button is held.
 - Fire is only enabled when the turret reports armed and ready.
 - The app refuses a turret with an unknown protocol version.

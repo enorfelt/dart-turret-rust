@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
-import { ARMED_READY_STATE, FakeTurretLink } from './link/fake-turret-link';
+import { ARMED_READY_STATE, FakeTurretLink, IDLE_STATE } from './link/fake-turret-link';
 import { TURRET_LINK } from './link/turret-link';
 import { Turret } from './turret/turret';
 import { SwUpdate } from '@angular/service-worker';
@@ -84,7 +84,7 @@ describe('App', () => {
     const host: HTMLElement = fixture.nativeElement;
     await TestBed.inject(Turret).connect();
 
-    link.notifyState([2, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff]);
+    link.notifyState([3, 0b010, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff, 0, 0]);
     await fixture.whenStable();
 
     expect(button(host, 'Arm switch off')!.disabled).toBe(true);
@@ -120,6 +120,44 @@ describe('App', () => {
     await fixture.whenStable();
 
     expect(link.written).toEqual([[0x04, 0x01, 50, 4]]);
+  });
+
+  it('holds the pusher at a typed pulse, steps it and releases it', async () => {
+    const fixture = await render();
+    const host: HTMLElement = fixture.nativeElement;
+    await TestBed.inject(Turret).connect();
+    await fixture.whenStable();
+    const pulse = host.querySelector<HTMLInputElement>('app-pusher-calibration input')!;
+
+    pulse.value = '1200';
+    pulse.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    button(host, 'Hold')!.click();
+    await fixture.whenStable();
+    button(host, '+10')!.click();
+    await fixture.whenStable();
+    link.notifyState([...IDLE_STATE.slice(0, 10), 0xba, 0x04]);
+    await fixture.whenStable();
+    expect(host.textContent).toContain('Holding at 1210 µs');
+    button(host, 'Release')!.click();
+    await fixture.whenStable();
+
+    expect(link.written).toEqual([
+      [0x06, 0xb0, 0x04],
+      [0x06, 0xba, 0x04],
+      [0x06, 0x00, 0x00],
+    ]);
+  });
+
+  it('hides pusher calibration while armed', async () => {
+    const fixture = await render();
+    const host: HTMLElement = fixture.nativeElement;
+    await TestBed.inject(Turret).connect();
+
+    link.notifyState(ARMED_READY_STATE);
+    await fixture.whenStable();
+
+    expect(host.querySelector('app-pusher-calibration')).toBeNull();
   });
 
   it('shows rejected fire attempts in the log', async () => {
