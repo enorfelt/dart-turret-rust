@@ -16,7 +16,7 @@ The original pins do not fit this board: GPIO 33–37 are taken by the octal PSR
 | Servo bus RX (UART1) | 21 | 34 | Through the level shifter to the TTLinker |
 | ESC left | 17 | 17 | Camera pin, unused here |
 | ESC right | 18 | 18 | Camera pin, unused here |
-| Pusher servo | 41 | 39 | Through the level shifter (channel 3). JTAG MTDI, free while debugging over USB |
+| Pusher servo | 41 | 39 | Through the level shifter (A3/B3). JTAG MTDI, free while debugging over USB |
 | Light gate | 42 | 38 | JTAG MTMS, free while debugging over USB |
 | Battery divider | 1 | 16 | ADC1_CH0, so readings keep working with Wi-Fi / ESP-NOW on |
 | TFmini Plus RX (ESP receives) | 6 | – | UART2, step 3 |
@@ -133,14 +133,14 @@ The guard only sees the whole pack. The BMS is what protects each cell.
 ## Signals
 
 ```
- ESP GPIO 14 (TX) ──LV1┐                ┌HV1── TTLinker RXD ┐
- ESP GPIO 21 (RX) ──LV2┤ level shifter  ├HV2── TTLinker TXD ├── SC15 bus (3-pin cable)
+ ESP GPIO 14 (TX) ───A1┐                ┌B1─── TTLinker RXD ┐
+ ESP GPIO 21 (RX) ───A2┤ level shifter  ├B2─── TTLinker TXD ├── SC15 bus (3-pin cable)
  ESP 3V3 ───────────LV │  (BSS138, 4ch) │HV ── 5 V          │
  GND ───────────────GND┘                └GND── GND          ┘
 
  ESP GPIO 17 ─────────── ESC left signal      (ESC GND to common GND)
  ESP GPIO 18 ─────────── ESC right signal
- ESP GPIO 41 ──LV3┤ level shifter ├HV3── pusher servo signal   (same shifter, channel 3)
+ ESP GPIO 41 ───A3┤ level shifter ├B3─── pusher servo signal   (same shifter, A3/B3)
 
  Light gate:  5 V ── 330 Ω ── IR LED ── GND
               3V3 ── 10 kΩ ──┬── GPIO 42
@@ -191,7 +191,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | microSD card, FAT32 | Vision node: enrolled people. Any size; 1 GB is plenty |
 | 2 | Waveshare SC15 serial bus servo | Pan (ID 0) and tilt (ID 1) |
 | 1 | Feetech TTLinker (mini) | UART to half-duplex servo bus |
-| 1 | 4-channel BSS138 level shifter | 3.3 V ↔ 5 V for the TTLinker (channels 1–2) and the pusher signal (channel 3) |
+| 1 | 4-channel BSS138 level shifter (Adafruit 757) | 3.3 V ↔ 5 V for the TTLinker (A1/B1, A2/B2) and the pusher signal (A3/B3). Low side is LV and A1–A4, high side HV and B1–B4 |
 | 2 | 2206 2300 KV brushless motor | Original uses Armattan Oomph 2206/2300 KV; any 2206–2207, 2300–2500 KV with a 5 mm shaft and 16×19 mm M3 mount should fit the printed mounts (check) |
 | 2 | 30 A BLHeli_S or BLHeli_32 ESC, 2–4S | Original uses Racerstar RS30A; no BEC needed |
 | 1 | Standard-size positional RC servo (metal gear) | Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, stalls at about 2.5 A. Not a continuous-rotation (360°) servo, which has no position feedback |

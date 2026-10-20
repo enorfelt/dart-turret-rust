@@ -540,7 +540,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <h2 id="sig-h">Signals</h2>
     <figure>
       <div class="scroll">
-        <svg class="diagram" viewBox="0 0 1200 790" role="img" aria-label="Signal wiring of the ESP32-S3: GPIO 14 and 21 run through a level shifter and the TTLinker to the SC15 servos; GPIO 17 and 18 drive the ESCs; GPIO 41 drives the pusher through channel 3 of the level shifter; GPIO 42 reads the light gate; GPIO 47 reads the arm switch; GPIO 6 and 7 talk to the TFmini Plus; GPIO 1 reads the battery divider.">
+        <svg class="diagram" viewBox="0 0 1200 790" role="img" aria-label="Signal wiring of the ESP32-S3: GPIO 14 and 21 run through a level shifter and the TTLinker to the SC15 servos; GPIO 17 and 18 drive the ESCs; GPIO 41 drives the pusher through A3/B3 of the level shifter; GPIO 42 reads the light gate; GPIO 47 reads the arm switch; GPIO 6 and 7 talk to the TFmini Plus; GPIO 1 reads the battery divider.">
           <defs>
             <marker id="a-servo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--servo)"/></marker>
             <marker id="a-pwm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--pwm)"/></marker>
@@ -579,10 +579,10 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <!-- level shifter -->
           <rect class="box" x="680" y="88" width="110" height="96" rx="5"/>
           <text class="t" x="735" y="80" text-anchor="middle">Level shifter</text>
-          <text class="p" x="688" y="114">LV1</text>
-          <text class="p" x="688" y="164">LV2</text>
-          <text class="p" x="782" y="114" text-anchor="end">HV1</text>
-          <text class="p" x="782" y="164" text-anchor="end">HV2</text>
+          <text class="p" x="688" y="114">A1</text>
+          <text class="p" x="688" y="164">A2</text>
+          <text class="p" x="782" y="114" text-anchor="end">B1</text>
+          <text class="p" x="782" y="164" text-anchor="end">B2</text>
           <text class="s" x="735" y="202" text-anchor="middle">LV 3V3 · HV 5 V · GND</text>
           <path class="w n-servo" stroke-width="2" d="M600 110 H676" marker-end="url(#a-servo)"/>
           <path class="w n-servo" stroke-width="2" d="M680 160 H604" marker-end="url(#a-servo)"/>
@@ -623,11 +623,11 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <path class="w n-pwm" stroke-width="2" d="M600 370 H676" marker-end="url(#a-pwm)"/>
           <path class="w n-pwm" stroke-width="2" d="M790 370 H856" marker-end="url(#a-pwm)"/>
           <rect class="box" x="680" y="352" width="110" height="36" rx="5"/>
-          <text class="p" x="688" y="374">LV3</text>
-          <text class="p" x="782" y="374" text-anchor="end">HV3</text>
+          <text class="p" x="688" y="374">A3</text>
+          <text class="p" x="782" y="374" text-anchor="end">B3</text>
           <text class="s" x="640" y="362" text-anchor="middle">3.3 V</text>
           <text class="s" x="823" y="362" text-anchor="middle">5 V</text>
-          <text class="s" x="735" y="342" text-anchor="middle">PWM 50 Hz, 514–847 µs · same shifter, channel 3</text>
+          <text class="s" x="735" y="342" text-anchor="middle">PWM 50 Hz, 514–847 µs · same shifter, A3/B3</text>
           <rect class="box" x="860" y="352" width="110" height="36" rx="5"/>
           <text class="t" x="876" y="375">Pusher servo</text>
           <text class="s" x="985" y="375">powered from 6 V through pole A</text>
@@ -703,7 +703,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">21</td><td><span class="swatch" style="--c: var(--servo)"></span>Servo bus RX (UART1)</td><td class="num">34</td><td>From TTLinker TXD through the level shifter</td></tr>
           <tr><td class="num">17</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC left</td><td class="num">17</td><td>Camera pin, free with no camera</td></tr>
           <tr><td class="num">18</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC right</td><td class="num">18</td><td>Camera pin, free with no camera</td></tr>
-          <tr><td class="num">41</td><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher servo</td><td class="num">39</td><td>Through the level shifter, channel 3. 39 is the SD card clock on this board</td></tr>
+          <tr><td class="num">41</td><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher servo</td><td class="num">39</td><td>Through the level shifter, A3/B3. 39 is the SD card clock on this board</td></tr>
           <tr><td class="num">42</td><td><span class="swatch" style="--c: var(--sense)"></span>Light gate</td><td class="num">38</td><td>38 is the SD card command line on this board</td></tr>
           <tr><td class="num">47</td><td><span class="swatch" style="--c: var(--sense)"></span>Arm switch sense</td><td class="num">–</td><td>Closed to GND = on</td></tr>
           <tr><td class="num">6</td><td><span class="swatch" style="--c: var(--lidar)"></span>TFmini Plus TX → ESP</td><td class="num">–</td><td>UART2, roadmap step 3</td></tr>
@@ -759,7 +759,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>Freenove ESP32-S3 WROOM board</td><td>Turret controller, camera left unplugged</td></tr>
           <tr><td class="num">2</td><td>Waveshare SC15 serial bus servo</td><td>Pan ID 0, tilt ID 1; 4.8–8.4 V, 1.7 A stall</td></tr>
           <tr><td class="num">1</td><td>Feetech TTLinker (mini)</td><td>UART to half-duplex servo bus</td></tr>
-          <tr><td class="num">1</td><td>4-channel BSS138 level shifter</td><td>3.3 V ↔ 5 V: TTLinker on channels 1–2, pusher signal on channel 3</td></tr>
+          <tr><td class="num">1</td><td>4-channel BSS138 level shifter (Adafruit 757)</td><td>3.3 V ↔ 5 V: TTLinker on A1/B1 and A2/B2, pusher signal on A3/B3. Low side is LV and A1–A4, high side HV and B1–B4</td></tr>
           <tr><td class="num">2</td><td>2206 2300 KV brushless motor</td><td>Original: Armattan Oomph 2206/2300 KV. Check that a substitute fits the printed mounts</td></tr>
           <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed</td></tr>
           <tr><td class="num">1</td><td>Standard-size positional metal-gear RC servo</td><td>Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, about 2.5 A stall. Not a continuous-rotation (360°) servo</td></tr>
