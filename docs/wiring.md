@@ -6,6 +6,8 @@ Status: proposed, not wired yet. `firmware/turret/src/board.rs` uses this pin ma
 
 The same wiring drawn as colour-coded schematics is in [wiring.html](wiring.html); open it in a browser. Keep the two in step when the wiring changes.
 
+The low-current side can also be built on the [controller board](#controller-board) in `hardware/turret-pdb` instead of with loose wires. The power and signal sections below describe the loose wiring; the board differs in a few places listed there.
+
 ## Pin map (Freenove ESP32-S3 WROOM)
 
 The original pins do not fit this board: GPIO 33–37 are taken by the octal PSRAM (33/34 are not even broken out), and GPIO 38–40 go to the SD card slot. The camera connector stays empty on the turret controller, so camera pins are free to use.
@@ -74,6 +76,18 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 | Small VCC pad | 39 kΩ of the battery divider, soldered directly to the pad |
 | Small GND pad | Empty: the divider's 8.2 kΩ and 100 nF go to ESP GND |
 | 5 V / 12 V BEC pads | Empty: the PDB's own regulators are not used |
+
+## Controller board
+
+`hardware/turret-pdb` is a two-layer KiCad 10 board, 3D printed with raised copper and covered in copper tape. It carries the ESP, the three bucks, the level shifter, the divider, the 1000 µF and every low-current connector. Build, print and assembly notes are in its [README](../hardware/turret-pdb/README.md). It changes the wiring above in these ways:
+
+- **Power feed:** a single pad pair on the PDB (20 AWG) feeds the board's battery input in place of the three buck leads (pad pairs 3–5). The ESCs stay on the PDB.
+- **12 V bench jack:** the board also accepts a 12 V adapter, for testing the gimbal and pusher without the battery. Two SB560 Schottky diodes OR the jack and the battery into the bucks, so neither back-feeds the other and the ESCs stay unpowered on the jack.
+- **Divider:** the battery divider sits on the board at the battery input, before its diode. It measures the pack only; on the jack alone it reads as "no pack", like USB.
+- **Pusher capacitor:** the 1000 µF is at the pusher header on the board, not at the servo.
+- **Level shifter:** the Adafruit 757 is mounted upside down, and its channels are A1/B1 for the pusher, A2/B2 for TTLinker TXD → GPIO 21, and A4/B4 for GPIO 14 → TTLinker RXD. GPIOs are unchanged.
+- **Light gate:** the IR LED runs from 3V3 through 150 Ω instead of 5 V through 330 Ω.
+- **7.5 V buck:** all three bucks are MP1584 modules, including the 7.5 V servo bus. It is rated 3 A peak and two stalled SC15s draw 3.4 A, so it may overheat and cut out if both stall.
 
 ## Battery pack
 
@@ -217,4 +231,5 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | TFmini Plus | Step 3 |
 | – | 2-part epoxy | Fixes the battery contact plates in the covers |
 | – | Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors | |
+| – | Controller board only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, copper foil tape, 0.8 mm bare copper wire for vias, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
 | – | 16 mm carbon tube ×1, 12 mm ×2, M3 screws | Frame, from the original |

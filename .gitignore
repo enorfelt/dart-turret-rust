@@ -4,3 +4,17 @@ sdkconfig
 sdkconfig.old
 *.bin
 .claude/settings.local.json
+
+# KiCad
+hardware/*/out/
+*-backups/
+*.kicad_prl
+*.lck
+_autosave-*
+fp-info-cache
+\#auto_saved_files\#
+
+# Python
+__pycache__/
+*.pyc
+.venv/

@@ -222,6 +222,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <div class="eyebrow">Turret controller · Freenove ESP32-S3 WROOM · 4S1P 18650</div>
     <h1>Dart Turret Wiring</h1>
     <p class="meta">Power and signal wiring for the turret controller, with the main fuse, power switch and hardware arm switch. Matches <code>firmware/turret/src/board.rs</code> and <code>docs/wiring.md</code>. Status: proposed, not yet wired.</p>
+    <p class="meta">A two-layer copper-tape board for this wiring is in <code>hardware/turret-pdb</code>. It changes the level shifter channels, the light gate LED supply and where the divider and the 1000 µF sit; see the "Controller board" section of <code>wiring.md</code>.</p>
   </header>
 
   <div class="legend" role="toolbar" aria-label="Highlight a rail">

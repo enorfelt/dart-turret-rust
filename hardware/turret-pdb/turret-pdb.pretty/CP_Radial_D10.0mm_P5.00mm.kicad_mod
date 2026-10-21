@@ -1,0 +1,127 @@
+(footprint "CP_Radial_D10.0mm_P5.00mm"
+	(version 20260206)
+	(generator "turret-pdb-gen")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Radial electrolytic capacitor, 10.0 mm, 5.0 mm pitch, pads on the solder side")
+	(property "Reference" "REF**"
+		(at 2.5 -6.5)
+		(layer "F.SilkS")
+		(uuid "f458acbf-347b-51e9-a200-c2656ca12471")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "CP_Radial_D10.0mm_P5.00mm"
+		(at 2.5 6.5)
+		(layer "F.Fab")
+		(uuid "d4f714b1-6ef1-5ea3-b95f-ad20c7824555")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "97c3b10e-78f7-5a05-86f0-5c863e7b3aa2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "Radial electrolytic capacitor, 10.0 mm, 5.0 mm pitch, pads on the solder side"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6bb5f2f1-db08-5014-93dc-fc182b46411e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_circle
+		(center 2.5 0)
+		(end 7.5 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "6a44c4f8-2b18-5e87-bd1c-6fb369d7f4de")
+	)
+	(fp_circle
+		(center 2.5 0)
+		(end 7.62 0)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "e876e7c4-2c40-5365-be7a-c71199af447b")
+	)
+	(fp_circle
+		(center 2.5 0)
+		(end 8 0)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "72310ad5-45c8-5c79-8f6c-faa4ef14766b")
+	)
+	(fp_text user "+"
+		(at -3.7 -4.4)
+		(layer "F.SilkS")
+		(uuid "89582a8a-1ced-5030-9d3c-b5e660faa9fc")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.225)
+			)
+		)
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 2.4 2.4)
+		(drill 1.2)
+		(layers "*.Cu" "B.Mask")
+		(zone_connect 0)
+		(uuid "215d52b5-7e8c-569e-ac19-9284906c1c97")
+	)
+	(pad "2" thru_hole circle
+		(at 5 0)
+		(size 2.4 2.4)
+		(drill 1.2)
+		(layers "*.Cu" "B.Mask")
+		(zone_connect 0)
+		(uuid "a0982601-4309-5795-8ddc-0a10cdabf26b")
+	)
+	(embedded_fonts no)
+	(model "${KICAD10_3DMODEL_DIR}/Capacitor_THT.3dshapes/CP_Radial_D10.0mm_P5.00mm.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

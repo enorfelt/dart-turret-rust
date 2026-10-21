@@ -1,0 +1,8 @@
+(version 1)
+(rule "Pads and vias at 2.54 mm pitch"
+	(constraint clearance (min 0.55mm))
+	(condition "A.Type == 'Pad' || B.Type == 'Pad' || A.Type == 'Via' || B.Type == 'Via'"))
+(rule "Parts are soldered on the back only, front copper reaches them through vias"
+	(layer F.Cu)
+	(constraint physical_clearance (min 0.3mm))
+	(condition "A.Type == 'Pad' && (B.Type == 'Track' || B.Type == 'Zone')"))

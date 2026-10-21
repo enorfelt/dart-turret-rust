@@ -32,7 +32,7 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
 | Arm switch | 47 | Input with pull-up, closed to GND when on | Second pole of the switch cuts the pusher servo's supply. `arm` is refused while it is off, and turning it off disarms; on needs 50 ms without bounce |
 | Manual control | – | BLE peripheral (NimBLE), bonded with a passkey | See [BLE protocol](#ble-protocol) |
 
-The controller board is a Freenove ESP32-S3 WROOM (octal PSRAM, so GPIO 33–37 are unavailable and 38–40 go to the SD slot). Pins are assigned in one place, `firmware/turret/src/board.rs`; power, wiring and parts are in [wiring.md](wiring.md). Timings, pulse ranges, gimbal limits and battery constants live in `TurretConfig` (`crates/turret-core/src/config.rs`).
+The controller board is a Freenove ESP32-S3 WROOM (octal PSRAM, so GPIO 33–37 are unavailable and 38–40 go to the SD slot). Pins are assigned in one place, `firmware/turret/src/board.rs`; power, wiring and parts are in [wiring.md](wiring.md), and a copper-tape controller board is in `hardware/turret-pdb`. Timings, pulse ranges, gimbal limits and battery constants live in `TurretConfig` (`crates/turret-core/src/config.rs`).
 
 ### Firmware structure
 

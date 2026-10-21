@@ -9,6 +9,7 @@ ESP32-S3 Nerf dart turret firmware in Rust on ESP-IDF. Design, pin map, safety r
 - `app/` — Angular 22 PWA (Web Bluetooth, zoneless, signals, Signal Forms, Vitest). Angular conventions are in `app/CLAUDE.md`. Run npm commands from `app/` inside WSL with nvm Node 24 (`app/.nvmrc`).
 - `firmware/<node>/src/board.rs` is the single place GPIOs are assigned; tunables are in `turret_core::config::TurretConfig` and `vision_core::config::VisionConfig`.
 - `firmware/<node>` — one ESP-IDF app per node (`turret`, `vision`), outside the workspace, with its own `Cargo.lock`, `rust-toolchain.toml` (`esp`) and `.cargo/config.toml` (target, `build-std`, ESP-IDF version).
+- `hardware/turret-pdb` — KiCad 10 project for the copper-tape controller board. `tools/board.py` (placement and every track) and `tools/parts.py` (footprints, module dimensions in `DIM`) generate it through `tools/generate.py`, which also checks the netlist against `firmware/turret/src/board.rs`; keep pins in step when either changes. GND is routed last by `tools/route_gnd.py`, whose output is pasted into `board.py`.
 - `firmware/vision/components/face` — C++ shim over Espressif's esp-dl face models, bound into Rust through `package.metadata.esp-idf-sys.extra_components`. Component versions are in its `idf_component.yml` and locked in `components_esp32s3.lock`.
 
 ## Commands
@@ -22,6 +23,7 @@ cd firmware/turret && cargo run                                                #
 cd firmware/vision && cargo build && cargo clippy -- -D warnings               # vision node, same toolchain
 cd app && npm test -- --watch=false && npm run format:check && npm run build   # phone app
 cd app && npm start                                                            # dev server on localhost:4200
+cd hardware/turret-pdb && python3 tools/generate.py && tools/export.sh        # board: regenerate, ERC/DRC, STL + PDFs in out/
 ```
 
 Flashing from Windows without USB passthrough: `pwsh -ExecutionPolicy Bypass -File scripts/flash.ps1 -Port COMx` (add `-Firmware vision` for the vision node).

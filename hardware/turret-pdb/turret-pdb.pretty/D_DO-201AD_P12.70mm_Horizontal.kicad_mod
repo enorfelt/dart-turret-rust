@@ -1,0 +1,124 @@
+(footprint "D_DO-201AD_P12.70mm_Horizontal"
+	(version 20260206)
+	(generator "turret-pdb-gen")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "DO-201AD axial diode (SB560), 12.7 mm lead spacing")
+	(property "Reference" "REF**"
+		(at 6.35 -4)
+		(layer "F.SilkS")
+		(uuid "4887d626-5acd-57fa-947a-d6881b07aeb1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "D_DO-201AD_P12.70mm_Horizontal"
+		(at 6.35 4)
+		(layer "F.Fab")
+		(uuid "81999d54-6796-51c6-84a1-c3c764a4de61")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "2b14a2f2-f648-5359-9370-8b5710a84e77")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "DO-201AD axial diode (SB560), 12.7 mm lead spacing"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "ebb00bbb-6b16-510b-9187-1fdf040a5c3b")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start 2.1 -2.6)
+		(end 10.6 2.6)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "57ffb965-d7c9-511c-9dc7-042c6f620b9a")
+	)
+	(fp_rect
+		(start 2 -2.7)
+		(end 10.7 2.7)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "0bbf4fb4-4e0e-527e-b5f9-f6666f6f7385")
+	)
+	(fp_rect
+		(start 1.6 -3.1)
+		(end 11.1 3.1)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "9ee53587-1c35-5912-b933-6c053e83c660")
+	)
+	(fp_line
+		(start 3.4 -2.7)
+		(end 3.4 2.7)
+		(stroke
+			(width 0.3)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "2f77e1b3-39d0-5c36-9631-cfc19ab74e34")
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 3.8 3.8)
+		(drill 1.7)
+		(layers "*.Cu" "*.Mask")
+		(uuid "79268e1e-c25c-5640-9fc3-d50c3d5ae347")
+	)
+	(pad "2" thru_hole circle
+		(at 12.7 0)
+		(size 3.8 3.8)
+		(drill 1.7)
+		(layers "*.Cu" "*.Mask")
+		(uuid "81d30de0-a013-5d42-bcb7-fe5d6d5f2edd")
+	)
+	(embedded_fonts no)
+	(model "${KICAD10_3DMODEL_DIR}/Diode_THT.3dshapes/D_DO-201AD_P12.70mm_Horizontal.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

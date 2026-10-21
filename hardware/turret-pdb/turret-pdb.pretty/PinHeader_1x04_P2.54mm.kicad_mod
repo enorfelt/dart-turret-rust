@@ -1,0 +1,132 @@
+(footprint "PinHeader_1x04_P2.54mm"
+	(version 20260206)
+	(generator "turret-pdb-gen")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "1x4 2.54 mm male header, pads on the solder side only")
+	(property "Reference" "REF**"
+		(at 3.81 -3)
+		(layer "F.SilkS")
+		(uuid "7cc55937-56eb-541b-9abf-dea3d864fb6c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "PinHeader_1x04_P2.54mm"
+		(at 3.81 3)
+		(layer "F.Fab")
+		(uuid "97a63210-5c7b-5c17-b32f-6f8869f1aba2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "3bbc49cd-3e17-5fea-872a-e88c7164af19")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "1x4 2.54 mm male header, pads on the solder side only"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "06de791b-64ea-59f0-a660-e6b2663f8898")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -1.27 -1.27)
+		(end 8.89 1.27)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "70956842-8665-528c-84ed-e8e68c0fb290")
+	)
+	(fp_rect
+		(start -1.37 -1.37)
+		(end 8.99 1.37)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "78a4a8fb-f2a2-5468-aa36-5bb847c4d3f5")
+	)
+	(fp_rect
+		(start -1.77 -1.77)
+		(end 9.39 1.77)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "94a86be8-711b-551d-8419-123e64ad14fa")
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 1.9 4)
+		(drill 1.2)
+		(layers "*.Cu" "B.Mask")
+		(zone_connect 0)
+		(uuid "2b8cab00-2764-5867-886b-340bf55dd269")
+	)
+	(pad "2" thru_hole oval
+		(at 2.54 0)
+		(size 1.9 4)
+		(drill 1.2)
+		(layers "*.Cu" "B.Mask")
+		(zone_connect 0)
+		(uuid "a21bc4eb-dfdb-5d4e-9770-1d7b0a07224a")
+	)
+	(pad "3" thru_hole oval
+		(at 5.08 0)
+		(size 1.9 4)
+		(drill 1.2)
+		(layers "*.Cu" "B.Mask")
+		(zone_connect 0)
+		(uuid "8c017917-f00b-53a7-9aef-200d96e8c5bf")
+	)
+	(pad "4" thru_hole oval
+		(at 7.62 0)
+		(size 1.9 4)
+		(drill 1.2)
+		(layers "*.Cu" "B.Mask")
+		(zone_connect 0)
+		(uuid "9d3d39fc-3f2a-5145-a24d-cef6aa75a3cb")
+	)
+	(embedded_fonts no)
+	(model "${KICAD10_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x04_P2.54mm_Vertical.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 -90)
+		)
+	)
+)

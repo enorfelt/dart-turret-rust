@@ -1,0 +1,114 @@
+(footprint "C_Disc_P5.00mm"
+	(version 20260206)
+	(generator "turret-pdb-gen")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Ceramic disc capacitor, 5 mm lead spacing")
+	(property "Reference" "REF**"
+		(at 2.5 -2.6)
+		(layer "F.SilkS")
+		(uuid "d0c4b2cb-7db3-55f9-b330-01a84cf2735e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "C_Disc_P5.00mm"
+		(at 2.5 2.6)
+		(layer "F.Fab")
+		(uuid "f01de9bd-047e-55ad-ae84-0dd2b167c4b1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "c68d94cb-4498-515c-847b-806e85410702")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "Ceramic disc capacitor, 5 mm lead spacing"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "603f87f7-7faf-565f-a534-04c82f5e2618")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start 0 -1.25)
+		(end 5 1.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "1bb300f4-3847-5d64-a4e1-18dbd497a469")
+	)
+	(fp_rect
+		(start -0.1 -1.35)
+		(end 5.1 1.35)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "26814ff6-24db-5997-bde8-82e92b411f3c")
+	)
+	(fp_rect
+		(start -0.5 -1.75)
+		(end 5.5 1.75)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "07fe3285-1a2a-583d-8425-506850cdf261")
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2.6 2.6)
+		(drill 1.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "d549af77-4320-5c8c-b8a8-cb323185d716")
+	)
+	(pad "2" thru_hole circle
+		(at 5 0)
+		(size 2.6 2.6)
+		(drill 1.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "f97fa94b-e1bd-5978-a02d-97e0ed30f92a")
+	)
+	(embedded_fonts no)
+	(model "${KICAD10_3DMODEL_DIR}/Capacitor_THT.3dshapes/C_Disc_D5.0mm_W2.5mm_P5.00mm.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)
