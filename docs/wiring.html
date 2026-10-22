@@ -222,7 +222,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <div class="eyebrow">Turret controller · Freenove ESP32-S3 WROOM · 4S1P 18650</div>
     <h1>Dart Turret Wiring</h1>
     <p class="meta">Power and signal wiring for the turret controller, with the main fuse, power switch and hardware arm switch. Matches <code>firmware/turret/src/board.rs</code> and <code>docs/wiring.md</code>. Status: proposed, not yet wired.</p>
-    <p class="meta">A two-layer copper-tape board for this wiring is in <code>hardware/turret-pdb</code>. It changes the level shifter channels, the light gate LED supply and where the divider and the 1000 µF sit; see the "Controller board" section of <code>wiring.md</code>.</p>
+    <p class="meta">Two stacked copper-tape boards for this wiring, a power board and a logic board, are in <code>hardware/turret-pdb</code>. They change the level shifter channels, the light gate LED supply and where the divider and the 1000 µF sit; see the "Controller board" section of <code>wiring.md</code>, which also shows where the boards, the PDB and the BMS sit on the frame.</p>
   </header>
 
   <div class="legend" role="toolbar" aria-label="Highlight a rail">
@@ -427,6 +427,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         <tr><td>5 V / 12 V BEC pads</td><td>Empty: the PDB's own regulators are not used</td></tr>
       </tbody>
     </table>
+    <p class="meta">With the controller boards, pad pair 3 feeds the power board's battery input (J1, 20 AWG), pad pairs 4 and 5 are spare and the small VCC pad stays empty.</p>
   </section>
 
   <section aria-labelledby="pack-h">
@@ -515,6 +516,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         <li>Solder the plate tabs before the plates go into the covers, with the cells out.</li>
         <li>Let the cover slots locate the plates, then fix them with 2-part epoxy on the edges and tabs only, never on the contact face or the spring coils. Avoid hot glue (softens near 60 °C) and superglue (cracks with cell swaps).</li>
         <li>Strain-relieve every wire on the cover a few cm from its solder joint. Pulled wires are what tear plates loose.</li>
+        <li>The BMS sits in a stack with the PDB behind the blue base, so the pack leads and B1–B3 run out of the base to it. Strain-relieve them where they leave the base and again at the BMS, and keep them clear of the pan axis.</li>
         <li class="warn">Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses to arm.</li>
         <li>Use unprotected high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.</li>
         <li>The 8 contacts are the weak point: at a 35 A spin-up peak, 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA, and measure the drop across a contact during a spin-up; over 0.1 V needs attention.</li>

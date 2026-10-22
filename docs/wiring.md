@@ -6,7 +6,7 @@ Status: proposed, not wired yet. `firmware/turret/src/board.rs` uses this pin ma
 
 The same wiring drawn as colour-coded schematics is in [wiring.html](wiring.html); open it in a browser. Keep the two in step when the wiring changes.
 
-The low-current side can also be built on the [controller board](#controller-board) in `hardware/turret-pdb` instead of with loose wires. The power and signal sections below describe the loose wiring; the board differs in a few places listed there.
+The low-current side can also be built on the [controller boards](#controller-board) in `hardware/turret-pdb` instead of with loose wires. The power and signal sections below describe the loose wiring; the boards differ in a few places listed there.
 
 ## Pin map (Freenove ESP32-S3 WROOM)
 
@@ -77,17 +77,26 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 | Small GND pad | Empty: the divider's 8.2 kΩ and 100 nF go to ESP GND |
 | 5 V / 12 V BEC pads | Empty: the PDB's own regulators are not used |
 
+With the controller boards, pad pair 3 feeds the power board's battery input (J1, 20 AWG) and pad pairs 4 and 5 are spare. The small VCC pad stays empty, as the divider is on the power board.
+
 ## Controller board
 
-`hardware/turret-pdb` is a two-layer KiCad 10 board, 3D printed with raised copper and covered in copper tape. It carries the ESP, the three bucks, the level shifter, the divider, the 1000 µF and every low-current connector. Build, print and assembly notes are in its [README](../hardware/turret-pdb/README.md). It changes the wiring above in these ways:
+`hardware/turret-pdb` holds two stacked two-layer KiCad 10 boards, 3D printed with raised copper and covered in copper tape. The power board carries the battery input, the bench jack, the three bucks, the divider, the arm switch and pusher connections with the 1000 µF, and the servo bus and vision 5 V outputs. The logic board carries the ESP, the level shifter and every low-current connector. Five wires join them. Build, print and assembly notes are in its [README](../hardware/turret-pdb/README.md). It changes the wiring above in these ways:
 
-- **Power feed:** a single pad pair on the PDB (20 AWG) feeds the board's battery input in place of the three buck leads (pad pairs 3–5). The ESCs stay on the PDB.
-- **12 V bench jack:** the board also accepts a 12 V adapter, for testing the gimbal and pusher without the battery. Two SB560 Schottky diodes OR the jack and the battery into the bucks, so neither back-feeds the other and the ESCs stay unpowered on the jack.
-- **Divider:** the battery divider sits on the board at the battery input, before its diode. It measures the pack only; on the jack alone it reads as "no pack", like USB.
-- **Pusher capacitor:** the 1000 µF is at the pusher header on the board, not at the servo.
-- **Level shifter:** the Adafruit 757 is mounted upside down, and its channels are A1/B1 for the pusher, A2/B2 for TTLinker TXD → GPIO 21, and A4/B4 for GPIO 14 → TTLinker RXD. GPIOs are unchanged.
+- **Power feed:** a single pad pair on the PDB (20 AWG) feeds the power board's battery input in place of the three buck leads (pad pairs 3–5). The ESCs stay on the PDB.
+- **12 V bench jack:** the power board also accepts a 12 V adapter, for testing the gimbal and pusher without the battery. Two SB560 Schottky diodes OR the jack and the battery into the bucks, so neither back-feeds the other and the ESCs stay unpowered on the jack.
+- **Divider:** the battery divider sits on the power board at the battery input, before its diode. It measures the pack only; on the jack alone it reads as "no pack", like USB. Only the divided voltage goes up to the logic board.
+- **Pusher capacitor:** the 1000 µF is at the pusher connector on the power board, not at the servo.
+- **Level shifter:** the Adafruit 757 is mounted upside down between the ESP's socket rows, and its channels are A1/B1 for GPIO 14 → TTLinker RXD, A2/B2 for the pusher, and A4/B4 for TTLinker TXD → GPIO 21. GPIOs are unchanged.
 - **Light gate:** the IR LED runs from 3V3 through 150 Ω instead of 5 V through 330 Ω.
 - **7.5 V buck:** all three bucks are MP1584 modules, including the 7.5 V servo bus. It is rated 3 A peak and two stalled SC15s draw 3.4 A, so it may overheat and cut out if both stall.
+
+### Where it sits
+
+The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.
+
+- **Stack 1, behind the base:** the 4S BMS at the bottom, held by its edges (55 × 44 mm, no holes), and the PDB on top on its 30.5 mm M3 pattern (about 36 × 50 mm with the XT60 tab). The BMS P− and the pack + leave the stack through the fuse and the XT60 and come back into the PDB, so the XT60 stays within reach as the power switch.
+- **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 42 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
 
 ## Battery pack
 
@@ -118,6 +127,7 @@ The drawing assumes the long channel in the back cover sits over the bottom row.
 | Back bridge link | Flat plate on C2 | Spring plate on C3 | 14, or nickel strip ≥8 mm wide and 0.3 mm thick (two layers of 0.15 mm) |
 | Output − | BMS P− | XT60 −, then the − bus | 14 |
 
+- The BMS sits in Stack 1 behind the blue base (see [Where it sits](#where-it-sits)), so the pack leads and B1–B3 run from the battery covers out of the base to it. Strain-relieve them where they leave the base and again at the BMS, and keep them clear of the pan axis.
 - Pack leads and B2 leave through the hole in the back cover. The front cover has no hole: drill a 3 mm hole or file a notch for B1 and B3, and run them back along the frame.
 - The back bridge link carries the full pack current, like the pack leads. Lay it in the long channel of the back cover.
 - Solder to the plate tabs before the plates go into the covers, with the cells out. Nickel-plated steel takes solder with a hot iron and flux.
@@ -231,5 +241,5 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | TFmini Plus | Step 3 |
 | – | 2-part epoxy | Fixes the battery contact plates in the covers |
 | – | Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors | |
-| – | Controller board only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, copper foil tape, 0.8 mm bare copper wire for vias, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
+| – | Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, copper foil tape, 0.8 mm bare copper wire for vias, 4 × M3 standoffs for a 15 mm board gap, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
 | – | 16 mm carbon tube ×1, 12 mm ×2, M3 screws | Frame, from the original |
