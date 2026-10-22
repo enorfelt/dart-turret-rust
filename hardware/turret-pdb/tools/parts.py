@@ -23,6 +23,7 @@ DIM = {
     "power_lead_drill": 1.7,
     "power_lead_pad": 3.8,
     "mount_drill": 3.2,
+    "c3_length": 20.0,
 }
 
 PIN = DIM["pin_pad"]
@@ -124,7 +125,8 @@ def wire_pads(n=2, ties=(True, True)):
     pads += [Pad("", x, 0, 2.0, 2.0, 2.0, "NP") for x, t in zip(zx, ties) if t]
     g = [Graphic("rect", "F.SilkS", (-s / 2 - 0.3, -s / 2 - 0.3, (n - 1) * p + s / 2 + 0.3, s / 2 + 0.3), 0.12),
          Graphic("rect", "F.CrtYd", (zx[0] - 1.5, -s / 2 - 0.8, zx[1] + 1.5, s / 2 + 0.8), 0.05)]
-    return Footprint(f"WirePads_1x{n:02d}" + ("" if all(ties) else "_TieRight"), "Solder holes for stranded wire, zip-tie holes at both ends for strain relief",
+    suffix = {(True, True): "", (True, False): "_TieLeft", (False, True): "_TieRight", (False, False): "_NoTie"}[tuple(ties)]
+    return Footprint(f"WirePads_1x{n:02d}{suffix}", "Solder holes for stranded wire, zip-tie holes at both ends for strain relief",
                      pads, g, ref_at=((n - 1) * p / 2, -3.5), value_at=((n - 1) * p / 2, 3.5))
 
 
@@ -179,6 +181,18 @@ def cap_radial(dia, pitch):
     return Footprint(f"CP_Radial_D{dia:.1f}mm_P{pn}mm", f"Radial electrolytic capacitor, {dia} mm, {pitch} mm pitch, pads on the solder side",
                      pads, g, model=f"{MODELS}/Capacitor_THT.3dshapes/CP_Radial_D{dia:.1f}mm_P{pn}mm.step",
                      ref_at=(c, -r - 1.5), value_at=(c, r + 1.5))
+
+
+def cap_radial_lying(dia, length, pitch):
+    pads = [Pad("1", 0, 0, 2.4, 2.4, DIM["lead_drill"], "B", "rect"),
+            Pad("2", pitch, 0, 2.4, 2.4, DIM["lead_drill"], "B", "circle")]
+    x1, x2 = pitch / 2 - dia / 2, pitch / 2 + dia / 2
+    y1 = 1.2 + 1.5
+    g = fab_rect(x1, y1, x2, y1 + length)
+    g.append(Graphic("text", "F.SilkS", (-2.2, 0, "+", 1.5)))
+    return Footprint(f"CP_Radial_D{dia:.1f}mm_L{length:.1f}mm_P{pitch:.2f}mm_Lying",
+                     f"Radial electrolytic capacitor, {dia} x {length} mm, {pitch} mm pitch, leads bent 90 degrees so it lies flat",
+                     pads, g, ref_at=(pitch / 2, y1 + length / 2 - 1.5), value_at=(pitch / 2, y1 + length / 2 + 1.5))
 
 
 def mounting_hole():

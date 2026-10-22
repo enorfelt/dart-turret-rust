@@ -8,6 +8,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import parts
+import stack
 from kicad import S, A, Atom, footprint_node, rotate, sexpr, uid
 
 BOARDS = ("power", "logic")
@@ -32,7 +33,7 @@ def fp_of(ref):
 
 def placed(ref):
     x, y, r = board.PARTS[ref][3]
-    return x + board.ORIGIN[0], y + board.ORIGIN[1], r
+    return x + stack.ORIGIN[0], y + stack.ORIGIN[1], r
 
 
 def pad_xy(ref, number, index=0):
@@ -71,7 +72,8 @@ SYMBOL_NAMES = {
     "esp": "Freenove_ESP32-S3_WROOM", "shifter": "Adafruit_757", "mp1584": "MP1584_Module",
     "h2": "Conn_01x02", "h3": "Conn_01x03", "h3_esc": "Conn_ESC", "h4": "Conn_01x04",
     "wire2_l": "WirePads_01x02", "wire2_r": "WirePads_01x02", "jack": "BarrelJack", "diode": "D_Schottky", "res": "R",
-    "cdisc": "C", "cp6": "C_Polarized", "cp10": "C_Polarized", "hole": "MountingHole",
+    "cdisc": "C", "cp6": "C_Polarized", "cp10": "C_Polarized", "cp10l": "C_Polarized", "hole": "MountingHole",
+    "link": "WirePads_01x05",
 }
 
 
@@ -126,7 +128,7 @@ def symbol_def(key, lib_prefix=""):
     pins, width, height = symbol_layout(key)
     fp = board.FP[key]
     refchar = {"esp": "U", "shifter": "U", "mp1584": "U", "diode": "D", "res": "R", "cdisc": "C",
-               "cp6": "C", "cp10": "C", "hole": "H"}.get(key, "J")
+               "cp6": "C", "cp10": "C", "cp10l": "C", "hole": "H"}.get(key, "J")
     node = S("symbol", lib_prefix + name,
              S("pin_names", S("offset", 1.016)),
              S("exclude_from_sim", A("no")), S("in_bom", A("yes")), S("on_board", A("yes")),
@@ -166,7 +168,7 @@ SCH_COLUMNS = [
     ["J1", "J2", "D1", "D2", "C2", "R1", "R2", "C1"],
     ["U3", "U4", "U5", "J11", "J10", "H1", "H2", "H3", "H4"],
     ["U1", "U2"],
-    ["J3", "J4", "C3", "J5", "J6", "J7", "J8", "J9", "R3", "R4"],
+    ["J3", "J4", "C3", "J5", "J6", "J7", "J8", "J9", "R3", "R4", "J12"],
 ]
 
 
@@ -177,7 +179,7 @@ def snap(v):
 def schematic_positions():
     pos = {}
     x = 40.64
-    for col in SCH_COLUMNS:
+    for col in [c for c in ([r for r in col if r in board.PARTS] for col in SCH_COLUMNS) if c]:
         y = 30.48
         wmax = 0
         for ref in col:
@@ -255,7 +257,7 @@ LAYERS = [(0, "F.Cu", "signal"), (2, "B.Cu", "signal"), (9, "F.Adhes", "user", "
 
 
 def edge(kind, *pts):
-    ox, oy = board.ORIGIN
+    ox, oy = stack.ORIGIN
     stroke = S("stroke", S("width", 0.1), S("type", A("default")))
     u = S("uuid", uid("edge", kind, *pts))
     if kind == "line":
@@ -267,7 +269,7 @@ def edge(kind, *pts):
 
 
 def outline():
-    w, h, r = board.W, board.H, board.CORNER
+    w, h, r = stack.W, stack.H, stack.CORNER
     k = r * (1 - 0.70710678)
     return [edge("line", r, 0, w - r, 0), edge("line", w, r, w, h - r),
             edge("line", w - r, h, r, h), edge("line", 0, h - r, 0, r),
@@ -306,7 +308,7 @@ def resolve(pt, width=2.0):
 
 
 def write_board():
-    ox, oy = board.ORIGIN
+    ox, oy = stack.ORIGIN
     pcb = S("kicad_pcb", S("version", 20260206), S("generator", "turret-pdb-gen"), S("generator_version", "10.0"),
             S("general", S("thickness", STACKUP["core"] + 2 * STACKUP["copper"]), S("legacy_teardrops", A("no"))),
             S("paper", "A4"),
@@ -396,28 +398,84 @@ FIRMWARE_PINS = {
 }
 
 
-def members(net):
-    return {f"{ref}.{pad}" for ref in board.PARTS for pad, n in nets_of(ref).items() if n == net}
+def members(b, net):
+    return {f"{ref}.{pad}" for ref, p in b.PARTS.items() for pad, (_, n) in p[2].items() if n == net}
 
 
-def verify():
+def nets(b):
+    return {n for p in b.PARTS.values() for _, n in p[2].values() if n}
+
+
+def verify_firmware(logic):
     rs = open(os.path.join(ROOT, "..", "..", "firmware", "turret", "src", "board.rs")).read()
-    gpio_of = {pad: name for pad, (name, _) in board.PARTS["U1"][2].items()}
+    gpio_of = {pad: name for pad, (name, _) in logic.PARTS["U1"][2].items()}
     for field, net in FIRMWARE_PINS.items():
         m = re.search(rf"{field}: pins\.gpio(\d+)", rs)
-        pads = [p for p in members(net) if p.startswith("U1.")]
+        pads = [p for p in members(logic, net) if p.startswith("U1.")]
         assert m and len(pads) == 1, (field, pads)
         assert gpio_of[pads[0][3:]] == m.group(1), f"{field}: board.rs GPIO {m.group(1)}, PCB {pads[0]}"
-    assert members("PUSH_6V") == {"J3.1", "J4.2", "C3.1"}, members("PUSH_6V")
-    assert members("+6V") == {"U4.VOUT", "J3.2"}, members("+6V")
-    assert members("VJACK") == {"J2.1", "D2.2"} and members("VBAT") == {"J1.1", "D1.2", "R1.1"}
+
+
+def verify_power(power):
+    assert members(power, "PUSH_6V") == {"J3.1", "J4.2", "C3.1"}, members(power, "PUSH_6V")
+    assert members(power, "+6V") == {"U4.VOUT", "J3.2"}, members(power, "+6V")
+    assert members(power, "VJACK") == {"J2.1", "D2.2"}, members(power, "VJACK")
+    assert members(power, "VBAT") == {"J1.1", "D1.2", "R1.1"}, members(power, "VBAT")
+    assert power.FP[power.PARTS["C3"][0]].name.endswith("_Lying"), "C3 must lie flat"
+    standing = [r for r, p in power.PARTS.items()
+                if power.FP[p[0]].name.startswith("CP_Radial") and not power.FP[p[0]].name.endswith("_Lying")]
+    assert standing == ["C2"], f"standing radial capacitors: {standing}"
+
+
+def esp_local(x, y):
+    ex, ey, r = board.PARTS["U1"][3]
+    dx, dy = rotate(x, y, r)
+    return ex + dx, ey + dy
+
+
+def verify_logic(logic):
     for ref in ("J5", "J6"):
-        assert "2" not in board.PARTS[ref][2]
+        assert "2" not in logic.PARTS[ref][2], f"{ref} pin 2 must stay unconnected"
+    d = parts.DIM
+    a, b = esp_local(-d["esp_end_antenna"], -d["esp_row_spacing"] - d["esp_side"]), esp_local(-1.27, d["esp_side"])
+    x1, x2, y1, y2 = min(a[0], b[0]), max(a[0], b[0]), min(a[1], b[1]), max(a[1], b[1])
+
+    def near(x, y, r):
+        return x1 - r < x < x2 + r and y1 - r < y < y2 + r
+
+    for net, layer, width, pts in logic.TRACKS:
+        xy = [resolve(p, width) for p in pts]
+        for (ax, ay), (bx, by) in zip(xy, xy[1:]):
+            n = max(1, int(((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5 / 0.5))
+            for k in range(n + 1):
+                t = k / n
+                assert not near(ax + t * (bx - ax), ay + t * (by - ay), width / 2), f"{net} track under the ESP antenna"
+    for net, x, y in logic.VIAS:
+        assert not near(x, y, 1.5), f"{net} via under the ESP antenna"
+    usb = esp_local(19 * parts.P + d["esp_end_usb"], 0)[1]
+    assert usb <= 2.0, f"ESP USB end at y = {usb:.2f}, must be within 2 mm of the front edge"
+
+
+def verify_stack(power, logic):
+    for b in (power, logic):
+        assert b.PARTS["J12"] == stack.link(), "J12 must be stack.link()"
+        assert {r: p for r, p in b.PARTS.items() if r.startswith("H")} == stack.holes(), "holes must be stack.holes()"
+        assert b.FP["link"] is stack.LINK_FP
+        for net in stack.LINK_NETS:
+            assert members(b, net) - {f"J12.{i}" for i in range(1, 6)}, f"{net} reaches nothing but J12"
+    shared = nets(power) & nets(logic)
+    assert shared == set(stack.LINK_NETS), f"nets on both boards outside the link: {shared - set(stack.LINK_NETS)}"
+    labels = [g.pts[2] for g in stack.LINK_FP.graphics if g.kind == "text" and g.layer == "F.SilkS"]
+    assert labels == list(stack.LINK_NAMES), labels
 
 
 def main(names):
-    use("power")
-    verify()
+    power = use("power")
+    verify_power(power)
+    logic = use("logic")
+    verify_firmware(logic)
+    verify_logic(logic)
+    verify_stack(power, logic)
     for name in names:
         use(name)
         write_footprints()
@@ -428,4 +486,4 @@ def main(names):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or [b for b in BOARDS if os.path.exists(os.path.join(ROOT, "tools", f"{b}.py"))])
+    main(sys.argv[1:] or list(BOARDS))

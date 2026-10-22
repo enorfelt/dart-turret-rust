@@ -1,13 +1,13 @@
-(footprint "CP_Radial_D10.0mm_P5.00mm"
+(footprint "CP_Radial_D10.0mm_L20.0mm_P5.00mm_Lying"
 	(version 20260206)
 	(generator "turret-pdb-gen")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "Radial electrolytic capacitor, 10.0 mm, 5.0 mm pitch, pads on the solder side")
+	(descr "Radial electrolytic capacitor, 10.0 x 20.0 mm, 5.0 mm pitch, leads bent 90 degrees so it lies flat")
 	(property "Reference" "REF**"
-		(at 2.5 -6.5)
+		(at 2.5 11.2)
 		(layer "F.SilkS")
-		(uuid "f458acbf-347b-51e9-a200-c2656ca12471")
+		(uuid "3d7f54f7-2b56-5dee-9645-1258d430a066")
 		(effects
 			(font
 				(size 1 1)
@@ -15,10 +15,10 @@
 			)
 		)
 	)
-	(property "Value" "CP_Radial_D10.0mm_P5.00mm"
-		(at 2.5 6.5)
+	(property "Value" "CP_Radial_D10.0mm_L20.0mm_P5.00mm_Lying"
+		(at 2.5 14.2)
 		(layer "F.Fab")
-		(uuid "d4f714b1-6ef1-5ea3-b95f-ad20c7824555")
+		(uuid "94beeedf-eb8f-5fea-b8b0-86fdad5bb33e")
 		(effects
 			(font
 				(size 1 1)
@@ -30,7 +30,7 @@
 		(at 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "97c3b10e-78f7-5a05-86f0-5c863e7b3aa2")
+		(uuid "48bdcdc7-1a2c-5ba9-99d7-2e01db3f8c12")
 		(effects
 			(font
 				(size 1 1)
@@ -38,11 +38,11 @@
 			)
 		)
 	)
-	(property "Description" "Radial electrolytic capacitor, 10.0 mm, 5.0 mm pitch, pads on the solder side"
+	(property "Description" "Radial electrolytic capacitor, 10.0 x 20.0 mm, 5.0 mm pitch, leads bent 90 degrees so it lies flat"
 		(at 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "6bb5f2f1-db08-5014-93dc-fc182b46411e")
+		(uuid "8dd39b0a-d244-5da3-b5f4-0f4a92b2f475")
 		(effects
 			(font
 				(size 1 1)
@@ -52,43 +52,43 @@
 	)
 	(attr through_hole)
 	(duplicate_pad_numbers_are_jumpers no)
-	(fp_circle
-		(center 2.5 0)
-		(end 7.5 0)
+	(fp_rect
+		(start -2.5 2.7)
+		(end 7.5 22.7)
 		(stroke
 			(width 0.1)
 			(type solid)
 		)
 		(fill no)
 		(layer "F.Fab")
-		(uuid "6a44c4f8-2b18-5e87-bd1c-6fb369d7f4de")
+		(uuid "49cf1536-557d-53b1-aacf-b8da0f6793e9")
 	)
-	(fp_circle
-		(center 2.5 0)
-		(end 7.62 0)
+	(fp_rect
+		(start -2.6 2.6)
+		(end 7.6 22.8)
 		(stroke
 			(width 0.12)
 			(type solid)
 		)
 		(fill no)
 		(layer "F.SilkS")
-		(uuid "e876e7c4-2c40-5365-be7a-c71199af447b")
+		(uuid "95529213-9386-5791-9d2f-896cbae20b40")
 	)
-	(fp_circle
-		(center 2.5 0)
-		(end 8 0)
+	(fp_rect
+		(start -3 2.2)
+		(end 8 23.2)
 		(stroke
 			(width 0.05)
 			(type solid)
 		)
 		(fill no)
 		(layer "F.CrtYd")
-		(uuid "72310ad5-45c8-5c79-8f6c-faa4ef14766b")
+		(uuid "49dc2df5-999b-5346-9ec0-6c6b74ffcf2d")
 	)
 	(fp_text user "+"
-		(at -3.7 -4.4)
+		(at -2.2 0)
 		(layer "F.SilkS")
-		(uuid "89582a8a-1ced-5030-9d3c-b5e660faa9fc")
+		(uuid "245a1d72-e774-5597-af3b-59a67b77a668")
 		(effects
 			(font
 				(size 1.5 1.5)
@@ -102,7 +102,7 @@
 		(drill 1.2)
 		(layers "*.Cu" "B.Mask")
 		(zone_connect 0)
-		(uuid "215d52b5-7e8c-569e-ac19-9284906c1c97")
+		(uuid "2a2665df-e31e-53c2-94dd-d2e46d4b0550")
 	)
 	(pad "2" thru_hole circle
 		(at 5 0)
@@ -110,18 +110,7 @@
 		(drill 1.2)
 		(layers "*.Cu" "B.Mask")
 		(zone_connect 0)
-		(uuid "a0982601-4309-5795-8ddc-0a10cdabf26b")
+		(uuid "e811dcc1-3c0f-5ca3-93a9-799352ca6713")
 	)
 	(embedded_fonts no)
-	(model "${KICAD10_3DMODEL_DIR}/Capacitor_THT.3dshapes/CP_Radial_D10.0mm_P5.00mm.step"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz 0 0 0)
-		)
-	)
 )

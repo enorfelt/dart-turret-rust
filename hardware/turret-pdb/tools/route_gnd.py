@@ -9,6 +9,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import generate
+import stack
 from generate import fp_of, nets_of, resolve
 from kicad import rotate
 
@@ -17,10 +18,10 @@ SAFE = (1.2, 0.7, 1.2)
 TIGHT = (1.0, 0.56, 1.0)
 CLEAR_BODY = 0.2
 VIA_R, VIA_COST, BACK_COST, TURN_COST = 1.5, 25.0, 1.4, 3.0
-FLAT_BODIES = {"jack", "diode", "res", "cdisc", "cp6", "cp10", "h3", "h3_esc", "h4"}
+FLAT_BODIES = {"jack", "diode", "res", "cdisc", "cp6", "cp10", "cp10l", "h3", "h3_esc", "h4"}
 PIN_BODIES = {"esp", "shifter"}
 LAYERS = ("F.Cu", "B.Cu")
-START = {"power": "J1.2"}
+START = {"power": "J1.2", "logic": "J12.1"}
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 board = NX = NY = X = Y = None
 
@@ -28,7 +29,7 @@ board = NX = NY = X = Y = None
 def init(name):
     global board, NX, NY, X, Y
     board = generate.use(name)
-    NX, NY = int(board.W / RES) + 1, int(board.H / RES) + 1
+    NX, NY = int(stack.W / RES) + 1, int(stack.H / RES) + 1
     X, Y = np.meshgrid(np.arange(NX) * RES, np.arange(NY) * RES, indexing="ij")
 
 
@@ -116,7 +117,7 @@ def build(clear=SAFE):
     for net, x, y in board.VIAS:
         if net != "GND":
             b.block(np.hypot(X - x, Y - y) - VIA_R, CLEAR_PAD)
-    edge = np.minimum(np.minimum(X, board.W - X), np.minimum(Y, board.H - Y))
+    edge = np.minimum(np.minimum(X, stack.W - X), np.minimum(Y, stack.H - Y))
     b.block(edge, CLEAR_EDGE)
     return b
 

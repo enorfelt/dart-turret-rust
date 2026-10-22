@@ -1,0 +1,4 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "turret-logic") (type "KiCad") (uri "${KIPRJMOD}/turret-logic.pretty") (options "") (descr "Copper-tape footprints"))
+)
