@@ -118,6 +118,8 @@ def build(net, clear=SAFE):
     for n, x, y in board.VIAS:
         if n != net:
             b.block(np.hypot(X - x, Y - y) - VIA_R, CLEAR_PAD)
+    if "U1" in board.PARTS:
+        b.block(rect(*generate.antenna_rect()), CLEAR_EDGE)
     edge = np.minimum(np.minimum(X, stack.W - X), np.minimum(Y, stack.H - Y))
     b.block(edge, CLEAR_EDGE)
     return b

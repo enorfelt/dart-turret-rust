@@ -450,24 +450,6 @@
 				(pin passive line
 					(at -15.24 -5.08 0)
 					(length 2.54)
-					(name "GND_LV"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "GND_LV"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 15.24 5.08 180)
-					(length 2.54)
 					(name "HV"
 						(effects
 							(font
@@ -484,7 +466,7 @@
 					)
 				)
 				(pin passive line
-					(at 15.24 2.54 180)
+					(at 15.24 5.08 180)
 					(length 2.54)
 					(name "B1"
 						(effects
@@ -502,7 +484,7 @@
 					)
 				)
 				(pin passive line
-					(at 15.24 0 180)
+					(at 15.24 2.54 180)
 					(length 2.54)
 					(name "B2"
 						(effects
@@ -520,7 +502,7 @@
 					)
 				)
 				(pin passive line
-					(at 15.24 -2.54 180)
+					(at 15.24 0 180)
 					(length 2.54)
 					(name "B4"
 						(effects
@@ -530,6 +512,24 @@
 						)
 					)
 					(number "B4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -2.54 180)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "GND"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1394,9 +1394,6 @@
 		(pin "A4"
 			(uuid "90696093-2bc8-5ad8-956b-d75fe6f6e795")
 		)
-		(pin "GND_LV"
-			(uuid "bcd929db-00e7-5bb8-a99d-2f2f3bf6e781")
-		)
 		(pin "HV"
 			(uuid "6d32a8e0-801e-5937-aada-fbeb0e8377a5")
 		)
@@ -1408,6 +1405,9 @@
 		)
 		(pin "B4"
 			(uuid "ee1a5869-a818-5da3-b830-0c4e6ab2323d")
+		)
+		(pin "GND"
+			(uuid "0097145d-0cfd-5a33-a042-204a6e37f114")
 		)
 		(instances
 			(project "turret-logic"
@@ -2516,7 +2516,7 @@
 			)
 		)
 	)
-	(global_label "PUSH_SIG_3V3"
+	(global_label "BUS_TX_3V3"
 		(shape passive)
 		(at 99.06 68.58 180)
 		(fields_autoplaced yes)
@@ -2537,7 +2537,7 @@
 			)
 		)
 	)
-	(global_label "BUS_RX_3V3"
+	(global_label "PUSH_SIG_3V3"
 		(shape passive)
 		(at 99.06 71.12 180)
 		(fields_autoplaced yes)
@@ -2558,7 +2558,7 @@
 			)
 		)
 	)
-	(global_label "BUS_TX_3V3"
+	(global_label "BUS_RX_3V3"
 		(shape passive)
 		(at 99.06 73.66 180)
 		(fields_autoplaced yes)
@@ -2579,7 +2579,7 @@
 			)
 		)
 	)
-	(global_label "GND"
+	(global_label "+5V"
 		(shape passive)
 		(at 99.06 76.2 180)
 		(fields_autoplaced yes)
@@ -2589,7 +2589,7 @@
 			)
 			(justify right)
 		)
-		(uuid "3c9b6e94-435e-5821-b77d-72fc1e4a6e21")
+		(uuid "1559eb09-237b-5e2a-923e-1e294e8667c6")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 99.06 76.2 0)
 			(effects
@@ -2600,7 +2600,7 @@
 			)
 		)
 	)
-	(global_label "+5V"
+	(global_label "BUS_TX"
 		(shape passive)
 		(at 129.54 66.04 0)
 		(fields_autoplaced yes)
@@ -2610,7 +2610,7 @@
 			)
 			(justify left)
 		)
-		(uuid "1559eb09-237b-5e2a-923e-1e294e8667c6")
+		(uuid "09955793-42f5-5f0a-9d81-ca8d373016dc")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 129.54 66.04 0)
 			(effects
@@ -2631,7 +2631,7 @@
 			)
 			(justify left)
 		)
-		(uuid "09955793-42f5-5f0a-9d81-ca8d373016dc")
+		(uuid "03667849-c8d5-5d70-8613-6140958bac95")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 129.54 68.58 0)
 			(effects
@@ -2652,7 +2652,7 @@
 			)
 			(justify left)
 		)
-		(uuid "03667849-c8d5-5d70-8613-6140958bac95")
+		(uuid "86cd713c-da55-5eec-8304-79ac5bfaa543")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 129.54 71.12 0)
 			(effects
@@ -2663,7 +2663,7 @@
 			)
 		)
 	)
-	(global_label "BUS_TX"
+	(global_label "GND"
 		(shape passive)
 		(at 129.54 73.66 0)
 		(fields_autoplaced yes)
@@ -2673,7 +2673,7 @@
 			)
 			(justify left)
 		)
-		(uuid "86cd713c-da55-5eec-8304-79ac5bfaa543")
+		(uuid "be7337e2-d3b0-526b-ba45-b314c86bf6aa")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 129.54 73.66 0)
 			(effects

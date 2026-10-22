@@ -54,7 +54,9 @@ def esp_socket(used):
     x2 = 19 * P + DIM["esp_end_usb"]
     y1 = -DIM["esp_row_spacing"] - DIM["esp_side"]
     y2 = DIM["esp_side"]
-    g = fab_rect(x1, y1, x2, y2)
+    g = [x for x in fab_rect(x1, y1, x2, y2) if x.layer != "F.CrtYd"]
+    for y in (0.0, -DIM["esp_row_spacing"]):
+        g.append(Graphic("rect", "F.CrtYd", (-P / 2 - 0.5, y - P / 2 - 0.5, 19.5 * P + 0.5, y + P / 2 + 0.5), 0.05))
     g.append(Graphic("text", "F.Fab", ((x1 + x2) / 2, (y1 + y2) / 2, "ESP32-S3 WROOM", 2.0)))
     g.append(Graphic("text", "F.SilkS", (x2 - 4, (y1 + y2) / 2, "USB", 1.5)))
     g.append(Graphic("line", "F.SilkS", (x1 + 6, y1 + 3, x1 + 6, y2 - 3), 0.12))

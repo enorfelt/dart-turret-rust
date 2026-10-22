@@ -146,13 +146,12 @@
 		(zone_connect 0)
 		(uuid "3502fdd0-50a2-536d-9690-83a82b02b701")
 	)
-	(pad "GND_LV" thru_hole oval
+	(pad "" np_thru_hole circle
 		(at 12.7 0)
-		(size 1.9 4)
+		(size 1.2 1.2)
 		(drill 1.2)
-		(layers "*.Cu" "B.Mask")
-		(zone_connect 0)
-		(uuid "e4156de2-2b15-523f-9e63-aeaa476f95f0")
+		(layers "*.Cu" "*.Mask")
+		(uuid "ae2fecc3-697c-5ae0-bc29-16bfb9b2688f")
 	)
 	(pad "HV" thru_hole oval
 		(at 0 10.16)
@@ -193,12 +192,13 @@
 		(zone_connect 0)
 		(uuid "df924d55-af4b-5f75-94e5-ed57670b9a60")
 	)
-	(pad "" np_thru_hole circle
+	(pad "GND" thru_hole oval
 		(at 12.7 10.16)
-		(size 1.2 1.2)
+		(size 1.9 4)
 		(drill 1.2)
-		(layers "*.Cu" "*.Mask")
-		(uuid "499566d3-f2b1-51d7-b3a6-7ae18bdd1124")
+		(layers "*.Cu" "B.Mask")
+		(zone_connect 0)
+		(uuid "0e336a51-4375-563f-a6c2-0a79082184be")
 	)
 	(embedded_fonts no)
 )

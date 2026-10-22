@@ -75,15 +75,26 @@
 		(uuid "ce0c8ad2-e729-52f9-beca-6eed2edd55ce")
 	)
 	(fp_rect
-		(start -8 -27.2)
-		(end 50.06 1.8)
+		(start -1.77 -1.77)
+		(end 50.03 1.77)
 		(stroke
 			(width 0.05)
 			(type solid)
 		)
 		(fill no)
 		(layer "F.CrtYd")
-		(uuid "bad29068-ffb9-5c30-a8aa-742b6a5ba51e")
+		(uuid "a393c644-1530-5e98-a462-4a5619d66196")
+	)
+	(fp_rect
+		(start -1.77 -27.17)
+		(end 50.03 -23.63)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "1144d19a-bf91-5dc8-8346-1a05e18d41d3")
 	)
 	(fp_text user "ESP32-S3 WROOM"
 		(at 21.03 -12.7)

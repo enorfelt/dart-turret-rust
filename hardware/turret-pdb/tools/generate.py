@@ -436,12 +436,17 @@ def esp_local(x, y):
     return ex + dx, ey + dy
 
 
+def antenna_rect():
+    d = parts.DIM
+    a, b = esp_local(-d["esp_end_antenna"], -d["esp_row_spacing"] - d["esp_side"]), esp_local(-1.27, d["esp_side"])
+    return min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1])
+
+
 def verify_logic(logic):
     for ref in ("J5", "J6"):
         assert "2" not in logic.PARTS[ref][2], f"{ref} pin 2 must stay unconnected"
     d = parts.DIM
-    a, b = esp_local(-d["esp_end_antenna"], -d["esp_row_spacing"] - d["esp_side"]), esp_local(-1.27, d["esp_side"])
-    x1, x2, y1, y2 = min(a[0], b[0]), max(a[0], b[0]), min(a[1], b[1]), max(a[1], b[1])
+    x1, y1, x2, y2 = antenna_rect()
 
     def near(x, y, r):
         return x1 - r < x < x2 + r and y1 - r < y < y2 + r
