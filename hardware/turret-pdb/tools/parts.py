@@ -126,9 +126,10 @@ def wire_pads(n=2, ties=(True, True)):
     zx = (-4.2 if ties[0] else -s / 2, (n - 1) * p + 4.2 if ties[1] else (n - 1) * p + s / 2)
     pads += [Pad("", x, 0, 2.0, 2.0, 2.0, "NP") for x, t in zip(zx, ties) if t]
     g = [Graphic("rect", "F.SilkS", (-s / 2 - 0.3, -s / 2 - 0.3, (n - 1) * p + s / 2 + 0.3, s / 2 + 0.3), 0.12),
-         Graphic("rect", "F.CrtYd", (zx[0] - 1.5, -s / 2 - 0.8, zx[1] + 1.5, s / 2 + 0.8), 0.05)]
+         Graphic("rect", "F.CrtYd", (zx[0] - (1.5 if ties[0] else 0.5), -s / 2 - 0.8, zx[1] + (1.5 if ties[1] else 0.5), s / 2 + 0.8), 0.05)]
     suffix = {(True, True): "", (True, False): "_TieLeft", (False, True): "_TieRight", (False, False): "_NoTie"}[tuple(ties)]
-    return Footprint(f"WirePads_1x{n:02d}{suffix}", "Solder holes for stranded wire, zip-tie holes at both ends for strain relief",
+    descr = "Solder holes for stranded wire" + (", zip-tie holes for strain relief" if any(ties) else "")
+    return Footprint(f"WirePads_1x{n:02d}{suffix}", descr,
                      pads, g, ref_at=((n - 1) * p / 2, -3.5), value_at=((n - 1) * p / 2, 3.5))
 
 

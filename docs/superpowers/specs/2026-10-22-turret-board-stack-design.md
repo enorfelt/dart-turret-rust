@@ -38,7 +38,7 @@ The PDB is on top so its pads stay reachable. The pack leads and the B1–B3 bal
 **Stack 2: the two copper-tape boards.**
 
 - Power board at the bottom, logic board on top, same outline and same four M3 holes, on M3 standoffs.
-- Board gap: 15 mm between the top face of the power board and the bottom face of the logic board. It has to clear the tallest power-board part under the logic board (the DC jack, about 11 mm) plus the logic board's pin tails on its back (about 3 mm) plus 1 mm. The gap is a constant in `stack.py`.
+- Board gap: 17 mm between the top face of the power board and the bottom face of the logic board. It has to clear the tallest power-board part (C2, about 12.2 mm standing on its leads) plus the logic board's pin tails on its back (about 3 mm) plus 1 mm. The gap is a constant in `stack.py`, checked by `generate.py`. (Raised from 15 mm after review.)
 - Stack 2 is about 42 mm tall: 3 mm of tails under the power board, two 3.6 mm boards, the 15 mm gap and about 17 mm for the ESP in its sockets.
 - Target outline: 70 mm across the tubes (hard limit 72) by about 62 mm along them. The ESP runs along the tubes with its antenna at the rear edge, so its 57 mm length sets the second dimension; routing may grow it, which the free tube length allows.
 - The ESP antenna end is at the logic board's rear edge, so the antenna is above the tubes and away from the carbon. No track or via runs under the antenna end. The USB connector is at the front end of the ESP; the cable reaches it from the side through the gap between the two boards and Stack 1.
@@ -57,7 +57,7 @@ GPIOs, nets and part values do not change. Only which board each part is on chan
 | R1, R2, C1 | Battery divider at the battery input, before D1 |
 | J11 | 7.5 V servo bus wire pads |
 | J3 | Arm switch header (PUSH_6V, +6V, GND, ARM_SENSE) |
-| J4, C3 | Pusher header (GND, PUSH_6V, PUSH_SIG) and its 1000 µF. C3 is mounted lying on its side, so it is 10 mm tall instead of about 20 mm |
+| J4, C3 | Pusher solder holes (GND, PUSH_6V, PUSH_SIG) and its 1000 µF. C3 is mounted lying on its side, so it is 10 mm tall instead of about 20 mm. J4 was a header until review found a mated plug would not fit under the logic board |
 | J10 | Vision node 5 V wire pads |
 
 **Logic board**

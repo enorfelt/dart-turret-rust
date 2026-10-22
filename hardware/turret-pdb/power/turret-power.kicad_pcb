@@ -532,7 +532,7 @@
 		(layer "F.Cu")
 		(uuid "ddfc16d0-d732-51fa-a3c3-024048bd78cd")
 		(at 106 94 90)
-		(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+		(descr "Solder holes for stranded wire, zip-tie holes for strain relief")
 		(property "Reference" "J1"
 			(at 3 -3.5 90)
 			(layer "F.SilkS")
@@ -567,7 +567,7 @@
 				)
 			)
 		)
-		(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(property "Description" "Solder holes for stranded wire, zip-tie holes for strain relief"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -597,14 +597,14 @@
 		)
 		(fp_rect
 			(start -5.7 -2.7)
-			(end 9.4 2.7)
+			(end 8.4 2.7)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.CrtYd")
-			(uuid "cc6f2a15-ba5b-53a6-bcd5-dd8c72411911")
+			(uuid "5b01fef1-4791-5f9b-bc2b-0309b452ffcb")
 		)
 		(pad "1" thru_hole rect
 			(at 0 0 90)
@@ -1505,7 +1505,7 @@
 		(layer "F.Cu")
 		(uuid "b96eeeb4-768b-5af2-a2cf-3c48b8f40ab9")
 		(at 51 43.5)
-		(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+		(descr "Solder holes for stranded wire, zip-tie holes for strain relief")
 		(property "Reference" "J11"
 			(at 3 -3.5)
 			(layer "F.SilkS")
@@ -1540,7 +1540,7 @@
 				)
 			)
 		)
-		(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(property "Description" "Solder holes for stranded wire, zip-tie holes for strain relief"
 			(at 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -1569,7 +1569,7 @@
 			(uuid "feb12480-1e9a-5e4f-80e6-1d9e08b3a52f")
 		)
 		(fp_rect
-			(start -3.4 -2.7)
+			(start -2.4 -2.7)
 			(end 11.7 2.7)
 			(stroke
 				(width 0.05)
@@ -1577,7 +1577,7 @@
 			)
 			(fill no)
 			(layer "F.CrtYd")
-			(uuid "b5e6b7a8-b43f-5f8c-9daa-fdd2739df148")
+			(uuid "2ce96daf-0171-57c1-8359-6b0b6871ad56")
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -1608,7 +1608,7 @@
 		(layer "F.Cu")
 		(uuid "4a110461-4c6d-5771-93a9-20f4c6411df8")
 		(at 67 43.5)
-		(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+		(descr "Solder holes for stranded wire")
 		(property "Reference" "J3"
 			(at 9 -3.5)
 			(layer "F.SilkS")
@@ -1643,7 +1643,7 @@
 				)
 			)
 		)
-		(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(property "Description" "Solder holes for stranded wire"
 			(at 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -1672,15 +1672,15 @@
 			(uuid "49e19727-05f7-5be8-bf04-0d77d1e7bb48")
 		)
 		(fp_rect
-			(start -3.4 -2.7)
-			(end 21.4 2.7)
+			(start -2.4 -2.7)
+			(end 20.4 2.7)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.CrtYd")
-			(uuid "39b6a070-3b9f-5642-85ba-1995ceb26215")
+			(uuid "5f7a331a-770a-5b76-8bc3-a30987085e6b")
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -1716,15 +1716,15 @@
 		)
 		(embedded_fonts no)
 	)
-	(footprint "turret-power:PinHeader_1x03_P2.54mm"
+	(footprint "turret-power:WirePads_1x03_NoTie"
 		(layer "F.Cu")
 		(uuid "d2ead5d0-6295-5a09-9e77-5bcddcb7e305")
-		(at 65 76)
-		(descr "1x3 2.54 mm male header, pads on the solder side only")
+		(at 60.5 75)
+		(descr "Solder holes for stranded wire")
 		(property "Reference" "J4"
-			(at 2.54 -3)
+			(at 6 -3.5)
 			(layer "F.SilkS")
-			(uuid "a34bc760-b5ad-5cd4-a3d3-a1bba8516d05")
+			(uuid "190e9c75-69f5-5ac9-a2c9-954cf2cb76c1")
 			(effects
 				(font
 					(size 1 1)
@@ -1733,9 +1733,9 @@
 			)
 		)
 		(property "Value" "Pusher"
-			(at 2.54 3)
+			(at 6 3.5)
 			(layer "F.Fab")
-			(uuid "cdbf1a75-da70-5a13-81c5-9e3f7c8ab051")
+			(uuid "bd9f03b9-5b38-5b49-a27f-f83d28502de2")
 			(effects
 				(font
 					(size 1 1)
@@ -1747,7 +1747,7 @@
 			(at 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "1e94989f-bbce-57a0-97c3-8f71ed948c8c")
+			(uuid "c79765bb-6f96-5e33-a4a2-f6857cceba28")
 			(effects
 				(font
 					(size 1 1)
@@ -1755,11 +1755,11 @@
 				)
 			)
 		)
-		(property "Description" "1x3 2.54 mm male header, pads on the solder side only"
+		(property "Description" "Solder holes for stranded wire"
 			(at 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "766b55b7-7446-59f5-8a07-40fa4cd08104")
+			(uuid "3715caac-2272-594c-986c-829e207c2d89")
 			(effects
 				(font
 					(size 1 1)
@@ -1773,77 +1773,52 @@
 		(attr through_hole)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_rect
-			(start -1.27 -1.27)
-			(end 6.35 1.27)
-			(stroke
-				(width 0.1)
-				(type solid)
-			)
-			(fill no)
-			(layer "F.Fab")
-			(uuid "de4abb4a-d29c-5dbf-b962-ce10aed57d77")
-		)
-		(fp_rect
-			(start -1.37 -1.37)
-			(end 6.45 1.37)
+			(start -2.2 -2.2)
+			(end 14.2 2.2)
 			(stroke
 				(width 0.12)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.SilkS")
-			(uuid "a88a9df9-a873-5558-a5ed-94f83629244d")
+			(uuid "d13396f4-6726-5672-9976-6ce4e9dae90b")
 		)
 		(fp_rect
-			(start -1.77 -1.77)
-			(end 6.85 1.77)
+			(start -2.4 -2.7)
+			(end 14.4 2.7)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.CrtYd")
-			(uuid "b022f566-d500-52b4-b193-d5a7b0396fa7")
+			(uuid "5b33d475-8f93-5047-82ff-216d4dd9fffe")
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
-			(size 1.9 4)
-			(drill 1.2)
-			(layers "*.Cu" "B.Mask")
-			(zone_connect 0)
+			(size 3.8 3.8)
+			(drill 1.6)
+			(layers "*.Cu" "*.Mask")
 			(net "GND")
-			(uuid "b72d008e-bcb7-5752-b4c7-02637539c1cd")
+			(uuid "5d3efd4e-a60b-50ba-b08e-9180b79ccbe0")
 		)
-		(pad "2" thru_hole oval
-			(at 2.54 0)
-			(size 1.9 4)
-			(drill 1.2)
-			(layers "*.Cu" "B.Mask")
-			(zone_connect 0)
+		(pad "2" thru_hole circle
+			(at 6 0)
+			(size 3.8 3.8)
+			(drill 1.6)
+			(layers "*.Cu" "*.Mask")
 			(net "PUSH_6V")
-			(uuid "d36008d2-e562-5a23-bc0b-1c0feaee02c7")
+			(uuid "6291e00e-a002-531d-a2d3-2f3fd8512bb1")
 		)
-		(pad "3" thru_hole oval
-			(at 5.08 0)
-			(size 1.9 4)
-			(drill 1.2)
-			(layers "*.Cu" "B.Mask")
-			(zone_connect 0)
+		(pad "3" thru_hole circle
+			(at 12 0)
+			(size 3.8 3.8)
+			(drill 1.6)
+			(layers "*.Cu" "*.Mask")
 			(net "PUSH_SIG")
-			(uuid "00e6a018-da0d-5f7d-943c-92c471c99660")
+			(uuid "dc5428ab-61d2-5f28-9ba1-596c91267f22")
 		)
 		(embedded_fonts no)
-		(model "${KICAD10_3DMODEL_DIR}/Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x03_P2.54mm_Vertical.step"
-			(offset
-				(xyz 0 0 0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 -90)
-			)
-		)
 	)
 	(footprint "turret-power:CP_Radial_D10.0mm_L20.0mm_P5.00mm_Lying"
 		(layer "F.Cu")
@@ -1969,7 +1944,7 @@
 		(layer "F.Cu")
 		(uuid "53bb4c6a-ea08-5dcd-9494-389871270b6b")
 		(at 92 43.5)
-		(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+		(descr "Solder holes for stranded wire")
 		(property "Reference" "J10"
 			(at 3 -3.5)
 			(layer "F.SilkS")
@@ -2004,7 +1979,7 @@
 				)
 			)
 		)
-		(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(property "Description" "Solder holes for stranded wire"
 			(at 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -2033,15 +2008,15 @@
 			(uuid "589ce3f9-6bb7-5954-9bae-f60320cdfc78")
 		)
 		(fp_rect
-			(start -3.4 -2.7)
-			(end 9.4 2.7)
+			(start -2.4 -2.7)
+			(end 8.4 2.7)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.CrtYd")
-			(uuid "a8e99a7c-7c81-5e1d-ba5c-7ae555b2cb31")
+			(uuid "8bb034b2-6812-5c7a-9237-522b4ac3d6a4")
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -2065,7 +2040,7 @@
 		(layer "F.Cu")
 		(uuid "aecfdda6-d0eb-56de-8764-c4029fa0c98f")
 		(at 77.1 97 90)
-		(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+		(descr "Solder holes for stranded wire")
 		(property "Reference" "J12"
 			(at 12 -3.5 90)
 			(layer "F.SilkS")
@@ -2100,7 +2075,7 @@
 				)
 			)
 		)
-		(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(property "Description" "Solder holes for stranded wire"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -2129,15 +2104,15 @@
 			(uuid "ba408b9e-0f8a-5b0f-a3d0-dc57da69c24f")
 		)
 		(fp_rect
-			(start -3.4 -2.7)
-			(end 27.4 2.7)
+			(start -2.4 -2.7)
+			(end 26.4 2.7)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.CrtYd")
-			(uuid "30bd7287-ce03-5f20-91a8-f39a29ae17b0")
+			(uuid "fc18abe1-437e-50ed-b961-afaae2f0138a")
 		)
 		(fp_text user "GND"
 			(at 0 3.4)
@@ -2734,54 +2709,62 @@
 	)
 	(segment
 		(start 62.25 48.25)
-		(end 59.5 51)
+		(end 57 53.5)
 		(width 2)
 		(layer "B.Cu")
 		(net "PUSH_6V")
 		(uuid "d5c8504e-2870-5ae3-ac07-658e7d229892")
 	)
 	(segment
-		(start 59.5 51)
-		(end 59.5 63.5)
+		(start 57 53.5)
+		(end 57.2 64)
 		(width 2)
 		(layer "B.Cu")
 		(net "PUSH_6V")
 		(uuid "91baaaf1-529d-586b-b5fe-f50bf39ace3d")
 	)
 	(segment
-		(start 59.5 63.5)
-		(end 59.5 90)
+		(start 57.2 64)
+		(end 57 65)
 		(width 2)
 		(layer "F.Cu")
 		(net "PUSH_6V")
 		(uuid "0c5d7015-cc5f-555a-a8e9-7b79704facc9")
 	)
 	(segment
-		(start 59.5 80.5)
-		(end 67.54 80.5)
+		(start 57 65)
+		(end 57 90)
+		(width 2)
+		(layer "F.Cu")
+		(net "PUSH_6V")
+		(uuid "93ebc38c-9230-56a4-9b5a-7255f86447db")
+	)
+	(segment
+		(start 57 79.2)
+		(end 66.5 79.2)
 		(width 2)
 		(layer "F.Cu")
 		(net "PUSH_6V")
 		(uuid "83334dd5-0143-535b-8e41-5907635551ae")
 	)
 	(segment
-		(start 67.54 80.5)
-		(end 67.54 76)
+		(start 66.5 79.2)
+		(end 66.5 75)
 		(width 2)
 		(layer "B.Cu")
 		(net "PUSH_6V")
 		(uuid "ded70162-13d4-5ee6-ac2a-ebb6be6e9de4")
 	)
 	(segment
-		(start 59.5 90)
-		(end 64 94.5)
+		(start 57 90)
+		(end 61.5 94.5)
 		(width 2)
 		(layer "B.Cu")
 		(net "PUSH_6V")
 		(uuid "11a29bc0-b797-534f-a13a-b34dc62ed682")
 	)
 	(segment
-		(start 64 94.5)
+		(start 61.5 94.5)
 		(end 71 94.5)
 		(width 2)
 		(layer "B.Cu")
@@ -2973,8 +2956,8 @@
 		(uuid "b5cc68fe-16bf-55fe-966d-0ef987c576eb")
 	)
 	(segment
-		(start 70.25 74.25)
-		(end 76 74.25)
+		(start 73.75 74)
+		(end 75.75 74)
 		(width 2)
 		(layer "B.Cu")
 		(net "PUSH_SIG")
@@ -3198,47 +3181,31 @@
 	)
 	(segment
 		(start 66.25 66.5)
-		(end 64.25 68.5)
+		(end 62 70.75)
 		(width 3)
 		(layer "B.Cu")
 		(net "GND")
 		(uuid "d03dd5d3-016e-5d57-bb0d-96a0824319cf")
 	)
 	(segment
-		(start 64.25 68.5)
-		(end 64.25 74)
+		(start 62 70.75)
+		(end 62 73.5)
 		(width 3)
 		(layer "B.Cu")
 		(net "GND")
 		(uuid "64d4c003-f533-5a0c-bffc-50424d0625b3")
 	)
 	(segment
-		(start 64.25 74)
-		(end 64.5 74.25)
-		(width 3)
-		(layer "B.Cu")
-		(net "GND")
-		(uuid "e0534126-978d-587a-b597-17521b653f00")
-	)
-	(segment
-		(start 64.25 74)
-		(end 63.25 75)
+		(start 62 73.5)
+		(end 62 84.5)
 		(width 3)
 		(layer "B.Cu")
 		(net "GND")
 		(uuid "5bb7475f-6513-523f-8e90-0314805831ad")
 	)
 	(segment
-		(start 63.25 75)
-		(end 63.25 84)
-		(width 3)
-		(layer "B.Cu")
-		(net "GND")
-		(uuid "87361f88-e5d9-59f6-922e-d642e8143468")
-	)
-	(segment
-		(start 63.25 84)
-		(end 67.5 88.25)
+		(start 62 83.75)
+		(end 67 88.75)
 		(width 3)
 		(layer "B.Cu")
 		(net "GND")
@@ -3269,39 +3236,39 @@
 		(uuid "644156e3-e114-5e1a-a325-9bd7254d7874")
 	)
 	(segment
-		(start 63.25 84)
-		(end 60.25 84)
+		(start 62 84.5)
+		(end 57.25 84.5)
 		(width 3)
 		(layer "B.Cu")
 		(net "GND")
 		(uuid "89be58d8-0b9f-5bae-9391-ef8fb50438e3")
 	)
 	(segment
-		(start 60.25 84)
-		(end 55.75 88.5)
+		(start 57.25 84.5)
+		(end 53.25 88.5)
 		(width 3)
 		(layer "B.Cu")
 		(net "GND")
 		(uuid "a4ccfdab-6dbb-58e7-8c79-6428b95fec84")
 	)
 	(segment
-		(start 55.75 88.5)
-		(end 55.75 91.5)
+		(start 53.25 88.5)
+		(end 53.25 91.5)
 		(width 3)
 		(layer "B.Cu")
 		(net "GND")
 		(uuid "805acabd-2c17-5a6b-bb4f-74ad9f26d5d8")
 	)
 	(segment
-		(start 55.75 91.5)
-		(end 63.25 99)
+		(start 53.25 91.5)
+		(end 60.75 99)
 		(width 3)
 		(layer "B.Cu")
 		(net "GND")
 		(uuid "de83a182-04b5-5b70-a281-1cfb673b51ac")
 	)
 	(segment
-		(start 63.25 99)
+		(start 60.75 99)
 		(end 70.25 99)
 		(width 3)
 		(layer "B.Cu")
@@ -3381,7 +3348,7 @@
 		(uuid "e0eeddf7-1c06-511c-895e-89aa92178948")
 	)
 	(via
-		(at 59.5 63.5)
+		(at 57.2 64)
 		(size 3)
 		(drill 1)
 		(layers "F.Cu" "B.Cu")
@@ -3389,7 +3356,7 @@
 		(uuid "890d1a28-4b9e-5333-94ce-42f73293dedf")
 	)
 	(via
-		(at 67.54 80.5)
+		(at 66.5 79.2)
 		(size 3)
 		(drill 1)
 		(layers "F.Cu" "B.Cu")
@@ -3397,7 +3364,7 @@
 		(uuid "b8f055a5-a738-528c-b401-b391a57b4765")
 	)
 	(via
-		(at 59.5 90)
+		(at 57 90)
 		(size 3)
 		(drill 1)
 		(layers "F.Cu" "B.Cu")

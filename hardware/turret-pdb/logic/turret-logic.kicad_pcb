@@ -1987,7 +1987,7 @@
 		(layer "F.Cu")
 		(uuid "aecfdda6-d0eb-56de-8764-c4029fa0c98f")
 		(at 77.1 97 90)
-		(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+		(descr "Solder holes for stranded wire")
 		(property "Reference" "J12"
 			(at 12 -3.5 90)
 			(layer "F.SilkS")
@@ -2022,7 +2022,7 @@
 				)
 			)
 		)
-		(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(property "Description" "Solder holes for stranded wire"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -2051,15 +2051,15 @@
 			(uuid "ba408b9e-0f8a-5b0f-a3d0-dc57da69c24f")
 		)
 		(fp_rect
-			(start -3.4 -2.7)
-			(end 27.4 2.7)
+			(start -2.4 -2.7)
+			(end 26.4 2.7)
 			(stroke
 				(width 0.05)
 				(type solid)
 			)
 			(fill no)
 			(layer "F.CrtYd")
-			(uuid "30bd7287-ce03-5f20-91a8-f39a29ae17b0")
+			(uuid "fc18abe1-437e-50ed-b961-afaae2f0138a")
 		)
 		(fp_text user "GND"
 			(at 0 3.4)

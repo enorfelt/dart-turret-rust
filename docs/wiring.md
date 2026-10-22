@@ -86,7 +86,7 @@ With the controller boards, pad pair 3 feeds the power board's battery input (J1
 - **Power feed:** a single pad pair on the PDB (20 AWG) feeds the power board's battery input in place of the three buck leads (pad pairs 3–5). The ESCs stay on the PDB.
 - **12 V bench jack:** the power board also accepts a 12 V adapter, for testing the gimbal and pusher without the battery. Two SB560 Schottky diodes OR the jack and the battery into the bucks, so neither back-feeds the other and the ESCs stay unpowered on the jack.
 - **Divider:** the battery divider sits on the power board at the battery input, before its diode. It measures the pack only; on the jack alone it reads as "no pack", like USB. Only the divided voltage goes up to the logic board.
-- **Pusher capacitor:** the 1000 µF is at the pusher connector on the power board, not at the servo.
+- **Pusher capacitor:** the 1000 µF is at the pusher connection on the power board, not at the servo. The pusher and arm switch wires are soldered into the power board, as a plug would not fit under the logic board.
 - **Level shifter:** the Adafruit 757 is mounted upside down between the ESP's socket rows, and its channels are A1/B1 for GPIO 14 → TTLinker RXD, A2/B2 for the pusher, and A4/B4 for TTLinker TXD → GPIO 21. GPIOs are unchanged.
 - **Light gate:** the IR LED runs from 3V3 through 150 Ω instead of 5 V through 330 Ω.
 - **7.5 V buck:** all three bucks are MP1584 modules, including the 7.5 V servo bus. It is rated 3 A peak and two stalled SC15s draw 3.4 A, so it may overheat and cut out if both stall.
@@ -96,7 +96,7 @@ With the controller boards, pad pair 3 feeds the power board's battery input (J1
 The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.
 
 - **Stack 1, behind the base:** the 4S BMS at the bottom, held by its edges (55 × 44 mm, no holes), and the PDB on top on its 30.5 mm M3 pattern (about 36 × 50 mm with the XT60 tab). The BMS P− and the pack + leave the stack through the fuse and the XT60 and come back into the PDB, so the XT60 stays within reach as the power switch.
-- **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 42 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
+- **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 44 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
 
 ## Battery pack
 
@@ -241,5 +241,5 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | TFmini Plus | Step 3 |
 | – | 2-part epoxy | Fixes the battery contact plates in the covers |
 | – | Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors | |
-| – | Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, copper foil tape, 0.8 mm bare copper wire for vias, 4 × M3 standoffs for a 15 mm board gap, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
+| – | Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, copper foil tape, 0.8 mm bare copper wire for vias, 4 × M3 standoffs for a 17 mm board gap, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
 | – | 16 mm carbon tube ×1, 12 mm ×2, M3 screws | Frame, from the original |

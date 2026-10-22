@@ -3,7 +3,7 @@
 	(generator "turret-pdb-gen")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+	(descr "Solder holes for stranded wire")
 	(property "Reference" "REF**"
 		(at 9 -3.5)
 		(layer "F.SilkS")
@@ -38,7 +38,7 @@
 			)
 		)
 	)
-	(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+	(property "Description" "Solder holes for stranded wire"
 		(at 0 0)
 		(layer "F.Fab")
 		(hide yes)
@@ -64,15 +64,15 @@
 		(uuid "10d51482-c6ae-5240-a583-e85f563f3f9c")
 	)
 	(fp_rect
-		(start -3.4 -2.7)
-		(end 21.4 2.7)
+		(start -2.4 -2.7)
+		(end 20.4 2.7)
 		(stroke
 			(width 0.05)
 			(type solid)
 		)
 		(fill no)
 		(layer "F.CrtYd")
-		(uuid "48c72791-316a-5271-a4f2-a2c3f0a9f09a")
+		(uuid "932a8b7a-f841-5799-b8ec-80d524ebdbd2")
 	)
 	(pad "1" thru_hole rect
 		(at 0 0)

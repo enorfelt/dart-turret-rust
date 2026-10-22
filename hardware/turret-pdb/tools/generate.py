@@ -73,7 +73,7 @@ SYMBOL_NAMES = {
     "h2": "Conn_01x02", "h3": "Conn_01x03", "h3_esc": "Conn_ESC", "h4": "Conn_01x04",
     "wire2_l": "WirePads_01x02", "wire2_r": "WirePads_01x02", "wire2": "WirePads_01x02", "jack": "BarrelJack", "diode": "D_Schottky", "res": "R",
     "cdisc": "C", "cp6": "C_Polarized", "cp10": "C_Polarized", "cp10l": "C_Polarized", "hole": "MountingHole",
-    "link": "WirePads_01x05", "wire4": "WirePads_01x04",
+    "link": "WirePads_01x05", "wire4": "WirePads_01x04", "wire3": "WirePads_01x03",
 }
 
 
@@ -425,6 +425,8 @@ def verify_power(power):
     standing = [r for r, p in power.PARTS.items()
                 if power.FP[p[0]].name.startswith("CP_Radial") and not power.FP[p[0]].name.endswith("_Lying")]
     assert standing == ["C2"], f"standing radial capacitors: {standing}"
+    headers = [r for r, p in power.PARTS.items() if power.FP[p[0]].name.startswith("PinHeader")]
+    assert not headers, f"{headers}: a plug mated to a header here would hit the logic board"
 
 
 USB_PLUG = 6.0
@@ -484,6 +486,7 @@ def verify_stack(power, logic):
         assert b.FP["link"] is stack.LINK_FP
         for net in stack.LINK_NETS:
             assert members(b, net) - {f"J12.{i}" for i in range(1, 6)}, f"{net} reaches nothing but J12"
+    assert stack.GAP >= stack.TALLEST_POWER_PART + stack.LOGIC_PIN_TAILS + 1.0, "board gap too small"
     shared = nets(power) & nets(logic)
     assert shared == set(stack.LINK_NETS), f"nets on both boards outside the link: {shared - set(stack.LINK_NETS)}"
     labels = [g.pts[2] for g in stack.LINK_FP.graphics if g.kind == "text" and g.layer == "F.SilkS"]

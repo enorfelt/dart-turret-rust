@@ -1047,7 +1047,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+			(property "Description" "Solder holes for stranded wire"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1945,7 +1945,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(property "Description" "Solder holes for stranded wire"
 			(at 200.66 167.64 0)
 			(effects
 				(font

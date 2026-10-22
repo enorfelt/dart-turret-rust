@@ -42,13 +42,13 @@ Coordinates are in mm from the board's front-left corner, seen from the componen
 | Outline | 70 (x, across the tubes) × 68 (y), 4 mm corner radius |
 | M3 holes (3.2 mm) | (4, 4), (66, 4), (4, 64), (66, 64), the same on both boards |
 | Board thickness | 3.6 mm (two 1.8 mm plates) |
-| Gap between the boards | 15 mm, from the top of the power board to the bottom of the logic board |
-| Stack 2 height | about 42 mm: pin tails under the power board, both boards, the gap and the ESP in its sockets |
+| Gap between the boards | 17 mm, from the top of the power board to the bottom of the logic board |
+| Stack 2 height | about 44 mm: pin tails under the power board, both boards, the gap and the ESP in its sockets |
 | Link pads | x 37.1, at y 33, 39, 45, 51, 57 on both boards |
 | ESP USB connector | logic board, front end of the ESP at about (37, 11); its plug points forwards, about 12 mm above the board |
 | ESP antenna | logic board, rear edge between x 23 and 51; keep metal away from it |
 
-The gap is set by the tallest part on the power board under the logic board (the DC jack, about 11 mm) plus the pin tails on the logic board's back.
+The gap is set by the tallest part on the power board (C2, a 6.3 × 11 mm can standing on its leads, about 12.2 mm) plus the pin tails on the logic board's back (about 3 mm) plus 1 mm; `generate.py` checks it. Every power-board connection is a solder hole, because a plug mated to a header would not fit under the logic board.
 
 ## Files
 
@@ -83,7 +83,7 @@ python3 -m venv tools/.venv && tools/.venv/bin/pip install manifold3d numpy
 
 On both boards every part is soldered on the back only. Front copper never connects to a pad; it reaches the parts through vias, with a short back-side track from each via to its pad. A DRC rule ("Parts are soldered on the back only") flags any front track that touches a pad, including after edits in the KiCad GUI.
 
-**Power board.** The three bucks stand in a row across the front, outputs forwards, so each output is a short track to its connector on the front edge: J11 (7.5 V), J3 (arm switch, 6 V) and J10 (5 V). VIN runs as a 4 mm front-layer track under the modules from via to via, and the pusher's switched 6 V runs on the front from J3 down to J4 and C3, so signals and GND can cross both on the back. The diodes, the jack and the battery input sit at the rear right, the divider's 39 kΩ next to the battery input. 13 vias: 5 GND, 3 VIN, 3 PUSH_6V, 2 for 5 V.
+**Power board.** The three bucks stand in a row across the front, outputs forwards, so each output is a short track to its connector on the front edge: J11 (7.5 V), J3 (arm switch, 6 V) and J10 (5 V). Wires to the arm switch (J3), the vision node (J10) and the pusher (J4) have no tie hole on the board; strain-relieve them on the holder. VIN runs as a 4 mm front-layer track under the modules from via to via, and the pusher's switched 6 V runs on the front from J3 down to J4 and C3, so signals and GND can cross both on the back. The diodes, the jack and the battery input sit at the rear right, the divider's 39 kΩ next to the battery input. 13 vias: 5 GND, 3 VIN, 3 PUSH_6V, 2 for 5 V.
 
 **Logic board.** The ESP runs front to rear with its antenna at the rear edge and nothing under the antenna. The link pads and the level shifter sit between the two socket rows, under the Freenove board, which stands about 11 mm up on its sockets; the shifter is about 5.5 mm tall. Each shifter pin faces the ESP pin it connects to. The ESC, TTLinker and TFmini connectors are on the right; the light gate connector and its two resistors are on the left, next to GPIO 42. 5 V reaches the TFmini and the link pad on a front-layer track down the right side, and 3V3 runs on the front from the ESP's 3V3 pin to the shifter and the light gate. 14 vias: 5 GND, 3 for 3V3, 2 each for 5 V, PUSH_SIG and ARM_SENSE.
 
@@ -126,7 +126,7 @@ Tape each plate on its own, before joining them.
 2. **Front plate.** Do the same with `front-copper.pdf` as the guide. Both faces have only tracks and pads, so no wide areas need covering.
 3. Where a track is wider than one strip, or two strips overlap at a bend, solder the seam. Copper tape adhesive does not conduct well.
 4. Bolt the plates together with the M3 screws, with a thin layer of glue between them if you like, and open the holes through the tape.
-5. Tin the 4 mm power tracks on the power board (VIN, the battery input, the 12 V jack, 7.5 V and 6 V) with a layer of solder. Tape is only 35–50 µm thick.
+5. Tin the power tracks on the power board (VIN, the battery input, the 12 V jack, 7.5 V, 6 V and the pusher's switched 6 V) with a layer of solder. Tape is only 35–50 µm thick.
 
 ## Channel method (no knife trimming)
 
@@ -153,7 +153,7 @@ Seams still need soldering where two strips meet in a channel.
 4. **1000 µF (C3).** Bend its leads 90° so it lies flat on the power board, body towards the board's left edge, as drawn on the assembly PDF. Standing up it would hit the logic board.
 5. **Level shifter.** The Adafruit 757 mounts **upside down**: solder its two 6-pin headers on the component side of the breakout, so the parts face the board. The footprint is mirrored to match. Its A3/B3 and LV-side GND pins have bare holes only. Trim the header pins that stick up above the breakout, so it stays under 6 mm.
 6. **ESP sockets.** Use two full 1×20 female strips. First pull the metal contacts out of every position the board has no hole for, marked x on the assembly PDF: grip each contact's tail with pliers and push it out. Then solder the remaining contacts on the back. The empty positions keep the strip in one piece without touching the tracks that run under it.
-7. **Stack.** Bolt the power board onto four M3 standoffs, so its top face and the logic board's bottom face are 15 mm apart. Solder five wires into the power board's link pads (J12): 22 AWG for GND and 5V, 26 AWG for VBAT, ARM and PUSH, each about 30 mm long. The pad names are on the assembly PDF. Thread them up through the logic board's J12 as it goes onto the standoffs, check each wire lands on the pad with the same name, and solder them on the logic board's top face. J12 sits between the ESP sockets, so do this before plugging in the ESP.
+7. **Stack.** The link tracks run on the back of both boards and the holes are not plated, so each link wire must be soldered on the back face of both boards. Cut five wires about 35 mm long: 22 AWG for GND and 5V, 26 AWG for VBAT, ARM and PUSH. Push each into the logic board's J12 from the back and solder it on the back; the pad names are on the assembly PDF, seen from the front. Bolt the power board onto four M3 standoffs so its top face and the logic board's bottom face are 17 mm apart. Lower the logic board onto the standoffs, threading each wire down through the power board's J12 hole with the same name, and solder them on the power board's back. J12 sits between the ESP sockets, so do this before plugging in the ESP.
 
 ## Connectors
 
@@ -166,7 +166,7 @@ Pin 1 is the square pad.
 | J1 | Battery in (from a PDB pad pair, 20 AWG) | 1 VBAT, 2 GND, solder holes |
 | J2 | 12 V bench adapter, 5.5 × 2.1 mm, centre positive | |
 | J3 | Arm switch (DPST) | 1 6V switched (to pusher), 2 6V, 3 GND, 4 SENSE (GPIO 47), solder holes. Pole A goes on 1–2 and pole B on 3–4. This still works with the switch wired the other way round |
-| J4 | Pusher servo | 1 GND, 2 6V switched, 3 signal (5 V) |
+| J4 | Pusher servo | 1 GND, 2 6V switched, 3 signal (5 V), solder holes. Cut the servo plug off, or solder a short pigtail with a plug in line |
 | J10 | Vision node 5V | 1 5V, 2 GND, solder holes |
 | J11 | Servo bus power to TTLinker VIN | 1 7.5V, 2 GND, solder holes |
 | J12 | Link to the logic board | 1 GND, 2 5V, 3 VBAT (divided), 4 ARM, 5 PUSH, solder holes |
@@ -201,5 +201,5 @@ Pin 1 is the square pad.
 
 - With the arm switch open, there must be no continuity from +6V (J3 pin 2) to the pusher V+ (J4 pin 2). `PUSH_6V` only reaches J3 pin 1, J4 pin 2 and the 1000 µF, all on the power board; `generate.py` checks this.
 - The ESC middle pins have no copper.
-- Check each of the five link wires with a meter from power board to logic board before plugging in the ESP.
+- Check the five link wires with a meter through the joints, not on the J12 pads: GND from J10 pin 2 (power) to J7 pin 2 (logic), 5V from J10 pin 1 to J7 pin 1, and the other three from the power board part to the ESP socket contact (VBAT: R2 to GPIO 1, ARM: J3 pin 4 to GPIO 47, PUSH: J4 pin 3 to the shifter's B2). Do this before plugging in the ESP.
 - Set and lock the buck outputs before the ESP, servos or sensors are plugged in.

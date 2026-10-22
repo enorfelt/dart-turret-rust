@@ -4,7 +4,9 @@ from kicad import Graphic
 W, H = 70.0, 68.0
 CORNER = 4.0
 ORIGIN = (40.0, 40.0)
-GAP = 15.0
+GAP = 17.0
+TALLEST_POWER_PART = 12.2
+LOGIC_PIN_TAILS = 3.0
 HOLES = ((4.0, 4.0), (W - 4.0, 4.0), (4.0, H - 4.0), (W - 4.0, H - 4.0))
 
 LINK_NETS = ("GND", "+5V", "VBAT_SENSE", "ARM_SENSE", "PUSH_SIG")

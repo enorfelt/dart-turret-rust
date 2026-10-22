@@ -1,0 +1,99 @@
+(footprint "WirePads_1x03_NoTie"
+	(version 20260206)
+	(generator "turret-pdb-gen")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Solder holes for stranded wire")
+	(property "Reference" "REF**"
+		(at 6 -3.5)
+		(layer "F.SilkS")
+		(uuid "3e7386d8-3972-58b4-beb0-c48093dcc82d")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "WirePads_1x03_NoTie"
+		(at 6 3.5)
+		(layer "F.Fab")
+		(uuid "43718de4-c142-51e0-92d1-0b1a2b53d948")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "46b796c0-f469-5e4e-b044-1dc3ce034ae4")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "Solder holes for stranded wire"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "9da1216e-aa98-5f7c-a6e2-e66e7c4796aa")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -2.2 -2.2)
+		(end 14.2 2.2)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "24d0a534-e1fd-536f-95f4-bbafada2d0cc")
+	)
+	(fp_rect
+		(start -2.4 -2.7)
+		(end 14.4 2.7)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "3e34ebad-fce8-5f83-8a48-8583bcb702b9")
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "238f80d3-0c8c-5067-bc65-920d51bec93b")
+	)
+	(pad "2" thru_hole circle
+		(at 6 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "332488a6-3b7b-5a94-b90d-c5bf5ae7e15f")
+	)
+	(pad "3" thru_hole circle
+		(at 12 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "3c90f640-5b61-57b0-8d00-b011112a794f")
+	)
+	(embedded_fonts no)
+)
