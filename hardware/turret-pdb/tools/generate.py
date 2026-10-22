@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import importlib
 import json
 import re
 import os
@@ -6,15 +7,23 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import board
 import parts
 from kicad import S, A, Atom, footprint_node, rotate, sexpr, uid
 
-NAME = "turret-pdb"
-LIB = NAME
-PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SHEET_UUID = uid("sheet", NAME)
+BOARDS = ("power", "logic")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+board = NAME = LIB = PROJ = SHEET_UUID = None
 STACKUP = {"copper": 0.6, "core": 2.4}
+
+
+def use(name):
+    global board, NAME, LIB, PROJ, SHEET_UUID
+    board = importlib.import_module(name)
+    NAME = LIB = f"turret-{name}"
+    PROJ = os.path.join(ROOT, name)
+    SHEET_UUID = uid("sheet", NAME)
+    os.makedirs(PROJ, exist_ok=True)
+    return board
 
 
 def fp_of(ref):
@@ -392,7 +401,7 @@ def members(net):
 
 
 def verify():
-    rs = open(os.path.join(PROJ, "..", "..", "firmware", "turret", "src", "board.rs")).read()
+    rs = open(os.path.join(ROOT, "..", "..", "firmware", "turret", "src", "board.rs")).read()
     gpio_of = {pad: name for pad, (name, _) in board.PARTS["U1"][2].items()}
     for field, net in FIRMWARE_PINS.items():
         m = re.search(rf"{field}: pins\.gpio(\d+)", rs)
@@ -406,14 +415,17 @@ def verify():
         assert "2" not in board.PARTS[ref][2]
 
 
-def main():
+def main(names):
+    use("power")
     verify()
-    write_footprints()
-    write_symbols()
-    write_schematic()
-    write_board()
-    write_project()
+    for name in names:
+        use(name)
+        write_footprints()
+        write_symbols()
+        write_schematic()
+        write_board()
+        write_project()
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:] or [b for b in BOARDS if os.path.exists(os.path.join(ROOT, "tools", f"{b}.py"))])

@@ -8,12 +8,11 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import board
+import generate
 from generate import fp_of, nets_of, resolve
 from kicad import rotate
 
 RES = 0.25
-NX, NY = int(board.W / RES) + 1, int(board.H / RES) + 1
 SAFE = (1.2, 0.7, 1.2)
 TIGHT = (1.0, 0.56, 1.0)
 CLEAR_BODY = 0.2
@@ -21,10 +20,16 @@ VIA_R, VIA_COST, BACK_COST, TURN_COST = 1.5, 25.0, 1.4, 3.0
 FLAT_BODIES = {"jack", "diode", "res", "cdisc", "cp6", "cp10", "h3", "h3_esc", "h4"}
 PIN_BODIES = {"esp", "shifter"}
 LAYERS = ("F.Cu", "B.Cu")
-START = "J1.2"
+START = {"power": "J1.2"}
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
+board = NX = NY = X = Y = None
 
-X, Y = np.meshgrid(np.arange(NX) * RES, np.arange(NY) * RES, indexing="ij")
+
+def init(name):
+    global board, NX, NY, X, Y
+    board = generate.use(name)
+    NX, NY = int(board.W / RES) + 1, int(board.H / RES) + 1
+    X, Y = np.meshgrid(np.arange(NX) * RES, np.arange(NY) * RES, indexing="ij")
 
 
 def capsule(ax, ay, bx, by):
@@ -188,10 +193,11 @@ def snap(pts, centre):
         pts[-2], pts[-1] = (ax, cy), (bx, cy)
 
 
-def main(passes=((3.0, SAFE), (2.0, SAFE), (2.0, TIGHT))):
+def main(name, passes=((3.0, SAFE), (2.0, SAFE), (2.0, TIGHT))):
+    init(name)
     boards = {SAFE: build(SAFE), TIGHT: build(TIGHT)}
     b = boards[SAFE]
-    start = next(k for k in b.targets if k.startswith(START + "#"))
+    start = next(k for k in b.targets if k.startswith(START[name] + "#"))
     tree = set()
     for li, l in enumerate(LAYERS):
         if l in b.targets[start]:
@@ -236,4 +242,4 @@ def main(passes=((3.0, SAFE), (2.0, SAFE), (2.0, TIGHT))):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1])

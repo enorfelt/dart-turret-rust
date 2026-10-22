@@ -1,4 +1,0 @@
-(sym_lib_table
-	(version 7)
-	(lib (name "turret-pdb") (type "KiCad") (uri "${KIPRJMOD}/turret-pdb.kicad_sym") (options "") (descr "Turret board symbols"))
-)

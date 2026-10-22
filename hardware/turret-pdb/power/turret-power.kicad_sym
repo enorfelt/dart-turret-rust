@@ -25,7 +25,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:Freenove_ESP32-S3_WROOM_Socket"
+		(property "Footprint" "turret-power:Freenove_ESP32-S3_WROOM_Socket"
 			(at 0 0 0)
 			(effects
 				(font
@@ -326,7 +326,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:Adafruit_757_UpsideDown"
+		(property "Footprint" "turret-power:Adafruit_757_UpsideDown"
 			(at 0 0 0)
 			(effects
 				(font
@@ -555,7 +555,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:MP1584_Module"
+		(property "Footprint" "turret-power:MP1584_Module"
 			(at 0 0 0)
 			(effects
 				(font
@@ -676,7 +676,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:PinHeader_1x03_P2.54mm"
+		(property "Footprint" "turret-power:PinHeader_1x03_P2.54mm"
 			(at 0 0 0)
 			(effects
 				(font
@@ -797,7 +797,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:PinHeader_1x03_P2.54mm_ESC"
+		(property "Footprint" "turret-power:PinHeader_1x03_P2.54mm_ESC"
 			(at 0 0 0)
 			(effects
 				(font
@@ -900,7 +900,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:PinHeader_1x04_P2.54mm"
+		(property "Footprint" "turret-power:PinHeader_1x04_P2.54mm"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1039,7 +1039,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:WirePads_1x02_TieRight"
+		(property "Footprint" "turret-power:WirePads_1x02_TieRight"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1142,7 +1142,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:BarrelJack_5.5x2.1_Horizontal"
+		(property "Footprint" "turret-power:BarrelJack_5.5x2.1_Horizontal"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1263,7 +1263,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:D_DO-201AD_P12.70mm_Horizontal"
+		(property "Footprint" "turret-power:D_DO-201AD_P12.70mm_Horizontal"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1366,7 +1366,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:R_Axial_P10.16mm_Horizontal"
+		(property "Footprint" "turret-power:R_Axial_P10.16mm_Horizontal"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1469,7 +1469,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:C_Disc_P5.00mm"
+		(property "Footprint" "turret-power:C_Disc_P5.00mm"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1572,7 +1572,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:CP_Radial_D6.3mm_P2.50mm"
+		(property "Footprint" "turret-power:CP_Radial_D6.3mm_P2.50mm"
 			(at 0 0 0)
 			(effects
 				(font
@@ -1675,7 +1675,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-pdb:MountingHole_M3"
+		(property "Footprint" "turret-power:MountingHole_M3"
 			(at 0 0 0)
 			(effects
 				(font

@@ -55,7 +55,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "turret-pdb.kicad_pro",
+    "filename": "turret-power.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -165,7 +165,7 @@
   },
   "sheets": [
     [
-      "a0c9f916-6ca9-5a51-9105-87ff69875638",
+      "2a97caf7-5ba0-548c-8558-7fe2c208fcef",
       "Root"
     ]
   ],
