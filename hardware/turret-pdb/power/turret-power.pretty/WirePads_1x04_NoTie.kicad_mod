@@ -1,0 +1,106 @@
+(footprint "WirePads_1x04_NoTie"
+	(version 20260206)
+	(generator "turret-pdb-gen")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+	(property "Reference" "REF**"
+		(at 9 -3.5)
+		(layer "F.SilkS")
+		(uuid "564980f0-7f62-5d39-94ff-461429b6faa7")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "WirePads_1x04_NoTie"
+		(at 9 3.5)
+		(layer "F.Fab")
+		(uuid "4832fef5-250c-59eb-9b9f-cd07be45a562")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "43b9bb2f-96c9-5306-8984-99e021989c2b")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "161096fa-bde1-526f-a7af-39c6f821e1c7")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -2.2 -2.2)
+		(end 20.2 2.2)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "10d51482-c6ae-5240-a583-e85f563f3f9c")
+	)
+	(fp_rect
+		(start -3.4 -2.7)
+		(end 21.4 2.7)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "48c72791-316a-5271-a4f2-a2c3f0a9f09a")
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "3c245589-defd-5d36-abba-bf5ef1af4563")
+	)
+	(pad "2" thru_hole circle
+		(at 6 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "da334e29-6978-507d-84b3-e5c87f758f03")
+	)
+	(pad "3" thru_hole circle
+		(at 12 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "f401f3e6-507a-52d1-a8a4-4f4bb7be1806")
+	)
+	(pad "4" thru_hole circle
+		(at 18 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "50a95dd5-56c8-5916-9105-2f21e1e440f6")
+	)
+	(embedded_fonts no)
+)

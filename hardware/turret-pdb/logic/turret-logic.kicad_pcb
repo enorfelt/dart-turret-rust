@@ -63,7 +63,7 @@
 	(footprint "turret-logic:Freenove_ESP32-S3_WROOM_Socket"
 		(layer "F.Cu")
 		(uuid "271b1384-9021-5091-a1dd-663c30e6fca4")
-		(at 89.8 90.5 90)
+		(at 89.8 100.5 90)
 		(descr "Freenove ESP32-S3 WROOM in two 1x20 female strips; pull the contacts marked x, holes only on used pins")
 		(property "Reference" "U1"
 			(at 20 -12.7 90)
@@ -865,7 +865,7 @@
 	(footprint "turret-logic:Adafruit_757_UpsideDown"
 		(layer "F.Cu")
 		(uuid "efcb63ed-dcb5-534c-a658-ba0b220e257b")
-		(at 59.5 50.5 270)
+		(at 59.5 60.5 270)
 		(descr "Adafruit 757 4-channel BSS138 level shifter, mounted components down")
 		(property "Reference" "U2"
 			(at 6.35 -4 270)
@@ -1080,7 +1080,7 @@
 	(footprint "turret-logic:PinHeader_1x03_P2.54mm_ESC"
 		(layer "F.Cu")
 		(uuid "98ed6092-4c5e-5933-8f6b-6455165fcd15")
-		(at 96 71 90)
+		(at 96 81 90)
 		(descr "1x3 2.54 mm male header, pads on the solder side only")
 		(property "Reference" "J5"
 			(at 2.54 -3 90)
@@ -1207,7 +1207,7 @@
 	(footprint "turret-logic:PinHeader_1x03_P2.54mm_ESC"
 		(layer "F.Cu")
 		(uuid "2b586e97-ac1a-5750-a806-4a35d86cb04f")
-		(at 101 71 90)
+		(at 101 81 90)
 		(descr "1x3 2.54 mm male header, pads on the solder side only")
 		(property "Reference" "J6"
 			(at 2.54 -3 90)
@@ -1334,7 +1334,7 @@
 	(footprint "turret-logic:PinHeader_1x04_P2.54mm"
 		(layer "F.Cu")
 		(uuid "e4e3d543-dc9b-5ec9-bafb-e56c247a7d40")
-		(at 44 72 270)
+		(at 44 82 270)
 		(descr "1x4 2.54 mm male header, pads on the solder side only")
 		(property "Reference" "J7"
 			(at 3.81 -3 270)
@@ -1472,7 +1472,7 @@
 	(footprint "turret-logic:PinHeader_1x04_P2.54mm"
 		(layer "F.Cu")
 		(uuid "4f38eb40-1a37-5682-941a-380931f38653")
-		(at 96 83.5 90)
+		(at 96 93.5 90)
 		(descr "1x4 2.54 mm male header, pads on the solder side only")
 		(property "Reference" "J8"
 			(at 3.81 -3 90)
@@ -1610,7 +1610,7 @@
 	(footprint "turret-logic:PinHeader_1x03_P2.54mm"
 		(layer "F.Cu")
 		(uuid "902a9f93-2ddb-516b-aa9f-c6d25908857b")
-		(at 101 83.5 90)
+		(at 101 93.5 90)
 		(descr "1x3 2.54 mm male header, pads on the solder side only")
 		(property "Reference" "J9"
 			(at 2.54 -3 90)
@@ -1739,7 +1739,7 @@
 	(footprint "turret-logic:R_Axial_P10.16mm_Horizontal"
 		(layer "F.Cu")
 		(uuid "8d782508-31bb-5291-9269-46d0491b23d4")
-		(at 106 88 90)
+		(at 106 98 90)
 		(descr "Axial resistor, 0207, 10.16 mm lead spacing")
 		(property "Reference" "R3"
 			(at 5.08 -2.6 90)
@@ -1857,7 +1857,7 @@
 	(footprint "turret-logic:R_Axial_P10.16mm_Horizontal"
 		(layer "F.Cu")
 		(uuid "023d44f9-689e-56b2-ae02-3bed3263a8b3")
-		(at 106 72 90)
+		(at 106 82 90)
 		(descr "Axial resistor, 0207, 10.16 mm lead spacing")
 		(property "Reference" "R4"
 			(at 5.08 -2.6 90)
@@ -1975,7 +1975,7 @@
 	(footprint "turret-logic:WirePads_1x05_NoTie"
 		(layer "F.Cu")
 		(uuid "aecfdda6-d0eb-56de-8764-c4029fa0c98f")
-		(at 52 95 90)
+		(at 77.1 97 90)
 		(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
 		(property "Reference" "J12"
 			(at 12 -3.5 90)
@@ -2324,7 +2324,7 @@
 	(footprint "turret-logic:MountingHole_M3"
 		(layer "F.Cu")
 		(uuid "b9f4b10f-0c0f-5c4d-9aee-7962c1904103")
-		(at 44 94)
+		(at 44 104)
 		(descr "M3 mounting hole, no copper")
 		(property "Reference" "H3"
 			(at 0 -4.2)
@@ -2411,7 +2411,7 @@
 	(footprint "turret-logic:MountingHole_M3"
 		(layer "F.Cu")
 		(uuid "ce19531d-f21a-53ed-8918-f8572a424a8d")
-		(at 106 94)
+		(at 106 104)
 		(descr "M3 mounting hole, no copper")
 		(property "Reference" "H4"
 			(at 0 -4.2)
@@ -2507,33 +2507,33 @@
 	)
 	(gr_line
 		(start 110 44)
-		(end 110 94)
+		(end 110 104)
 		(stroke
 			(width 0.1)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "769f0792-4bbf-5aba-92dd-6830c98732b8")
+		(uuid "a9bd81d4-2a3c-51f6-8f25-9190ced1ec9e")
 	)
 	(gr_line
-		(start 106 98)
-		(end 44 98)
+		(start 106 108)
+		(end 44 108)
 		(stroke
 			(width 0.1)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "618426ad-de2f-5fca-ac2f-f1cd9540aba2")
+		(uuid "6b891643-c668-5136-a6da-82aa4492bed2")
 	)
 	(gr_line
-		(start 40 94)
+		(start 40 104)
 		(end 40 44)
 		(stroke
 			(width 0.1)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "51c2c5d0-20dc-579f-b02c-fec9352055b3")
+		(uuid "7bfe5ba6-64fa-5244-bc9a-f23f2aa2821b")
 	)
 	(gr_arc
 		(start 106 40)
@@ -2547,26 +2547,26 @@
 		(uuid "438e10e8-7684-568f-8ac8-85aa53de7b31")
 	)
 	(gr_arc
-		(start 110 94)
-		(mid 108.8284 96.8284)
-		(end 106 98)
+		(start 110 104)
+		(mid 108.8284 106.8284)
+		(end 106 108)
 		(stroke
 			(width 0.1)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "b7cd00b9-5999-52e7-b880-ea23024d6198")
+		(uuid "28fc7009-fcc1-5939-ab26-4bb9051fe5c6")
 	)
 	(gr_arc
-		(start 44 98)
-		(mid 41.1716 96.8284)
-		(end 40 94)
+		(start 44 108)
+		(mid 41.1716 106.8284)
+		(end 40 104)
 		(stroke
 			(width 0.1)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "a8df3433-b2c3-5be4-adb6-40839c58e9b6")
+		(uuid "c27f6fa6-7859-5b9c-96f8-1bc1f0811cde")
 	)
 	(gr_arc
 		(start 40 44)

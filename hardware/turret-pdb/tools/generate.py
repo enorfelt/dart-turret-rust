@@ -71,9 +71,9 @@ def write_footprints():
 SYMBOL_NAMES = {
     "esp": "Freenove_ESP32-S3_WROOM", "shifter": "Adafruit_757", "mp1584": "MP1584_Module",
     "h2": "Conn_01x02", "h3": "Conn_01x03", "h3_esc": "Conn_ESC", "h4": "Conn_01x04",
-    "wire2_l": "WirePads_01x02", "wire2_r": "WirePads_01x02", "jack": "BarrelJack", "diode": "D_Schottky", "res": "R",
+    "wire2_l": "WirePads_01x02", "wire2_r": "WirePads_01x02", "wire2": "WirePads_01x02", "jack": "BarrelJack", "diode": "D_Schottky", "res": "R",
     "cdisc": "C", "cp6": "C_Polarized", "cp10": "C_Polarized", "cp10l": "C_Polarized", "hole": "MountingHole",
-    "link": "WirePads_01x05",
+    "link": "WirePads_01x05", "wire4": "WirePads_01x04",
 }
 
 
@@ -427,6 +427,9 @@ def verify_power(power):
     assert standing == ["C2"], f"standing radial capacitors: {standing}"
 
 
+USB_PLUG = 6.0
+
+
 def esp_local(x, y):
     ex, ey, r = board.PARTS["U1"][3]
     dx, dy = rotate(x, y, r)
@@ -452,8 +455,21 @@ def verify_logic(logic):
                 assert not near(ax + t * (bx - ax), ay + t * (by - ay), width / 2), f"{net} track under the ESP antenna"
     for net, x, y in logic.VIAS:
         assert not near(x, y, 1.5), f"{net} via under the ESP antenna"
-    usb = esp_local(19 * parts.P + d["esp_end_usb"], 0)[1]
-    assert usb <= 2.0, f"ESP USB end at y = {usb:.2f}, must be within 2 mm of the front edge"
+    ux, uy = esp_local(19 * parts.P + d["esp_end_usb"], -d["esp_row_spacing"] / 2)
+    for ref, (key, _, _, (x0, y0, r)) in logic.PARTS.items():
+        if ref == "U1":
+            continue
+        for g in logic.FP[key].graphics:
+            if g.layer != "F.CrtYd":
+                continue
+            if g.kind == "rect":
+                pts = [rotate(x, y, r) for x, y in ((g.pts[0], g.pts[1]), (g.pts[2], g.pts[3]))]
+            else:
+                c = rotate(g.pts[0], g.pts[1], r)
+                pts = [(c[0] - g.pts[2], c[1] - g.pts[2]), (c[0] + g.pts[2], c[1] + g.pts[2])]
+            xs, ys = [x0 + p[0] for p in pts], [y0 + p[1] for p in pts]
+            assert max(xs) <= ux - USB_PLUG or min(xs) >= ux + USB_PLUG or min(ys) >= uy, \
+                f"{ref} is in the USB plug's path"
 
 
 def verify_stack(power, logic):

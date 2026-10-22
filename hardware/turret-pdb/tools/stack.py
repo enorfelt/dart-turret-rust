@@ -1,7 +1,7 @@
 import parts
 from kicad import Graphic
 
-W, H = 70.0, 58.0
+W, H = 70.0, 68.0
 CORNER = 4.0
 ORIGIN = (40.0, 40.0)
 GAP = 15.0
@@ -9,7 +9,7 @@ HOLES = ((4.0, 4.0), (W - 4.0, 4.0), (4.0, H - 4.0), (W - 4.0, H - 4.0))
 
 LINK_NETS = ("GND", "+5V", "VBAT_SENSE", "ARM_SENSE", "PUSH_SIG")
 LINK_NAMES = ("GND", "5V", "VBAT", "ARM", "PUSH")
-LINK_AT = (12.0, 55.0, 90)
+LINK_AT = (37.1, 57.0, 90)
 
 
 def link_fp():

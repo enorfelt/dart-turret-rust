@@ -1,0 +1,92 @@
+(footprint "WirePads_1x02_NoTie"
+	(version 20260206)
+	(generator "turret-pdb-gen")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Solder holes for stranded wire, zip-tie holes at both ends for strain relief")
+	(property "Reference" "REF**"
+		(at 3 -3.5)
+		(layer "F.SilkS")
+		(uuid "d07c0c27-2c0f-5e39-9445-2197aa516d95")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "WirePads_1x02_NoTie"
+		(at 3 3.5)
+		(layer "F.Fab")
+		(uuid "30642f37-ac49-5b2d-9614-1ff5ff153c84")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "d0858f77-5fbf-5c44-96cb-f8547765d2d1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
+		(at 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "26ca3f96-3e78-5feb-8a52-302289fe8e1c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_rect
+		(start -2.2 -2.2)
+		(end 8.2 2.2)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "8893be5e-df78-52f6-8101-0888a7671dc6")
+	)
+	(fp_rect
+		(start -3.4 -2.7)
+		(end 9.4 2.7)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "717248e4-9ef8-5587-936c-929855f19737")
+	)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "56548e05-225c-5bc9-86df-9bdc93c56fd7")
+	)
+	(pad "2" thru_hole circle
+		(at 6 0)
+		(size 3.8 3.8)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+		(uuid "e3c0d336-302a-57e9-b874-3682e6885efe")
+	)
+	(embedded_fonts no)
+)

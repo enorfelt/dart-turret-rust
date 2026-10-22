@@ -30,21 +30,21 @@ sys.exit(1 if erc or errors or drc["unconnected_items"] or drc["schematic_parity
 PY
 
     if "$PY" -c "import manifold3d" 2>/dev/null; then
-        "$(dirname "$K")/python.exe" "$(win tools/board_shapes.py)" "$(win "$P.kicad_pcb")" "$(win "$OUT/shapes.json")"
-        "$PY" tools/plates.py "$OUT/shapes.json" "$OUT"
+        "$(dirname "$K")/python.exe" "$(win tools/board_shapes.py)" "$(win "$P.kicad_pcb")" "$(win "$OUT/shapes.json")" || ok=1
+        "$PY" tools/plates.py "$OUT/shapes.json" "$OUT" || ok=1
     else
         echo "Skipping the print plates: python3 -m venv tools/.venv && tools/.venv/bin/pip install manifold3d numpy"
     fi
     "$K" pcb export pdf --mode-single --layers F.Cu,Edge.Cuts,F.Fab --sketch-pads-on-fab-layers \
-        -o "$(win "$OUT/front-copper.pdf")" "$P.kicad_pcb" >/dev/null
+        -o "$(win "$OUT/front-copper.pdf")" "$P.kicad_pcb" >/dev/null || ok=1
     "$K" pcb export pdf --mode-single --mirror --layers B.Cu,Edge.Cuts \
-        -o "$(win "$OUT/back-copper-mirrored.pdf")" "$P.kicad_pcb" >/dev/null
+        -o "$(win "$OUT/back-copper-mirrored.pdf")" "$P.kicad_pcb" >/dev/null || ok=1
     "$K" pcb export pdf --mode-single --layers F.SilkS,F.Fab,Edge.Cuts \
-        -o "$(win "$OUT/assembly.pdf")" "$P.kicad_pcb" >/dev/null
+        -o "$(win "$OUT/assembly.pdf")" "$P.kicad_pcb" >/dev/null || ok=1
     "$K" pcb render --side top --width 1600 --height 1520 --background opaque \
-        -o "$(win "$OUT/render-top.png")" "$P.kicad_pcb" >/dev/null
+        -o "$(win "$OUT/render-top.png")" "$P.kicad_pcb" >/dev/null || ok=1
     "$K" pcb render --side bottom --width 1600 --height 1520 --background opaque \
-        -o "$(win "$OUT/render-bottom.png")" "$P.kicad_pcb" >/dev/null
+        -o "$(win "$OUT/render-bottom.png")" "$P.kicad_pcb" >/dev/null || ok=1
     return $ok
 }
 

@@ -252,7 +252,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "turret-power:Conn_01x04"
+		(symbol "turret-power:WirePads_01x04"
 			(pin_names
 				(offset 1.016)
 			)
@@ -267,7 +267,7 @@
 					)
 				)
 			)
-			(property "Value" "Conn_01x04"
+			(property "Value" "WirePads_01x04"
 				(at 0 -5.08 0)
 				(effects
 					(font
@@ -275,7 +275,7 @@
 					)
 				)
 			)
-			(property "Footprint" "turret-power:PinHeader_1x04_P2.54mm"
+			(property "Footprint" "turret-power:WirePads_1x04_NoTie"
 				(at 0 0 0)
 				(effects
 					(font
@@ -293,7 +293,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "1x4 2.54 mm male header, pads on the solder side only"
+			(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
 				(at 0 0 0)
 				(effects
 					(font
@@ -302,7 +302,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "Conn_01x04_0_1"
+			(symbol "WirePads_01x04_0_1"
 				(rectangle
 					(start -6.35 3.81)
 					(end 6.35 -3.81)
@@ -315,11 +315,11 @@
 					)
 				)
 			)
-			(symbol "Conn_01x04_1_1"
+			(symbol "WirePads_01x04_1_1"
 				(pin passive line
 					(at -8.89 1.27 0)
 					(length 2.54)
-					(name "Pin_1"
+					(name "6V_SW"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -337,7 +337,7 @@
 				(pin passive line
 					(at -8.89 -1.27 0)
 					(length 2.54)
-					(name "Pin_2"
+					(name "6V"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -355,7 +355,7 @@
 				(pin passive line
 					(at 8.89 1.27 180)
 					(length 2.54)
-					(name "Pin_3"
+					(name "GND"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -373,7 +373,7 @@
 				(pin passive line
 					(at 8.89 -1.27 180)
 					(length 2.54)
-					(name "Pin_4"
+					(name "SENSE"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2068,7 +2068,7 @@
 		)
 	)
 	(symbol
-		(lib_id "turret-power:Conn_01x04")
+		(lib_id "turret-power:WirePads_01x04")
 		(at 187.96 34.29 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -2092,7 +2092,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-power:PinHeader_1x04_P2.54mm"
+		(property "Footprint" "turret-power:WirePads_1x04_NoTie"
 			(at 187.96 34.29 0)
 			(effects
 				(font
@@ -2110,7 +2110,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "1x4 2.54 mm male header, pads on the solder side only"
+		(property "Description" "Solder holes for stranded wire, zip-tie holes at both ends for strain relief"
 			(at 187.96 34.29 0)
 			(effects
 				(font
@@ -2302,7 +2302,7 @@
 				)
 			)
 		)
-		(property "Footprint" "turret-power:WirePads_1x02_TieRight"
+		(property "Footprint" "turret-power:WirePads_1x02_NoTie"
 			(at 114.3 111.76 0)
 			(effects
 				(font

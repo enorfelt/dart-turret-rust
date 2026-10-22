@@ -32,15 +32,15 @@ def esp_pins():
 
 
 PARTS = {
-    "U1": ("esp", "Freenove ESP32-S3 WROOM", esp_pins(), (49.8, 50.5, 90)),
-    "U2": ("shifter", "Adafruit 757", {k: (k, v) for k, v in SHIFTER.items()}, (19.5, 10.5, 270)),
-    "J5": ("h3_esc", "ESC left", {"1": ("GND", "GND"), "3": ("SIG", "ESC_L")}, (56.0, 31.0, 90)),
-    "J6": ("h3_esc", "ESC right", {"1": ("GND", "GND"), "3": ("SIG", "ESC_R")}, (61.0, 31.0, 90)),
-    "J7": ("h4", "TTLinker", {"1": ("5V", "+5V"), "2": ("GND", "GND"), "3": ("TXD", "BUS_RX"), "4": ("RXD", "BUS_TX")}, (4.0, 32.0, 270)),
-    "J8": ("h4", "TFmini Plus", {"1": ("5V", "+5V"), "2": ("GND", "GND"), "3": ("TX", "TF_TX"), "4": ("RX", "TF_RX")}, (56.0, 43.5, 90)),
-    "J9": ("h3", "Light gate", {"1": ("LED", "GATE_LED"), "2": ("OUT", "GATE"), "3": ("GND", "GND")}, (61.0, 43.5, 90)),
-    "R3": ("res", "150", {"1": ("~", "+3V3"), "2": ("~", "GATE_LED")}, (66.0, 48.0, 90)),
-    "R4": ("res", "10k", {"1": ("~", "+3V3"), "2": ("~", "GATE")}, (66.0, 32.0, 90)),
+    "U1": ("esp", "Freenove ESP32-S3 WROOM", esp_pins(), (49.8, 60.5, 90)),
+    "U2": ("shifter", "Adafruit 757", {k: (k, v) for k, v in SHIFTER.items()}, (19.5, 20.5, 270)),
+    "J5": ("h3_esc", "ESC left", {"1": ("GND", "GND"), "3": ("SIG", "ESC_L")}, (56.0, 41.0, 90)),
+    "J6": ("h3_esc", "ESC right", {"1": ("GND", "GND"), "3": ("SIG", "ESC_R")}, (61.0, 41.0, 90)),
+    "J7": ("h4", "TTLinker", {"1": ("5V", "+5V"), "2": ("GND", "GND"), "3": ("TXD", "BUS_RX"), "4": ("RXD", "BUS_TX")}, (4.0, 42.0, 270)),
+    "J8": ("h4", "TFmini Plus", {"1": ("5V", "+5V"), "2": ("GND", "GND"), "3": ("TX", "TF_TX"), "4": ("RX", "TF_RX")}, (56.0, 53.5, 90)),
+    "J9": ("h3", "Light gate", {"1": ("LED", "GATE_LED"), "2": ("OUT", "GATE"), "3": ("GND", "GND")}, (61.0, 53.5, 90)),
+    "R3": ("res", "150", {"1": ("~", "+3V3"), "2": ("~", "GATE_LED")}, (66.0, 58.0, 90)),
+    "R4": ("res", "10k", {"1": ("~", "+3V3"), "2": ("~", "GATE")}, (66.0, 42.0, 90)),
     "J12": stack.link(),
     **stack.holes(),
 }

@@ -22,6 +22,7 @@ FLAT_BODIES = {"jack", "diode", "res", "cdisc", "cp6", "cp10", "cp10l", "h3", "h
 PIN_BODIES = {"esp", "shifter"}
 LAYERS = ("F.Cu", "B.Cu")
 START = {"power": "J1.2", "logic": "J12.1"}
+FIRST = {"GND": 3.0}
 DIRS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 board = NX = NY = X = Y = None
 
@@ -74,7 +75,7 @@ class Board:
         self.centres[name] = centre
 
 
-def build(clear=SAFE):
+def build(net, clear=SAFE):
     CLEAR_TRACK, CLEAR_PAD, CLEAR_EDGE = clear
     b = Board()
     for ref, (key, _, _, (x0, y0, r)) in board.PARTS.items():
@@ -88,7 +89,7 @@ def build(clear=SAFE):
                 continue
             w, h = (p.w, p.h) if (r + p.angle) % 180 == 0 else (p.h, p.w)
             field = pad_shape(cx, cy, w, h, p.shape)
-            if nets.get(p.number) == "GND":
+            if nets.get(p.number) == net:
                 b.target(f"{ref}.{p.number}#{i}", field, ("B.Cu",), (cx, cy))
                 b.block(field, CLEAR_PAD, ("F.Cu",))
                 continue
@@ -108,21 +109,21 @@ def build(clear=SAFE):
             for p in fp.pads:
                 dx, dy = rotate(p.x, p.y, r)
                 b.block(rect(x0 + dx - 1.27, y0 + dy - 1.27, x0 + dx + 1.27, y0 + dy + 1.27), CLEAR_BODY, ("F.Cu",))
-    for net, layer, width, pts in board.TRACKS:
-        if net == "GND":
+    for n, layer, width, pts in board.TRACKS:
+        if n == net:
             continue
         xy = [resolve(p, width) for p in pts]
         for a, c in zip(xy, xy[1:]):
             b.block(capsule(*a, *c) - width / 2, CLEAR_TRACK, (layer,))
-    for net, x, y in board.VIAS:
-        if net != "GND":
+    for n, x, y in board.VIAS:
+        if n != net:
             b.block(np.hypot(X - x, Y - y) - VIA_R, CLEAR_PAD)
     edge = np.minimum(np.minimum(X, stack.W - X), np.minimum(Y, stack.H - Y))
     b.block(edge, CLEAR_EDGE)
     return b
 
 
-def route(free, via_ok, tree, goals):
+def route(free, via_ok, tree, goals, costs):
     dist, prev, heap = {}, {}, []
     for (l, i, j) in tree:
         for d in range(8):
@@ -145,7 +146,7 @@ def route(free, via_ok, tree, goals):
             if turn <= 2:
                 ni, nj = i + dx, j + dy
                 if 0 <= ni < NX and 0 <= nj < NY and free[l][ni, nj]:
-                    cost = math.hypot(dx, dy) * (BACK_COST if l else 1.0) + TURN_COST * turn
+                    cost = math.hypot(dx, dy) * costs[l] + TURN_COST * turn
                     steps.append(((l, ni, nj, nd), cost))
         if via_ok[i, j]:
             steps.append(((1 - l, i, j, d), VIA_COST))
@@ -194,12 +195,30 @@ def snap(pts, centre):
         pts[-2], pts[-1] = (ax, cy), (bx, cy)
 
 
-def main(name, passes=((3.0, SAFE), (2.0, SAFE), (2.0, TIGHT))):
-    init(name)
-    boards = {SAFE: build(SAFE), TIGHT: build(TIGHT)}
+def own_copper(net):
+    cells = set()
+    for n, layer, width, pts in board.TRACKS:
+        if n == net:
+            xy = [resolve(p, width) for p in pts]
+            for a, c in zip(xy, xy[1:]):
+                ii, jj = np.nonzero(capsule(*a, *c) <= width / 2 - RES)
+                cells |= {(LAYERS.index(layer), i, j) for i, j in zip(ii, jj)}
+    for n, x, y in board.VIAS:
+        if n == net:
+            ii, jj = np.nonzero(np.hypot(X - x, Y - y) <= VIA_R - RES)
+            cells |= {(li, i, j) for li in range(len(LAYERS)) for i, j in zip(ii, jj)}
+    return cells
+
+
+def route_net(name, net):
+    width = FIRST.get(net, max([w for w, ns in board.NETCLASSES.values() if net in ns] or [2.0]))
+    passes = [(width, SAFE)] * (width > 2.0) + [(2.0, SAFE), (2.0, TIGHT)]
+    costs = (1.0, BACK_COST) if net == "GND" else (BACK_COST, 1.0)
+    boards = {SAFE: build(net, SAFE), TIGHT: build(net, TIGHT)}
     b = boards[SAFE]
-    start = next(k for k in b.targets if k.startswith(START[name] + "#"))
-    tree = set()
+    first = START[name] if net == "GND" else next(f"{r}.{p}" for r in board.PARTS for p, n in nets_of(r).items() if n == net)
+    start = next(k for k in b.targets if k.startswith(first + "#"))
+    tree = own_copper(net)
     for li, l in enumerate(LAYERS):
         if l in b.targets[start]:
             ii, jj = np.nonzero(b.targets[start][l])
@@ -224,23 +243,33 @@ def main(name, passes=((3.0, SAFE), (2.0, SAFE), (2.0, TIGHT))):
                         ii, jj = np.nonzero(masks[l] & ok)
                         goals.update({(li, i, j): k for i, j in zip(ii, jj)})
             via_ok = (b.margin["F.Cu"] >= VIA_R) & (b.margin["B.Cu"] >= VIA_R)
-            hit, path = route(free, via_ok, tree, goals)
+            hit, path = route(free, via_ok, tree, goals, costs)
             if not hit:
                 break
             t, v = emit(path, width)
-            snap(t[-1][2], b.centres.get(hit))
+            if t:
+                snap(t[-1][2], b.centres.get(hit))
             tracks += t
             vias += v
             tree |= {(s[0], s[1], s[2]) for s in path}
-            print(f"# {hit} at {width} mm, {len(v)} vias", file=sys.stderr)
+            print(f"# {net}: {hit} at {width} mm, {len(v)} vias", file=sys.stderr)
             del pending[hit]
     for k in pending:
-        print(f"# unreached: {k}", file=sys.stderr)
+        print(f"# {net}: unreached {k}", file=sys.stderr)
     for layer, width, pts in tracks:
-        print(f'T("GND", {layer[0]}, {width}, ' + ", ".join(f"({x}, {y})" for x, y in pts) + ")")
+        board.TRACKS.append((net, layer, width, pts))
+        print(f'T("{net}", {layer[0]}, {width}, ' + ", ".join(f"({x}, {y})" for x, y in pts) + ")")
     for x, y in vias:
-        print(f'V("GND", {round(x, 2)}, {round(y, 2)})')
+        board.VIAS.append((net, round(x, 2), round(y, 2)))
+        print(f'V("{net}", {round(x, 2)}, {round(y, 2)})')
+    return not pending
+
+
+def main(name, nets):
+    init(name)
+    ok = [route_net(name, net) for net in nets]
+    sys.exit(0 if all(ok) else 1)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2:] or ["GND"])
