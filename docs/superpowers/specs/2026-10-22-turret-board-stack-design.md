@@ -40,8 +40,8 @@ The PDB is on top so its pads stay reachable. The pack leads and the B1–B3 bal
 - Power board at the bottom, logic board on top, same outline and same four M3 holes, on M3 standoffs.
 - Board gap: 15 mm between the top face of the power board and the bottom face of the logic board. It has to clear the tallest power-board part under the logic board (the DC jack, about 11 mm) plus the logic board's pin tails on its back (about 3 mm) plus 1 mm. The gap is a constant in `stack.py`.
 - Stack 2 is about 42 mm tall: 3 mm of tails under the power board, two 3.6 mm boards, the 15 mm gap and about 17 mm for the ESP in its sockets.
-- Target outline: at most 72 × 50 mm, aiming for about 70 × 45 mm. The narrow dimension across the tubes is the hard limit; the other is free if routing needs it.
-- The ESP antenna end is at the logic board's rear edge, so the antenna is above the tubes and away from the carbon. The USB connector faces one side, reachable with a cable.
+- Target outline: 70 mm across the tubes (hard limit 72) by about 62 mm along them. The ESP runs along the tubes with its antenna at the rear edge, so its 57 mm length sets the second dimension; routing may grow it, which the free tube length allows.
+- The ESP antenna end is at the logic board's rear edge, so the antenna is above the tubes and away from the carbon. No track or via runs under the antenna end. The USB connector is at the front end of the ESP; the cable reaches it from the side through the gap between the two boards and Stack 1.
 
 ## Electrical split
 
@@ -99,12 +99,11 @@ hardware/turret-pdb/
     route_gnd.py     route_gnd.py power|logic
     parts.py, kicad.py, board_shapes.py, plates.py   unchanged except for C3's lying body outline in parts.py
     export.sh        ERC, DRC, plates, PDFs and renders for each board into out/power/ and out/logic/
-  power/   turret-power.kicad_pro, .kicad_sch, .kicad_pcb, .kicad_dru, fp-lib-table, sym-lib-table
+  power/   turret-power.kicad_pro, .kicad_sch, .kicad_pcb, .kicad_dru, .kicad_sym, .pretty/, fp-lib-table, sym-lib-table
   logic/   turret-logic.kicad_pro, ...
-  turret-pdb.pretty/, turret-pdb.kicad_sym   shared by both projects
 ```
 
-The single-board files at the top of `hardware/turret-pdb` (`turret-pdb.kicad_pro`, `.kicad_sch`, `.kicad_pcb`, `.kicad_dru`) are removed. Both `.kicad_dru` files keep today's two rules.
+Each project gets its own generated footprint and symbol library, because `generate.py` writes a library from the board's own parts and clears it first; a shared library would need a merge step for no gain. The single-board files at the top of `hardware/turret-pdb` (`turret-pdb.kicad_pro`, `.kicad_sch`, `.kicad_pcb`, `.kicad_dru`, `.kicad_sym`, `turret-pdb.pretty/`, `fp-lib-table`, `sym-lib-table`) are removed. Both `.kicad_dru` files keep today's two rules.
 
 `generate.py` checks, failing the build on any mismatch:
 
@@ -114,6 +113,7 @@ The single-board files at the top of `hardware/turret-pdb` (`turret-pdb.kicad_pr
 - Both boards' interconnect pads are at the same XY, in the order of `stack.py`, with the same nets.
 - Every net present on both boards is one of the five interconnect nets, and each of those reaches the interconnect pad on both boards.
 - Outline and mounting holes come only from `stack.py`.
+- No logic-board track or via passes under the ESP antenna end.
 
 ## Documentation
 
@@ -134,3 +134,5 @@ The single-board files at the top of `hardware/turret-pdb` (`turret-pdb.kicad_pr
 - `tools/export.sh` reports ERC 0, DRC errors 0, unconnected 0 and schematic parity 0 for both boards, and writes watertight plates for both.
 - The renders of both boards show the antenna end at the logic board's rear edge, no part on the power board taller than the gap allows under the logic board, and the interconnect pads lining up.
 - Both outlines are at most 72 mm across the tubes.
+
+The generator has no Python test suite; its checks are assertions in `generate.py` that fail the build, and KiCad's ERC and DRC. New checks follow that pattern.
