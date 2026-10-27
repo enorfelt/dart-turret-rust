@@ -1,6 +1,6 @@
 # Turret controller boards (3D-printed prototype)
 
-Two stacked two-layer KiCad 10 boards for the turret controller's low-current side. They are meant to be 3D printed, not sent to a fab, with the tracks made of copper wire laid in grooves or of copper tape.
+Two stacked two-layer KiCad 10 boards for the turret controller's low-current side. They are meant to be 3D printed, with the tracks made of copper wire laid in grooves or of copper tape, but `export.sh` also writes Gerbers for [ordering them from a fab](#ordering-from-a-fab).
 
 - **Power board** (bottom): battery input, 12 V bench jack, the two input diodes, the three MP1584 bucks, the battery divider, the arm switch and pusher connections with the 1000 µF, and the servo bus and vision 5 V outputs. All the high-current nets stay on this board.
 - **Logic board** (top): the ESP32-S3 in sockets, the level shifter, the light gate resistors and the connectors to the ESCs, TTLinker, TFmini Plus and light gate.
@@ -62,7 +62,7 @@ The gap is set by the tallest part on the power board (C2, a 6.3 × 11 mm can st
 | `tools/route.py` | Maze router for a board's nets on both layers. It prints `T(...)`/`V(...)` lines to paste into that board's module after the tracks already there |
 | `tools/board_shapes.py` | Runs in KiCad's bundled Python and writes the exact board outline, drill holes, copper polygons and track centre lines of both layers to `shapes.json` |
 | `tools/plates.py` | Builds the plates to print from `shapes.json`: the wired plate, raised-track plates, and channel-method bases and companions. Every STL is checked to be watertight before it is kept, and the wired plate's grooves are checked for wall thickness between nets (needs `manifold3d`) |
-| `tools/export.sh` | Runs ERC and DRC and writes `out/<board>/` for each board: the print plates, a one-piece `preview.stl`, copper PDFs to use as a cutting guide, an assembly PDF and renders |
+| `tools/export.sh` | Runs ERC and DRC and writes `out/<board>/` for each board: the print plates, a one-piece `preview.stl`, copper PDFs to use as a cutting guide, an assembly PDF, renders, and Gerbers and drill files for a fab in `gerbers/` and `turret-<board>-gerbers.zip` |
 
 ```sh
 cd hardware/turret-pdb
@@ -159,6 +159,20 @@ The tracks are 0.75–0.8 mm tinned copper bus wire (about 20 AWG), pressed into
 4. **Back.** Do the same. Bend each via tail from the front into the back groove that leaves that via, or solder it to that groove's wire in the well.
 5. At a pad, stop the wire at the edge of the hole. The part's lead and the wire are soldered together in the well.
 6. Solder every place where two wires meet. Check with a meter that neighbouring tracks are isolated, then carry on with [Assembly](#assembly) from step 2. The vias are already done.
+
+## Ordering from a fab
+
+`export.sh` writes each board's Gerbers (both copper layers, mask, silkscreen and outline, Protel file names, no X2) and Excellon drill files (mm, plated and unplated holes in separate files) into `out/<board>/gerbers/`, and zips them as `out/<board>/turret-<board>-gerbers.zip`. Upload the zip to JLCPCB or PCBWay as it is; both read these settings.
+
+| Option | Value |
+|---|---|
+| Layers | 2 |
+| Size | 70.1 × 68.1 mm, the same for both boards |
+| Thickness | 1.6 mm is fine and cheapest; the board file says 2.0 mm only because that is the printed plate. Header pins still stick out about 1.4 mm on the back |
+| Smallest hole | 1.0 mm plated; the M3 holes are 3.2 mm unplated |
+| Copper | 1 oz is enough; the 5 V and VIN tracks are 2–4 mm wide |
+
+On a fab board every pad and via is plated, so skip step 1 of [Assembly](#assembly). In step 7 the link wires can then be soldered on either face, since the J12 holes are plated too.
 
 ## Assembly
 

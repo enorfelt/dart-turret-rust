@@ -41,6 +41,18 @@ PY
         -o "$(win "$OUT/back-copper-mirrored.pdf")" "$P.kicad_pcb" >/dev/null || ok=1
     "$K" pcb export pdf --mode-single --layers F.SilkS,F.Fab,Edge.Cuts \
         -o "$(win "$OUT/assembly.pdf")" "$P.kicad_pcb" >/dev/null || ok=1
+    rm -rf "$OUT/gerbers"
+    mkdir -p "$OUT/gerbers"
+    "$K" pcb export gerbers --no-x2 --subtract-soldermask \
+        --layers F.Cu,B.Cu,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts \
+        -o "$(win "$OUT/gerbers")" "$P.kicad_pcb" >/dev/null || ok=1
+    "$K" pcb export drill --excellon-separate-th --excellon-units mm --excellon-oval-format alternate \
+        -o "$(win "$OUT/gerbers")/" "$P.kicad_pcb" >/dev/null || ok=1
+    python3 -c 'import pathlib, sys, zipfile
+src = pathlib.Path(sys.argv[1])
+with zipfile.ZipFile(sys.argv[2], "w", zipfile.ZIP_DEFLATED) as z:
+    for f in sorted(src.iterdir()):
+        z.write(f, f.name)' "$OUT/gerbers" "$OUT/turret-$b-gerbers.zip" || ok=1
     "$K" pcb render --side top --width 1600 --height 1520 --background opaque \
         -o "$(win "$OUT/render-top.png")" "$P.kicad_pcb" >/dev/null || ok=1
     "$K" pcb render --side bottom --width 1600 --height 1520 --background opaque \
