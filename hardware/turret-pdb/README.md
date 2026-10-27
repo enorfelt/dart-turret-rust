@@ -1,6 +1,6 @@
-# Turret controller boards (copper-tape prototype)
+# Turret controller boards (3D-printed prototype)
 
-Two stacked two-layer KiCad 10 boards for the turret controller's low-current side. They are meant to be 3D printed with raised copper and covered in copper tape, not sent to a fab.
+Two stacked two-layer KiCad 10 boards for the turret controller's low-current side. They are meant to be 3D printed, not sent to a fab, with the tracks made of copper wire laid in grooves or of copper tape.
 
 - **Power board** (bottom): battery input, 12 V bench jack, the two input diodes, the three MP1584 bucks, the battery divider, the arm switch and pusher connections with the 1000 µF, and the servo bus and vision 5 V outputs. All the high-current nets stay on this board.
 - **Logic board** (top): the ESP32-S3 in sockets, the level shifter, the light gate resistors and the connectors to the ESCs, TTLinker, TFmini Plus and light gate.
@@ -41,9 +41,9 @@ Coordinates are in mm from the board's front-left corner, seen from the componen
 |---|---|
 | Outline | 70 (x, across the tubes) × 68 (y), 4 mm corner radius |
 | M3 holes (3.2 mm) | (4, 4), (66, 4), (4, 64), (66, 64), the same on both boards |
-| Board thickness | 3.6 mm (two 1.8 mm plates) |
+| Board thickness | 2.0 mm (one wired plate, or two 1.0 mm taped plates) |
 | Gap between the boards | 17 mm, from the top of the power board to the bottom of the logic board |
-| Stack 2 height | about 44 mm: pin tails under the power board, both boards, the gap and the ESP in its sockets |
+| Stack 2 height | about 41 mm: pin tails under the power board, both boards, the gap and the ESP in its sockets |
 | Link pads | x 37.1, at y 33, 39, 45, 51, 57 on both boards |
 | ESP USB connector | logic board, front end of the ESP at about (37, 11); its plug points forwards, about 12 mm above the board |
 | ESP antenna | logic board, rear edge between x 23 and 51; keep metal away from it |
@@ -60,8 +60,8 @@ The gap is set by the tallest part on the power board (C2, a 6.3 × 11 mm can st
 | `tools/parts.py` | Footprints, with the module dimensions in `DIM` |
 | `tools/generate.py` | Writes both projects from the files above and checks them: the logic board's ESP pins against `firmware/turret/src/board.rs`, the arm switch interlock nets, the link pads lining up on both boards with the same nets, nothing under the ESP antenna, nothing in the USB plug's path and C3 lying flat |
 | `tools/route.py` | Maze router for a board's nets on both layers. It prints `T(...)`/`V(...)` lines to paste into that board's module after the tracks already there |
-| `tools/board_shapes.py` | Runs in KiCad's bundled Python and writes the exact board outline, drill holes and copper polygons of both layers to `shapes.json` |
-| `tools/plates.py` | Builds the plates to print from `shapes.json`: raised-track plates, and channel-method bases and companions. Every STL is checked to be watertight before it is kept (needs `manifold3d`) |
+| `tools/board_shapes.py` | Runs in KiCad's bundled Python and writes the exact board outline, drill holes, copper polygons and track centre lines of both layers to `shapes.json` |
+| `tools/plates.py` | Builds the plates to print from `shapes.json`: the wired plate, raised-track plates, and channel-method bases and companions. Every STL is checked to be watertight before it is kept, and the wired plate's grooves are checked for wall thickness between nets (needs `manifold3d`) |
 | `tools/export.sh` | Runs ERC and DRC and writes `out/<board>/` for each board: the print plates, a one-piece `preview.stl`, copper PDFs to use as a cutting guide, an assembly PDF and renders |
 
 ```sh
@@ -93,11 +93,11 @@ Next to an ESP pin, a track runs either straight out or into the gap between the
 
 | Check | Where | Value used |
 |---|---|---|
-| MP1584 hole spacing, IN+ to OUT+ and IN+ to IN−, measured on your modules | `DIM["mp1584_pad_dx"]`, `["mp1584_pad_dy"]` | 19.0 × 14.0 mm, **placeholder** |
-| Distance between the two Freenove header rows | `DIM["esp_row_spacing"]` | 25.4 mm, scaled from Freenove's pinout drawing |
+| MP1584 hole spacing, IN+ to OUT+ and IN+ to IN−, measured on your modules | `DIM["mp1584_pad_dx"]`, `["mp1584_pad_dy"]` | 19.0 × 14.0 mm, measured |
+| Distance between the two Freenove header rows | `DIM["esp_row_spacing"]` | 25.4 mm, measured |
 | Adafruit 757 row spacing | `DIM["shifter_row_spacing"]` | 10.16 mm, from Adafruit's EAGLE board |
 | Length of the 1000 µF body, lying on its side | `DIM["c3_length"]` | 20 mm (10 × 20 mm can) |
-| Clear height under the Freenove board between its header rows, with it plugged into the sockets | — | at least 6 mm for the shifter; expected about 11 mm |
+| Clear height under the Freenove board between its header rows, with it plugged into the sockets | — | at least 6 mm for the shifter, measured |
 
 If a value changes, run `generate.py`. The routes move with the pads, so run `export.sh` again and fix anything DRC reports in `tools/power.py` or `tools/logic.py`.
 
@@ -105,13 +105,15 @@ The process is new, so print a small piece first. Cut the ESP header area out of
 
 ## Printing
 
-`export.sh` writes each plate ready to print, flat side down and tracks up, in `out/power/` and `out/logic/`. The back plates are already mirrored. All plates are 1.8 mm thick: a 1.2 mm base with 0.6 mm raised copper.
+`export.sh` writes three ways of building each board into `out/power/` and `out/logic/`: the [wire method](#wire-method), which is one plate with no tape, and two copper tape methods. The finished board is 2.0 mm thick whichever you choose, so 2.54 mm header pins and part leads still stick out about 1 mm on the back.
+
+For the tape methods, every plate is ready to print flat side down and tracks up, and the back plates are already mirrored. Each plate is 1.0 mm thick: a 0.6 mm base with 0.4 mm raised copper.
 
 | File (per board) | Plate |
 |---|---|
 | `front-raised.stl` | Front (component side) |
 | `back-raised.stl` | Back (solder side) |
-| `preview.stl` | The whole board as one 3.6 mm solid, for checking that the two faces line up. Not for printing |
+| `preview.stl` | The whole board as one 2.0 mm solid, for checking that the two faces line up. Not for printing |
 
 1. Import both plates of a board into Bambu Studio and print them side by side. After printing they line up on the four M3 holes.
 2. Optionally cut a small piece out with the Cut tool to try the process first.
@@ -130,12 +132,12 @@ Tape each plate on its own, before joining them.
 
 ## Channel method (no knife trimming)
 
-`export.sh` also writes a second set of parts for the method used by PCB Forge. The copper sits in 0.6 mm channels, and each channel is outlined by a narrow ridge. You sand the ridges, which cuts the tape around every trace, so no knife work is needed.
+`export.sh` also writes a second set of parts for the method used by PCB Forge. The copper sits in 0.4 mm channels, and each channel is outlined by a narrow ridge. You sand the ridges, which cuts the tape around every trace, so no knife work is needed.
 
 | File (per board) | Print | Use |
 |---|---|---|
-| `front-base.stl`, `back-base.stl` | Channels up | The two board plates: 1.8 mm thick, 0.6 mm deep channels where the copper goes, and a 0.6 mm wide, 0.4 mm tall ridge around each channel. The back one is already mirrored |
-| `front-companion.stl`, `back-companion.stl` | Bosses up | Press plates. Their bosses are the copper shapes, mirrored and inset by 0.15 mm, so they drop 0.5 mm into the channels when the plate is laid face down. Pockets around the bosses clear the ridges |
+| `front-base.stl`, `back-base.stl` | Channels up | The two board plates: 1.0 mm thick, 0.4 mm deep channels where the copper goes, and a 0.6 mm wide, 0.4 mm tall ridge around each channel. The back one is already mirrored |
+| `front-companion.stl`, `back-companion.stl` | Bosses up | Press plates. Their bosses are the copper shapes, mirrored and inset by 0.15 mm, so they drop 0.3 mm into the channels when the plate is laid face down. Pockets around the bosses clear the ridges |
 
 1. Print the bases and companions in PETG or ASA, with no XY compensation.
 2. Cover a base with copper tape. Lay its companion face down on top, line it up on the M3 holes, and press hard, or clamp it, so the tape is forced into every channel.
@@ -145,9 +147,22 @@ Tape each plate on its own, before joining them.
 
 Seams still need soldering where two strips meet in a channel.
 
+## Wire method
+
+The tracks are 0.75–0.8 mm tinned copper bus wire (about 20 AWG), pressed into grooves in a single printed plate. There is no tape, no knife work and no second plate to line up. The wire carries more current than any of the tape tracks, so the power tracks need no tinning.
+
+`wired.stl` is the whole board as one 2.0 mm plate, already turned back face up for printing. Both faces have 1.0 mm wide, 0.6 mm deep grooves along the track centre lines. The grooves continue from where a track meets a pad into the pad's hole, and each hole has a solder well 0.4 mm wider than the hole. The back has wells at every hole, the front at the vias only, since no part is soldered on the front. `plates.py` stops if two nets' grooves, wells or holes come closer than 0.4 mm, and prints how much wire each face needs.
+
+1. Print in PETG or ASA as exported, back face up, with 0.2 mm layers, 100 % infill, the Arachne wall generator and no ironing. The front grooves are on the bed side; they bridge over 1 mm and need no supports. Set elephant foot compensation to about 0.15 mm so they do not close up.
+2. Drill the holes as for the tape plates. Vias need 1.0 mm for the wire.
+3. **Front.** Straighten the wire by pulling it. Lay it into one groove at a time, bending it at the corners with pliers, and press it in with the iron at about 250 °C so it sinks into the plastic and stays. At a via, push the wire through the hole and leave a few millimetres on the back.
+4. **Back.** Do the same. Bend each via tail from the front into the back groove that leaves that via, or solder it to that groove's wire in the well.
+5. At a pad, stop the wire at the edge of the hole. The part's lead and the wire are soldered together in the well.
+6. Solder every place where two wires meet. Check with a meter that neighbouring tracks are isolated, then carry on with [Assembly](#assembly) from step 2. The vias are already done.
+
 ## Assembly
 
-1. **Vias.** Push 0.8 mm bare copper wire through each via, solder it on both sides, and trim it flush.
+1. **Vias.** Push 0.8 mm bare copper wire through each via, solder it on both sides, and trim it flush. With the wire method this is already done.
 2. **Parts.** Fit every part from the front and solder it on the back, like a single-sided board. That covers the resistors, capacitors, diodes, jack, headers and wires.
 3. **MP1584 modules.** Mount them on ordinary male header pins with the plastic spacer in place, soldered on the back. Set each output before connecting anything, then lock the trimmer with a drop of glue. The MG996R is damaged above 7.2 V.
 4. **1000 µF (C3).** Bend its leads 90° so it lies flat on the power board, body towards the board's left edge, as drawn on the assembly PDF. Standing up it would hit the logic board.

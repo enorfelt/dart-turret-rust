@@ -96,7 +96,7 @@ With the controller boards, pad pair 3 feeds the power board's battery input (J1
 The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.
 
 - **Stack 1, behind the base:** the 4S BMS at the bottom, held by its edges (55 × 44 mm, no holes), and the PDB on top on its 30.5 mm M3 pattern (about 36 × 50 mm with the XT60 tab). The BMS P− and the pack + leave the stack through the fuse and the XT60 and come back into the PDB, so the XT60 stays within reach as the power switch.
-- **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 44 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
+- **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 41 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
 
 ## Battery pack
 
@@ -241,5 +241,5 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | TFmini Plus | Step 3 |
 | – | 2-part epoxy | Fixes the battery contact plates in the covers |
 | – | Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors | |
-| – | Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, copper foil tape, 0.8 mm bare copper wire for vias, 4 × M3 standoffs for a 17 mm board gap, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
+| – | Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, 0.75 mm tinned copper wire for the tracks and vias (or copper foil tape), 4 × M3 standoffs for a 17 mm board gap, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
 | – | 16 mm carbon tube ×1, 12 mm ×2, M3 screws | Frame, from the original |

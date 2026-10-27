@@ -14,7 +14,7 @@ from kicad import S, A, Atom, footprint_node, rotate, sexpr, uid
 BOARDS = ("power", "logic")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 board = NAME = LIB = PROJ = SHEET_UUID = None
-STACKUP = {"copper": 0.6, "core": 2.4}
+STACKUP = {"copper": 0.4, "core": 1.2}
 
 
 def use(name):
