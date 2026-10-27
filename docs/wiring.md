@@ -241,5 +241,5 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | TFmini Plus | Step 3 |
 | – | 2-part epoxy | Fixes the battery contact plates in the covers |
 | – | Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors | |
-| – | Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, 0.75 mm tinned copper wire for the tracks and vias (or copper foil tape), 4 × M3 standoffs for a 17 mm board gap, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
+| – | Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, 0.75 mm tinned copper wire for the tracks and vias (or copper foil tape), 4 × M3 standoffs for a 17 mm board gap, PLA, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
 | – | 16 mm carbon tube ×1, 12 mm ×2, M3 screws | Frame, from the original |

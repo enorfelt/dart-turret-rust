@@ -117,8 +117,19 @@ For the tape methods, every plate is ready to print flat side down and tracks up
 
 1. Import both plates of a board into Bambu Studio and print them side by side. After printing they line up on the four M3 holes.
 2. Optionally cut a small piece out with the Cut tool to try the process first.
-3. Print in PETG or ASA. PLA softens under the iron. Use 0.2 mm layers, 4 walls, 100 % infill and ironing on the top surface, so the tape has a smooth surface to stick to.
+3. Print in one of the [materials](#material) below. Use 0.2 mm layers, 4 walls, 100 % infill and ironing on the top surface, so the tape has a smooth surface to stick to.
 4. Printed holes come out small. Drill them to size by hand: 1.2 mm for pins and leads, 1.0 mm for vias, 1.7 mm for the diodes and 1.6 mm for the wire holes.
+
+### Material
+
+PLA is fine for a turret used indoors. In normal use the plate stays well under PLA's softening point of about 55 °C. The wire tracks barely warm up, and the bucks stand on their pins above the board. Only the SB560 diodes get hot, and only during long servo stalls. PETG or ASA take more heat and are more forgiving to solder on, so use one of them if the turret may stand in the sun or in a hot car.
+
+PLA softens under the iron, so with PLA:
+
+- Solder quickly with plenty of flux, and pre-tin wire ends before joining them. The wire method's 0.8 mm wire draws far more heat into the plastic than tape does, and only the plastic holds it in its groove.
+- Let a joint cool before soldering the one next to it. Hold the wires with tweezers where they meet until the solder sets.
+- Do not overtighten the M3 screws. PLA slowly gives way under constant pressure; use washers.
+- After a stall test or a long burst, touch the plate near D1 and D2. It should be comfortable to hold.
 
 ## Copper tape
 
@@ -139,7 +150,7 @@ Tape each plate on its own, before joining them.
 | `front-base.stl`, `back-base.stl` | Channels up | The two board plates: 1.0 mm thick, 0.4 mm deep channels where the copper goes, and a 0.6 mm wide, 0.4 mm tall ridge around each channel. The back one is already mirrored |
 | `front-companion.stl`, `back-companion.stl` | Bosses up | Press plates. Their bosses are the copper shapes, mirrored and inset by 0.15 mm, so they drop 0.3 mm into the channels when the plate is laid face down. Pockets around the bosses clear the ridges |
 
-1. Print the bases and companions in PETG or ASA, with no XY compensation.
+1. Print the bases and companions in one of the [materials](#material), with no XY compensation.
 2. Cover a base with copper tape. Lay its companion face down on top, line it up on the M3 holes, and press hard, or clamp it, so the tape is forced into every channel.
 3. Remove the companion and sand only the ridges, with sandpaper on a flat block, until the plastic shows along every ridge. That cuts the tape around each trace; the tape in the channels stays.
 4. The tape left on the flat areas between ridges is now isolated from the traces. Peel it off, or leave it if it is stuck down well; it connects to nothing.
@@ -153,9 +164,9 @@ The tracks are 0.75–0.8 mm tinned copper bus wire (about 20 AWG), pressed into
 
 `wired.stl` is the whole board as one 2.0 mm plate, already turned back face up for printing. Both faces have 1.0 mm wide, 0.6 mm deep grooves along the track centre lines. The grooves continue from where a track meets a pad into the pad's hole, and each hole has a solder well 0.4 mm wider than the hole. The back has wells at every hole, the front at the vias only, since no part is soldered on the front. `plates.py` stops if two nets' grooves, wells or holes come closer than 0.4 mm, and prints how much wire each face needs.
 
-1. Print in PETG or ASA as exported, back face up, with 0.2 mm layers, 100 % infill, the Arachne wall generator and no ironing. The front grooves are on the bed side; they bridge over 1 mm and need no supports. Set elephant foot compensation to about 0.15 mm so they do not close up.
+1. Print in one of the [materials](#material) as exported, back face up, with 0.2 mm layers, 100 % infill, the Arachne wall generator and no ironing. The front grooves are on the bed side; they bridge over 1 mm and need no supports. Set elephant foot compensation to about 0.15 mm so they do not close up.
 2. Drill the holes as for the tape plates. Vias need 1.0 mm for the wire.
-3. **Front.** Straighten the wire by pulling it. Lay it into one groove at a time, bending it at the corners with pliers, and press it in with the iron at about 250 °C so it sinks into the plastic and stays. At a via, push the wire through the hole and leave a few millimetres on the back.
+3. **Front.** Straighten the wire by pulling it. Lay it into one groove at a time, bending it at the corners with pliers, and press it in with the iron at about 200 °C for PLA or 250 °C for PETG and ASA, so it sinks into the plastic and stays. At a via, push the wire through the hole and leave a few millimetres on the back.
 4. **Back.** Do the same. Bend each via tail from the front into the back groove that leaves that via, or solder it to that groove's wire in the well.
 5. At a pad, stop the wire at the edge of the hole. The part's lead and the wire are soldered together in the well.
 6. Solder every place where two wires meet. Check with a meter that neighbouring tracks are isolated, then carry on with [Assembly](#assembly) from step 2. The vias are already done.
