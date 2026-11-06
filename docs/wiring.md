@@ -95,8 +95,9 @@ With the controller boards, pad pair 3 feeds the power board's battery input (J1
 
 The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.
 
-- **Stack 1, behind the base:** the 4S BMS at the bottom, held by its edges (55 × 44 mm, no holes), and the PDB on top on its 30.5 mm M3 pattern (about 36 × 50 mm with the XT60 tab). The BMS P− and the pack + leave the stack through the fuse and the XT60 and come back into the PDB, so the XT60 stays within reach as the power switch.
+- **Stack 1, behind the base:** the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 50 mm with the XT60 tab). The BMS P− and the pack + leave the stack through the fuse and the XT60 and come back into the PDB, so the XT60 stays within reach as the power switch.
 - **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 41 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
+- Both stacks sit in one printed [stack tray](../hardware/turret-pdb/README.md#stack-tray) that hangs under the tubes on zip ties.
 
 ## Battery pack
 
@@ -221,7 +222,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | Standard-size positional RC servo (metal gear) | Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, stalls at about 2.5 A. Not a continuous-rotation (360°) servo, which has no position feedback |
 | 1 | 1000 µF ≥16 V low-ESR electrolytic capacitor | Across the pusher servo's supply, at the servo |
 | 4 | High-drain 18650 cell | e.g. Molicel P28A (35 A); Samsung 30Q (15 A) is the minimum |
-| 1 | 4S BMS, ≥30 A continuous | Over-discharge and short protection. No balancing needed, as the cells are charged out of the holder; prefer one that recovers by itself when cells are reinserted |
+| 1 | 4S BMS, ≥30 A continuous, about 61 × 46 mm | Over-discharge and short protection. No balancing needed, as the cells are charged out of the holder; prefer one that recovers by itself when cells are reinserted |
 | 1 | Printed 2×2 battery holder and covers | From the original; print the covers in PETG or ASA |
 | 2 | 18650 double contact plate, spring + button | Front cover bridges, one per stack. Match the plate's cell pitch to the holder's stack spacing; nickel-plated steel at least 0.3 mm, or phosphor bronze |
 | 1 | 18650 spring plate + 1 button plate, joined with 14 AWG or nickel strip | Back cover bridge across the two stacks. Use one double plate instead if one matches that span |
@@ -242,4 +243,5 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | – | 2-part epoxy | Fixes the battery contact plates in the covers |
 | – | Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors | |
 | – | Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, 0.75 mm tinned copper wire for the tracks and vias (or copper foil tape), 4 × M3 standoffs for a 17 mm board gap, PLA, PETG or ASA filament | Replaces the separate bucks, the light gate resistors and the loose wiring; see `hardware/turret-pdb` |
+| – | Stack tray: M3 screws 4 × 16, 4 × 12 and 4 × 8 mm, 8 M3 nuts, M3 washers, six 4.8 mm zip ties and a few small ones, 1 mm double-sided foam tape, PLA filament | Holds both stacks under the tubes; see the [stack tray](../hardware/turret-pdb/README.md#stack-tray) |
 | – | 16 mm carbon tube ×1, 12 mm ×2, M3 screws | Frame, from the original |

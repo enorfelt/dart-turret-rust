@@ -28,10 +28,12 @@ The electronics sit between the two frame tubes (about 75 mm apart) behind the b
 
 | Layer | Part | Size | Mounting |
 |---|---|---|---|
-| Top | Quadcopter PDB with XT60 (Matek PDB-XT60 clone) | about 36 × 50 mm including the XT60 tab | 4 × M3 on 30.5 × 30.5 mm; measure your board before designing the holder |
-| Bottom | 4S 40 A BMS | 55 × 44 mm | No holes; hold it by its edges |
+| Top | Quadcopter PDB with XT60 (Matek PDB-XT60 clone) | about 36 × 50 mm including the XT60 tab; 1.6 mm, flat underneath; the XT60 stands about 19 mm above the board | 4 × M3 on 30–30.5 mm, on the deck's pillars, XT60 pointing out over the right-hand tube |
+| Bottom | 4S 40 A BMS | 61 × 46 mm, about 5 mm thick; pads on the two 46 mm ends | No holes; on foam tape in the tray's pocket |
 
 **Stack 2** is these two boards on four M3 standoffs: the power board at the bottom, the logic board on top, with the ESP's antenna end pointing to the rear.
+
+Both stacks sit in the printed [stack tray](#stack-tray), which hangs under the tubes.
 
 ### Dimensions for the holders
 
@@ -50,6 +52,39 @@ Coordinates are in mm from the board's front-left corner, seen from the componen
 
 The gap is set by the tallest part on the power board (C2, a 6.3 × 11 mm can standing on its leads, about 12.2 mm) plus the pin tails on the logic board's back (about 3 mm) plus 1 mm; `generate.py` checks it. Every power-board connection is a solder hole, because a plug mated to a header would not fit under the logic board.
 
+## Stack tray
+
+One printed tray holds both stacks and hangs under the two 12 mm frame tubes, with its floor 10 mm below them. Resting on the tubes, Stack 2 would rise about 11 mm above the 75 mm the turret sweeps. Its design is in `docs/superpowers/specs/2026-11-06-stack-tray-design.md`; every dimension is in `TRAY` at the top of `tools/tray.py`, and the Stack 2 holes come from `tools/stack.py`.
+
+`tools/tray.py` checks the heights and the fit against the tubes, the BMS and Stack 2, and only then writes `out/tray/`:
+
+| File | Print |
+|---|---|
+| `cradle-test.stl` | One cradle with a piece of floor. Print it first and try it on a tube offcut with two ties |
+| `tray.stl` | The tray, 102 × 150 mm, floor down |
+| `deck.stl` | The deck over the BMS, which carries the PDB, bar down |
+
+Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The tubes rest in open cradles and zip ties over them carry the tray, so nothing has to flex.
+
+| Hardware | Use |
+|---|---|
+| 4 × M3 × 16 with nuts | Up through the floor and the deck posts; the nut goes on top of the deck |
+| 4 × M3 × 12 | Up through the floor into the 17 mm standoffs under the logic board |
+| 4 × M3 × 8 with nuts | PDB to the deck pillars; the nuts slide into the slots near the pillar tops |
+| M3 washers | Under every screw head and nut |
+| 6 × 4.8 mm zip ties | Two per cradle, over the tubes |
+| 3–4 small zip ties | Fuse holder and wires, through the tie slots in the floor |
+| 1 mm double-sided foam tape | Under the BMS |
+
+1. Push the eight floor screws up through the floor (four for the deck posts, four for Stack 2), each with a washer under its head.
+2. Solder the pack, balance and output wires to the BMS, stick it into its pocket on foam tape, and tie the wires down through the slots next to its ends.
+3. Lower the deck over the four post screws and fit a washer and nut on each. The BMS pad ends stay uncovered.
+4. Slide an M3 nut into each pillar slot, then screw the PDB on with its XT60 pointing to the right. Route the fuse loop between the deck and the PDB and tie the fuse holder down in the gap between the stacks.
+5. Screw Stack 2's power board onto the four Stack 2 screws through its bottom standoffs, then build the rest of Stack 2 as under [Assembly](#assembly).
+6. Hold the tray up under the tubes, with Stack 1 towards the blue base, and fit two zip ties per cradle: in at the cradle's inner face, through the tunnel, up the outer face, over the tube and back.
+
+PLA slowly gives way under constant pressure, so tighten the screws only until snug.
+
 ## Files
 
 | Path | What |
@@ -62,6 +97,7 @@ The gap is set by the tallest part on the power board (C2, a 6.3 × 11 mm can st
 | `tools/route.py` | Maze router for a board's nets on both layers. It prints `T(...)`/`V(...)` lines to paste into that board's module after the tracks already there |
 | `tools/board_shapes.py` | Runs in KiCad's bundled Python and writes the exact board outline, drill holes, copper polygons and track centre lines of both layers to `shapes.json` |
 | `tools/plates.py` | Builds the plates to print from `shapes.json`: the wired plate, raised-track plates, and channel-method bases and companions. Every STL is checked to be watertight before it is kept, and the wired plate's grooves are checked for wall thickness between nets (needs `manifold3d`) |
+| `tools/tray.py`, `tools/test_tray.py` | The [stack tray](#stack-tray) and its tests |
 | `tools/export.sh` | Runs ERC and DRC and writes `out/<board>/` for each board: the print plates, a one-piece `preview.stl`, copper PDFs to use as a cutting guide, an assembly PDF, renders, and Gerbers and drill files for a fab in `gerbers/` and `turret-<board>-gerbers.zip` |
 
 ```sh
@@ -69,6 +105,8 @@ cd hardware/turret-pdb
 python3 tools/generate.py           # both boards; only while the design lives in tools/, see below
 tools/export.sh                     # both boards, or name one: tools/export.sh logic
 python3 tools/route.py power GND    # route one or more nets of a board; GND alone takes under a minute
+tools/export.sh tray                # only the stack tray, into out/tray/
+cd tools && .venv/bin/python -m unittest test_tray   # the stack tray's tests
 ```
 
 `export.sh` needs KiCad 10 on Windows; set `KICAD_CLI` to use another kicad-cli. For the print plates, it uses `tools/.venv`:
