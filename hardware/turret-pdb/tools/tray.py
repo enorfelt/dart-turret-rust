@@ -1,4 +1,8 @@
+from manifold3d import Error, Manifold, OpType
+
 import stack
+
+SEGMENTS = 96
 
 TRAY = {
     "ceiling": 75.0,
@@ -88,4 +92,101 @@ def check_envelope(t=TRAY):
                         f"at {e['tube_top']:.1f}")
     if t["bore_d"] - t["tube_d"] < 0.1:
         problems.append(f"cradle bore {t['bore_d']} mm leaves under 0.1 mm around a {t['tube_d']} mm tube")
+    return problems
+
+
+def box(x0, x1, y0, y1, z0, z1):
+    return Manifold.cube((x1 - x0, y1 - y0, z1 - z0)).translate((x0, y0, z0))
+
+
+def zcyl(x, y, z0, z1, d):
+    return Manifold.cylinder(z1 - z0, d / 2, d / 2, SEGMENTS).translate((x, y, z0))
+
+
+def ycyl(x, z, y0, y1, d):
+    return Manifold.cylinder(y1 - y0, d / 2, d / 2, SEGMENTS).rotate((-90.0, 0.0, 0.0)).translate((x, y0, z))
+
+
+def union(parts):
+    return Manifold.batch_boolean(list(parts), OpType.Add)
+
+
+def tube_axis(t):
+    return t["tube_gap"] / 2 + t["tube_d"] / 2, t["tube_bottom"] + t["tube_d"] / 2
+
+
+def floor_top(t):
+    return t["floor_bottom"] + t["floor_t"]
+
+
+def tubes(t=TRAY):
+    x, z = tube_axis(t)
+    return union(ycyl(s * x, z, -10.0, t["length"] + 10.0, t["tube_d"]) for s in (-1, 1))
+
+
+def stack2_space(t=TRAY):
+    half = stack.W / 2 + 0.5
+    y = t["stack2_y"]
+    return box(-half, half, y, y + stack.H, envelope(t)["power_board_bottom"], t["ceiling"])
+
+
+def bms_space(t=TRAY):
+    w, l = t["bms"]
+    bottom = floor_top(t) - t["pocket_depth"] + t["foam_t"]
+    return box(-w / 2, w / 2, t["bms_y"] - l / 2, t["bms_y"] + l / 2, bottom, envelope(t)["bms_top"])
+
+
+def stack2_holes(t):
+    return [(hx - stack.W / 2, hy + t["stack2_y"]) for hx, hy in stack.HOLES]
+
+
+def vents(t, z0, z1):
+    vx, vy = t["vent"]
+    return [box(-vx / 2, vx / 2, y - vy / 2, y + vy / 2, z0, z1) for y in t["vents_y"]]
+
+
+def tray(t=TRAY):
+    fb, ft, hw = t["floor_bottom"], floor_top(t), t["half_width"]
+    tx, tz = tube_axis(t)
+    solid = [box(-hw, hw, 0.0, t["length"], fb, ft)]
+    cuts = []
+    for y0 in t["cradles_y"]:
+        y1 = y0 + t["cradle_len"]
+        for s in (-1, 1):
+            x0, x1 = sorted((s * t["cradle_inner"], s * hw))
+            solid.append(box(x0, x1, y0, y1, fb, tz))
+            cuts.append(ycyl(s * tx, tz, y0 - 1.0, y1 + 1.0, t["bore_d"]))
+            ty, th, tz0 = t["tunnel"]
+            cuts += [box(x0 - 1.0, x1 + 1.0, y0 + c - ty / 2, y0 + c + ty / 2, tz0, tz0 + th) for c in t["tunnels_y"]]
+    for x, y in stack2_holes(t):
+        solid.append(zcyl(x, y, fb, ft + t["boss_h"], t["boss_d"]))
+        cuts.append(zcyl(x, y, fb - 1.0, ft + t["boss_h"] + 1.0, t["hole_d"]))
+    for x, y in t["posts"]:
+        solid.append(zcyl(x, y, fb, t["deck_bottom"], t["post_d"]))
+        cuts.append(zcyl(x, y, fb - 1.0, t["deck_bottom"] + 1.0, t["hole_d"]))
+    w, l = (d / 2 + t["pocket_margin"] for d in t["bms"])
+    cuts.append(box(-w, w, t["bms_y"] - l, t["bms_y"] + l, ft - t["pocket_depth"], ft + 1.0))
+    cuts += vents(t, fb - 1.0, ft + 1.0)
+    short, long = t["tie_slot"]
+    for x, y, axis in t["tie_slots"]:
+        hx, hy = (short / 2, long / 2) if axis == "y" else (long / 2, short / 2)
+        cuts.append(box(x - hx, x + hx, y - hy, y + hy, fb - 1.0, ft + 1.0))
+    return union(solid) - union(cuts)
+
+
+def overlaps(a, b):
+    return (a ^ b).volume() > 1e-3
+
+
+def check_parts(t, parts):
+    problems = [f"{name}: not one watertight piece" for name, m in parts.items()
+                if m.status() != Error.NoError or len(m.decompose()) != 1]
+    if "tray" in parts:
+        m = parts["tray"]
+        if overlaps(m, tubes(t)):
+            problems.append("tray: the tubes do not fit the cradles")
+        if overlaps(m, stack2_space(t)):
+            problems.append("tray: something is in the space Stack 2 takes")
+        if overlaps(m, bms_space(t)):
+            problems.append("tray: something is in the space the BMS takes")
     return problems

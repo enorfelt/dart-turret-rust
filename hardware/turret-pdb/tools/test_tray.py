@@ -49,5 +49,59 @@ class Envelope(unittest.TestCase):
         self.assertFlags("bore", tube_d=12.15)
 
 
+class Tray(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.m = tray.tray()
+
+    def test_one_watertight_piece(self):
+        self.assertEqual(str(self.m.status()), "Error.NoError")
+        self.assertEqual(len(self.m.decompose()), 1)
+
+    def test_extent(self):
+        for got, want in zip(self.m.bounding_box(), (-51, 0, 20, 51, 150, 36)):
+            self.assertAlmostEqual(got, want, places=3)
+
+    def test_parts_check_passes(self):
+        self.assertEqual(tray.check_parts(tray.TRAY, {"tray": self.m}), [])
+
+    def test_tight_bore_flagged(self):
+        t = dict(tray.TRAY, bore_d=11.8)
+        self.assertTrue(any("tubes" in p for p in tray.check_parts(t, {"tray": tray.tray(t)})))
+
+    def test_cradles(self):
+        for y0 in tray.TRAY["cradles_y"]:
+            for x in (-42, 42):
+                self.assertTrue(solid_at(self.m, x, y0 + 6, 29.5))
+                self.assertFalse(solid_at(self.m, x, y0 + 6, 31))
+                for ty in (3, 9):
+                    self.assertFalse(solid_at(self.m, x, y0 + ty, 26))
+                self.assertTrue(solid_at(self.m, x, y0 + 6, 26))
+
+    def test_bosses_on_stack_holes(self):
+        for hx, hy in stack.HOLES:
+            x, y = hx - stack.W / 2, hy + 68
+            self.assertTrue(solid_at(self.m, x + 2.6, y, 25))
+            for z in (21.5, 25):
+                self.assertFalse(solid_at(self.m, x, y, z))
+
+    def test_posts(self):
+        for x, y in tray.TRAY["posts"]:
+            self.assertTrue(solid_at(self.m, x + 2.6, y, 26))
+            for z in (21.5, 26):
+                self.assertFalse(solid_at(self.m, x, y, z))
+
+    def test_pocket_and_vents(self):
+        self.assertFalse(solid_at(self.m, 0, 51, 22.5))
+        self.assertTrue(solid_at(self.m, 0, 55, 22.5))
+        for y in (21, 31, 41):
+            self.assertFalse(solid_at(self.m, 0, y, 21.5))
+        self.assertTrue(solid_at(self.m, 0, 26, 21.5))
+
+    def test_tie_slots(self):
+        for x, y, _ in tray.TRAY["tie_slots"]:
+            self.assertFalse(solid_at(self.m, x, y, 21.5))
+
+
 if __name__ == "__main__":
     unittest.main()
