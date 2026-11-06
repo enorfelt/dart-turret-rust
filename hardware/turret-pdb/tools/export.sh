@@ -60,12 +60,22 @@ with zipfile.ZipFile(sys.argv[2], "w", zipfile.ZIP_DEFLATED) as z:
     return $ok
 }
 
-boards=("$@")
-if [ ${#boards[@]} -eq 0 ]; then
+boards=() tray=0
+for a in "$@"; do if [ "$a" = tray ]; then tray=1; else boards+=("$a"); fi; done
+if [ $# -eq 0 ]; then
+    tray=1
     for b in power logic; do [ -f "$b/turret-$b.kicad_pcb" ] && boards+=("$b"); done
 fi
 failed=()
 for b in "${boards[@]}"; do export_board "$b" || failed+=("$b"); done
+if [ $tray -eq 1 ]; then
+    echo "== tray"
+    if "$PY" -c "import manifold3d" 2>/dev/null; then
+        "$PY" tools/tray.py out/tray || failed+=("tray")
+    else
+        echo "Skipping the tray: python3 -m venv tools/.venv && tools/.venv/bin/pip install manifold3d numpy"
+    fi
+fi
 if [ ${#failed[@]} -gt 0 ]; then
     echo "Failed: ${failed[*]}"
     exit 1

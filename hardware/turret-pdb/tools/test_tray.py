@@ -103,5 +103,55 @@ class Tray(unittest.TestCase):
             self.assertFalse(solid_at(self.m, x, y, 21.5))
 
 
+class Deck(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.m = tray.deck()
+
+    def test_one_piece_up_to_the_pdb(self):
+        self.assertEqual(len(self.m.decompose()), 1)
+        self.assertAlmostEqual(self.m.bounding_box()[5], 47.0, places=3)
+
+    def test_parts_check_passes(self):
+        self.assertEqual(tray.check_parts(tray.TRAY, {"tray": tray.tray(), "deck": self.m}), [])
+
+    def test_post_screws_go_through(self):
+        both = tray.tray() + self.m
+        for x, y in tray.TRAY["posts"]:
+            rod = Manifold.cylinder(14, 1.5, 1.5, 32).translate((x, y, 20))
+            self.assertLess((both ^ rod).volume(), 1e-6)
+
+    def test_pdb_screws_fit_30_and_30_5(self):
+        for pattern in (30.0, 30.5):
+            for sx in (-1, 1):
+                for sy in (-1, 1):
+                    rod = Manifold.cylinder(14, 1.5, 1.5, 32).translate((sx * pattern / 2, 31 + sy * pattern / 2, 33))
+                    self.assertLess((self.m ^ rod).volume(), 1e-6, (pattern, sx, sy))
+
+    def test_nut_slots_open_outwards(self):
+        for sx in (-1, 1):
+            x = sx * 30.25 / 2
+            self.assertFalse(solid_at(self.m, x + sx * 3.0, 31 + 15.125, 42.7))
+            self.assertTrue(solid_at(self.m, x + sx * 3.0, 31 + 15.125, 39.0))
+
+
+class Output(unittest.TestCase):
+    def test_writes_three_stls(self):
+        with tempfile.TemporaryDirectory() as d:
+            tray.main(d)
+            for name in ("tray.stl", "deck.stl", "cradle-test.stl"):
+                self.assertGreater(os.path.getsize(os.path.join(d, name)), 1000)
+
+    def test_failed_check_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = os.path.join(d, "tray")
+            with self.assertRaises(SystemExit):
+                tray.main(out, dict(tray.TRAY, foam_t=2.0))
+            self.assertFalse(os.path.exists(out))
+
+    def test_cradle_test_is_one_piece(self):
+        self.assertEqual(len(tray.cradle_test().decompose()), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

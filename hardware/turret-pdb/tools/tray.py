@@ -1,5 +1,9 @@
+import os
+import sys
+
 from manifold3d import Error, Manifold, OpType
 
+import plates
 import stack
 
 SEGMENTS = 96
@@ -189,4 +193,51 @@ def check_parts(t, parts):
             problems.append("tray: something is in the space Stack 2 takes")
         if overlaps(m, bms_space(t)):
             problems.append("tray: something is in the space the BMS takes")
+    if "deck" in parts:
+        m = parts["deck"]
+        if overlaps(m, parts["tray"] if "tray" in parts else tray(t)):
+            problems.append("deck hits the tray")
+        if overlaps(m, bms_space(t)):
+            problems.append("deck: something is in the space the BMS MOSFETs take")
     return problems
+
+
+def pillars(t):
+    p = t["pdb_pattern"] / 2
+    return [(sx * p, t["bms_y"] + sy * p) for sx in (-1, 1) for sy in (-1, 1)]
+
+
+def deck(t=TRAY):
+    db, top, dx = t["deck_bottom"], t["deck_bottom"] + t["deck_t"], t["deck_x"]
+    bar = box(-dx, dx, *t["deck_y"], db, top)
+    bar -= union([zcyl(x, y, db - 1.0, top + 1.0, t["hole_d"]) for x, y in t["posts"]] + vents(t, db - 1.0, top + 1.0))
+    pdb = t["pdb_bottom"]
+    w, h, depth = t["nut_slot"]
+    cuts = []
+    for x, y in pillars(t):
+        s = 1.0 if x > 0 else -1.0
+        cuts.append(zcyl(x, y, db - 1.0, pdb + 1.0, t["pdb_hole_d"]))
+        x0, x1 = sorted((x - s * w / 2, x + s * (t["pillar_d"] / 2 + 1.0)))
+        cuts.append(box(x0, x1, y - w / 2, y + w / 2, pdb - depth - h, pdb - depth))
+    return (bar + union(zcyl(x, y, db, pdb, t["pillar_d"]) for x, y in pillars(t))) - union(cuts)
+
+
+def cradle_test(t=TRAY):
+    y0 = t["cradles_y"][0]
+    return tray(t) ^ box(30.0, t["half_width"] + 1.0, y0, y0 + t["cradle_len"], t["floor_bottom"] - 1.0, 40.0)
+
+
+def main(out, t=TRAY):
+    parts = {"tray": tray(t), "deck": deck(t)}
+    problems = check_envelope(t) + check_parts(t, parts)
+    if problems:
+        sys.exit("\n".join(problems))
+    parts["cradle-test"] = cradle_test(t)
+    os.makedirs(out, exist_ok=True)
+    for name, m in parts.items():
+        plates.write(os.path.join(out, f"{name}.stl"), m)
+        print(f"{name}: {m.volume() / 1000:.1f} cm3")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1] if len(sys.argv) > 1 else "../out/tray")
