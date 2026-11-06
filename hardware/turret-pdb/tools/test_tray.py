@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 from manifold3d import Manifold
 
@@ -28,7 +29,7 @@ class Envelope(unittest.TestCase):
         self.assertTrue(any(word in p for p in problems), problems)
 
     def test_esp_above_ceiling(self):
-        self.assertFlags("ESP", stack2_height=50.0)
+        self.assertFlags("ESP", esp_above_logic=29.0)
 
     def test_xt60_above_ceiling(self):
         self.assertFlags("XT60", pdb_bottom=56.0)
@@ -48,6 +49,13 @@ class Envelope(unittest.TestCase):
     def test_bore_too_tight(self):
         self.assertFlags("bore", tube_d=12.15)
 
+    def test_esp_follows_stack_gap(self):
+        with mock.patch.object(stack, "GAP", 30.0):
+            self.assertTrue(any("ESP" in p for p in tray.check_envelope()))
+
+    def test_front_cradle_ties_clear_bms(self):
+        self.assertFlags("BMS", bms_y=31.0)
+
 
 class Tray(unittest.TestCase):
     @classmethod
@@ -59,7 +67,7 @@ class Tray(unittest.TestCase):
         self.assertEqual(len(self.m.decompose()), 1)
 
     def test_extent(self):
-        for got, want in zip(self.m.bounding_box(), (-51, 0, 20, 51, 150, 36)):
+        for got, want in zip(self.m.bounding_box(), (-51, 0, 20, 51, tray.TRAY["length"], 36)):
             self.assertAlmostEqual(got, want, places=3)
 
     def test_parts_check_passes(self):
@@ -80,7 +88,7 @@ class Tray(unittest.TestCase):
 
     def test_bosses_on_stack_holes(self):
         for hx, hy in stack.HOLES:
-            x, y = hx - stack.W / 2, hy + 68
+            x, y = hx - stack.W / 2, hy + tray.TRAY["stack2_y"]
             self.assertTrue(solid_at(self.m, x + 2.6, y, 25))
             for z in (21.5, 25):
                 self.assertFalse(solid_at(self.m, x, y, z))
@@ -92,11 +100,13 @@ class Tray(unittest.TestCase):
                 self.assertFalse(solid_at(self.m, x, y, z))
 
     def test_pocket_and_vents(self):
-        self.assertFalse(solid_at(self.m, 0, 51, 22.5))
-        self.assertTrue(solid_at(self.m, 0, 55, 22.5))
-        for y in (21, 31, 41):
+        b = tray.TRAY["bms_y"]
+        self.assertGreaterEqual(b - tray.TRAY["bms"][1] / 2, tray.TRAY["cradles_y"][0] + tray.TRAY["cradle_len"] + 1)
+        self.assertFalse(solid_at(self.m, 0, b + 20, 22.5))
+        self.assertTrue(solid_at(self.m, 0, b + 24, 22.5))
+        for y in tray.TRAY["vents_y"]:
             self.assertFalse(solid_at(self.m, 0, y, 21.5))
-        self.assertTrue(solid_at(self.m, 0, 26, 21.5))
+        self.assertTrue(solid_at(self.m, 0, b - 5, 21.5))
 
     def test_tie_slots(self):
         for x, y, _ in tray.TRAY["tie_slots"]:
@@ -125,14 +135,28 @@ class Deck(unittest.TestCase):
         for pattern in (30.0, 30.5):
             for sx in (-1, 1):
                 for sy in (-1, 1):
-                    rod = Manifold.cylinder(14, 1.5, 1.5, 32).translate((sx * pattern / 2, 31 + sy * pattern / 2, 33))
+                    y = tray.TRAY["bms_y"] + sy * pattern / 2
+                    rod = Manifold.cylinder(14, 1.5, 1.5, 32).translate((sx * pattern / 2, y, 33))
                     self.assertLess((self.m ^ rod).volume(), 1e-6, (pattern, sx, sy))
 
     def test_nut_slots_open_outwards(self):
-        for sx in (-1, 1):
-            x = sx * 30.25 / 2
-            self.assertFalse(solid_at(self.m, x + sx * 3.0, 31 + 15.125, 42.7))
-            self.assertTrue(solid_at(self.m, x + sx * 3.0, 31 + 15.125, 39.0))
+        for x, y in tray.pillars(tray.TRAY):
+            sx = 1 if x > 0 else -1
+            self.assertFalse(solid_at(self.m, x + sx * 3.0, y, 42.7))
+            self.assertTrue(solid_at(self.m, x + sx * 3.0, y, 39.0))
+
+    def test_nut_slot_centres_the_nut(self):
+        for x, y in tray.pillars(tray.TRAY):
+            sx = 1 if x > 0 else -1
+            self.assertFalse(solid_at(self.m, x - sx * 3.2, y, 42.7))
+            self.assertTrue(solid_at(self.m, x - sx * 3.6, y, 42.7))
+            for dy in (-2.8, 2.8):
+                self.assertFalse(solid_at(self.m, x + sx * 1.0, y + dy, 42.7))
+
+    def test_pillar_walls_beside_nut_slot(self):
+        for x, y in tray.pillars(tray.TRAY):
+            for dy in (-4.4, 4.4):
+                self.assertTrue(solid_at(self.m, x, y + dy, 42.7))
 
 
 class Output(unittest.TestCase):
@@ -141,6 +165,13 @@ class Output(unittest.TestCase):
             tray.main(d)
             for name in ("tray.stl", "deck.stl", "cradle-test.stl"):
                 self.assertGreater(os.path.getsize(os.path.join(d, name)), 1000)
+
+    def test_failed_check_removes_old_stls(self):
+        with tempfile.TemporaryDirectory() as d:
+            tray.main(d)
+            with self.assertRaises(SystemExit):
+                tray.main(d, dict(tray.TRAY, foam_t=2.0))
+            self.assertEqual(os.listdir(d), [])
 
     def test_failed_check_writes_nothing(self):
         with tempfile.TemporaryDirectory() as d:

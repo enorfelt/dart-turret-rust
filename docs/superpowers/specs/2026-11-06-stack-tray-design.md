@@ -38,7 +38,7 @@ x across the tubes (0 on the centre line, + towards the XT60 side), y along the 
                 │ BMS  │              ┌──── power board ───┐ 27
  23 ┌───────────┴──────┴──────────────┴────────────────────┴──┐ floor top
  20 └─────────────────────────────────────────────────────────┘ floor bottom
-    y=0   Stack 1    58  USB gap  68      Stack 2         136   150
+    y=0   Stack 1    63  USB gap  73      Stack 2         141   155
 ```
 
 The tray hangs 10 mm below the tubes, because a floor resting on the tubes would put the top of Stack 2 about 11 mm above the ceiling.
@@ -47,18 +47,18 @@ A hook that wraps over a tube from below cannot be printed flat without supports
 
 ### Tray
 
-- **Floor:** 3 mm, z 20–23, x ±51 (under both tubes), y 0–150.
-- **Cradles:** three pairs, at y 0–12, 55–67 and 138–150, where no board sits next to the tubes. Each is a block from the floor up to the tube centre (z 36), x ±(33–51), with a 12.2 mm bowl the tube lies in, so its sides locate the tube both ways. Two tie tunnels, 5 mm along y and 2 mm tall at z 25–27, run across each block under the bowl, at y 3 and 9 within the cradle. A tie goes in at the block's inner face, through the tunnel, up the outer face, over the tube and back down. The ties top out at about z = 43.5.
-- **Stack 2 bosses:** four, at the `stack.py` hole positions with the board's front-left corner at (x −35, y 68): 7 mm across, 4 mm tall (z 23–27), with a 3.4 mm hole through the boss and floor. An M3 × 12 screw from under the tray goes up into the female thread of each 17 mm standoff, clamping the power board. The power board's underside sits at z = 27, below the tubes, with room for its pin tails.
-- **BMS pocket:** 61.6 × 46.6 mm, 1 mm deep (z 22–23), centred on x = 0, y = 31, long side across the tubes. The BMS sits on 1 mm double-sided foam tape in it, which holds it and damps vibration. Three 4 × 40 mm vent slots through the floor at y 21, 31 and 41.
-- **Deck posts:** four, 7 mm across, z 23–30, at x ±20, y 3.5 and 58.5, just in front of and behind the BMS, with a 3.4 mm hole through post and floor. An M3 × 16 screw from under the tray goes up through the post and the deck and takes a washer and nut on top of the deck, so the deck comes off from above.
-- **Tie-down slots:** pairs of 2.5 × 5 mm slots through the floor, 8 mm apart: one pair at x ±4, y 63 in the USB gap for the fuse holder and the 14 AWG loop, which is also where the ESP's USB cable comes in from the side; one pair at each BMS pad end, at x ±37, y 27 and 35.
+- **Floor:** 3 mm, z 20–23, x ±51 (under both tubes), y 0–155.
+- **Cradles:** three pairs, at y 0–12, 60–72 and 143–155, where no board sits next to the tubes, and the BMS starts at least 1 mm behind the front cradle so its tie tunnels open beside nothing. Each is a block from the floor up to the tube centre (z 36), x ±(33–51), with a 12.2 mm bowl the tube lies in, so its sides locate the tube both ways. Two tie tunnels, 5 mm along y and 2 mm tall at z 25–27, run across each block under the bowl, at y 3 and 9 within the cradle. A tie goes in at the block's inner face, through the tunnel, up the outer face, over the tube and back down. The ties top out at about z = 43.5.
+- **Stack 2 bosses:** four, at the `stack.py` hole positions with the board's front-left corner at (x −35, y 73): 7 mm across, 4 mm tall (z 23–27), with a 3.4 mm hole through the boss and floor. An M3 × 12 screw from under the tray goes up into the female thread of each 17 mm female–female standoff, clamping the power board. Stack 2 is built complete before it goes on the tray, because its link wires are soldered on the power board's back. The power board's underside sits at z = 27, below the tubes, with room for its pin tails.
+- **BMS pocket:** 61.6 × 46.6 mm, 1 mm deep (z 22–23), centred on x = 0, y = 36, long side across the tubes. The BMS sits on 1 mm double-sided foam tape in it, which holds it and damps vibration. Three 4 × 40 mm vent slots through the floor at y 26, 36 and 46.
+- **Deck posts:** four, 7 mm across, z 23–30, at x ±20, y 8.5 and 63.5, just in front of and behind the BMS, with a 3.4 mm hole through post and floor. An M3 × 16 screw from under the tray goes up through the post and the deck and takes a washer and nut on top of the deck, so the deck comes off from above.
+- **Tie-down slots:** pairs of 2.5 × 5 mm slots through the floor, 8 mm apart: one pair at x ±4, y 68 in the USB gap for the fuse holder and the 14 AWG loop, which is also where the ESP's USB cable comes in from the side; one pair at each BMS pad end, at x ±37, y 32 and 40.
 - Nothing on the tray is near the ESP antenna except the rear cradles beside the tubes.
 
 ### Deck
 
-- A flat 3 mm bar, x ±24, y 0–62, z 30–33, on the four posts. Its underside is about 2 mm above the MOSFETs (BMS top at about z = 28 on the foam), it keeps the PDB's underside away from the BMS, and it leaves both BMS pad ends open. Three vent slots over the MOSFETs, matching the floor's.
-- Four pillars, 8 mm across, z 33–47, on a 30.25 mm square centred on (0, 31), with 3.6 mm holes, so an M3 screw goes through on a PDB with either a 30 or a 30.5 mm pattern. A sideways slot for an M3 nut, 5.7 × 2.6 mm, opening outwards, sits 3 mm below each top; M3 × 8 screws hold the PDB. The PDB's underside is at z = 47, 3.5 mm above the zip ties.
+- A flat 3 mm bar, x ±24, y 5–67, z 30–33, on the four posts. Its underside is about 2 mm above the MOSFETs (BMS top at about z = 28 on the foam), it keeps the PDB's underside away from the BMS, and it leaves both BMS pad ends open. Three vent slots over the MOSFETs, matching the floor's.
+- Four pillars, 10 mm across, z 33–47, on a 30.25 mm square centred on (0, 36), with 3.6 mm holes, so an M3 screw goes through on a PDB with either a 30 or a 30.5 mm pattern. A sideways slot for an M3 nut, 5.9 × 2.6 mm, opening outwards and ending 3.3 mm past the screw axis so the nut's leading corner stops it centred, sits 3 mm below each top; M3 × 8 screws hold the PDB. The PDB's underside is at z = 47, 3.5 mm above the zip ties.
 - The PDB's XT60 tab points to +x, out over the tube between the front and middle cradles, so the mated plug clears the tube and is reached from the side. Its top lands at about z = 68.
 - The ⊕/⊖ leads and the fuse loop run in the 14 mm between deck and PDB, and the battery-side XT60 plug comes back in on the +x side, where P+ and P− are.
 - Prints bar down, pillars up.
@@ -70,8 +70,9 @@ A hook that wraps over a tube from below cannot be printed flat without supports
 Before writing anything, `tray.py` checks and stops on failure:
 
 - Every part is watertight and in one piece.
+- A failed check also removes the tray STLs left from an earlier run, so a stale file is never printed.
 - The tubes fit the cradles, and nothing of the tray is in the space Stack 2 takes.
-- The tops of the ESP (power board underside plus the Stack 2 height above it), the PDB with its XT60, and the zip ties are all below 75 mm.
+- The tops of the ESP (logic board underside from `stack.GAP`, plus the board and 17 mm of ESP on its sockets), the PDB with its XT60, and the zip ties are all below 75 mm.
 - The PDB's underside, and so the XT60, clears the zip ties over the tubes.
 - The deck's underside is at least 1.5 mm above the BMS MOSFETs.
 - The Stack 2 outline at the power board's height fits between the tubes, and the logic board clears the tube tops.

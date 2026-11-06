@@ -18,57 +18,59 @@ TRAY = {
     "floor_bottom": 20.0,
     "floor_t": 3.0,
     "half_width": 51.0,
-    "length": 150.0,
-    "cradles_y": (0.0, 55.0, 138.0),
+    "length": 155.0,
+    "cradles_y": (0.0, 60.0, 143.0),
     "cradle_len": 12.0,
     "cradle_inner": 33.0,
     "tunnels_y": (3.0, 9.0),
     "tunnel": (5.0, 2.0, 25.0),
-    "stack2_y": 68.0,
+    "stack2_y": 73.0,
     "boss_d": 7.0,
     "boss_h": 4.0,
     "hole_d": 3.4,
     "board_t": 2.0,
-    "stack2_height": 38.0,
+    "esp_above_logic": 17.0,
     "bms": (61.0, 46.0),
-    "bms_y": 31.0,
+    "bms_y": 36.0,
     "bms_board_t": 1.6,
     "mosfet_h": 3.35,
     "foam_t": 1.0,
     "pocket_depth": 1.0,
     "pocket_margin": 0.3,
-    "vents_y": (21.0, 31.0, 41.0),
+    "vents_y": (26.0, 36.0, 46.0),
     "vent": (40.0, 4.0),
-    "posts": ((-20.0, 3.5), (20.0, 3.5), (-20.0, 58.5), (20.0, 58.5)),
+    "posts": ((-20.0, 8.5), (20.0, 8.5), (-20.0, 63.5), (20.0, 63.5)),
     "post_d": 7.0,
     "deck_bottom": 30.0,
     "deck_t": 3.0,
     "deck_x": 24.0,
-    "deck_y": (0.0, 62.0),
+    "deck_y": (5.0, 67.0),
     "min_deck_gap": 1.5,
     "pdb_pattern": 30.25,
     "pdb_hole_d": 3.6,
-    "pillar_d": 8.0,
+    "pillar_d": 10.0,
     "pdb_bottom": 47.0,
     "pdb_t": 1.6,
     "xt60_h": 19.0,
     "min_tie_gap": 1.0,
-    "nut_slot": (5.7, 2.6, 3.0),
+    "nut_slot": (5.9, 2.6, 3.0),
+    "nut_stop": 3.3,
     "tie_slot": (2.5, 5.0),
-    "tie_slots": ((-4.0, 63.0, "y"), (4.0, 63.0, "y"), (-37.0, 27.0, "x"), (-37.0, 35.0, "x"),
-                  (37.0, 27.0, "x"), (37.0, 35.0, "x")),
+    "tie_slots": ((-4.0, 68.0, "y"), (4.0, 68.0, "y"), (-37.0, 32.0, "x"), (-37.0, 40.0, "x"),
+                  (37.0, 32.0, "x"), (37.0, 40.0, "x")),
 }
 
 
 def envelope(t=TRAY):
     tube_top = t["tube_bottom"] + t["tube_d"]
     power_board_bottom = t["floor_bottom"] + t["floor_t"] + t["boss_h"]
+    logic_bottom = power_board_bottom + t["board_t"] + stack.GAP
     return {
         "tube_top": tube_top,
         "tie_top": tube_top + t["tie_t"],
         "power_board_bottom": power_board_bottom,
-        "logic_bottom": power_board_bottom + t["board_t"] + stack.GAP,
-        "esp_top": power_board_bottom + t["stack2_height"],
+        "logic_bottom": logic_bottom,
+        "esp_top": logic_bottom + t["board_t"] + t["esp_above_logic"],
         "bms_top": (t["floor_bottom"] + t["floor_t"] - t["pocket_depth"] + t["foam_t"] + t["bms_board_t"]
                     + t["mosfet_h"]),
         "deck_bottom": t["deck_bottom"],
@@ -94,6 +96,10 @@ def check_envelope(t=TRAY):
     if e["logic_bottom"] <= e["tube_top"]:
         problems.append(f"logic board underside at z = {e['logic_bottom']:.1f} is not above the tube tops "
                         f"at {e['tube_top']:.1f}")
+    front_cradle_end = t["cradles_y"][0] + t["cradle_len"]
+    if t["bms_y"] - t["bms"][1] / 2 < front_cradle_end + 1.0:
+        problems.append(f"BMS starts within 1 mm of the front cradle's tie tunnels, "
+                        f"which end at y = {front_cradle_end:.1f}")
     if t["bore_d"] - t["tube_d"] < 0.1:
         problems.append(f"cradle bore {t['bore_d']} mm leaves under 0.1 mm around a {t['tube_d']} mm tube")
     return problems
@@ -217,7 +223,7 @@ def deck(t=TRAY):
     for x, y in pillars(t):
         s = 1.0 if x > 0 else -1.0
         cuts.append(zcyl(x, y, db - 1.0, pdb + 1.0, t["pdb_hole_d"]))
-        x0, x1 = sorted((x - s * w / 2, x + s * (t["pillar_d"] / 2 + 1.0)))
+        x0, x1 = sorted((x - s * t["nut_stop"], x + s * (t["pillar_d"] / 2 + 1.0)))
         cuts.append(box(x0, x1, y - w / 2, y + w / 2, pdb - depth - h, pdb - depth))
     return (bar + union(zcyl(x, y, db, pdb, t["pillar_d"]) for x, y in pillars(t))) - union(cuts)
 
@@ -227,7 +233,14 @@ def cradle_test(t=TRAY):
     return tray(t) ^ box(30.0, t["half_width"] + 1.0, y0, y0 + t["cradle_len"], t["floor_bottom"] - 1.0, 40.0)
 
 
+NAMES = ("tray", "deck", "cradle-test")
+
+
 def main(out, t=TRAY):
+    for name in NAMES:
+        path = os.path.join(out, f"{name}.stl")
+        if os.path.exists(path):
+            os.remove(path)
     parts = {"tray": tray(t), "deck": deck(t)}
     problems = check_envelope(t) + check_parts(t, parts)
     if problems:

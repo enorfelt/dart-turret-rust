@@ -61,7 +61,7 @@ One printed tray holds both stacks and hangs under the two 12 mm frame tubes, wi
 | File | Print |
 |---|---|
 | `cradle-test.stl` | One cradle with a piece of floor. Print it first and try it on a tube offcut with two ties |
-| `tray.stl` | The tray, 102 × 150 mm, floor down |
+| `tray.stl` | The tray, 102 × 155 mm, floor down |
 | `deck.stl` | The deck over the BMS, which carries the PDB, bar down |
 
 Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The tubes rest in open cradles and zip ties over them carry the tray, so nothing has to flex.
@@ -69,18 +69,18 @@ Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The 
 | Hardware | Use |
 |---|---|
 | 4 × M3 × 16 with nuts | Up through the floor and the deck posts; the nut goes on top of the deck |
-| 4 × M3 × 12 | Up through the floor into the 17 mm standoffs under the logic board |
+| 4 × M3 × 12 | Up through the floor and the power board into the bottom of Stack 2's 17 mm female–female standoffs |
 | 4 × M3 × 8 with nuts | PDB to the deck pillars; the nuts slide into the slots near the pillar tops |
 | M3 washers | Under every screw head and nut |
 | 6 × 4.8 mm zip ties | Two per cradle, over the tubes |
 | 3–4 small zip ties | Fuse holder and wires, through the tie slots in the floor |
 | 1 mm double-sided foam tape | Under the BMS |
 
-1. Push the eight floor screws up through the floor (four for the deck posts, four for Stack 2), each with a washer under its head.
+1. Push the four deck-post screws up through the floor and the posts, each with a washer under its head.
 2. Solder the pack, balance and output wires to the BMS, stick it into its pocket on foam tape, and tie the wires down through the slots next to its ends.
 3. Lower the deck over the four post screws and fit a washer and nut on each. The BMS pad ends stay uncovered.
 4. Slide an M3 nut into each pillar slot, then screw the PDB on with its XT60 pointing to the right. Route the fuse loop between the deck and the PDB and tie the fuse holder down in the gap between the stacks.
-5. Screw Stack 2's power board onto the four Stack 2 screws through its bottom standoffs, then build the rest of Stack 2 as under [Assembly](#assembly).
+5. Build Stack 2 completely off the tray, as under [Assembly](#assembly), with female–female 17 mm standoffs: the link wires are soldered on the power board's back, which faces the floor once it is on the tray. Then stand it on the four bosses and drive the four M3 × 12 screws, with washers, up from under the floor into the standoffs.
 6. Hold the tray up under the tubes, with Stack 1 towards the blue base, and fit two zip ties per cradle: in at the cradle's inner face, through the tunnel, up the outer face, over the tube and back.
 
 PLA slowly gives way under constant pressure, so tighten the screws only until snug.
