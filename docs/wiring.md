@@ -95,7 +95,7 @@ With the controller boards, pad pair 3 feeds the power board's battery input (J1
 
 The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.
 
-- **Stack 1, behind the base:** the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 50 mm with the XT60 tab). The BMS P− and the pack + leave the stack through the fuse and the XT60 and come back into the PDB, so the XT60 stays within reach as the power switch.
+- **Stack 1, behind the base:** the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 43 mm with the battery tab). The PDB's board XT60 is left off, as the battery plug on top of the upright connector would reach into the turret's sweep. Instead a male XT60 pigtail on the tab's pads meets the female pigtail from the fuse and the BMS P− just outside the right-hand tube, each tied to the tube, so the pair stays within reach as the power switch.
 - **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 41 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
 - Both stacks sit in one printed [stack tray](../hardware/turret-pdb/README.md#stack-tray) that hangs under the tubes on zip ties.
 
@@ -236,7 +236,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | Inline mini blade (ATM) fuse holder, 14 AWG leads | |
 | 2 | 25 A mini blade fuse | One spare. Never go above 30 A on 14 AWG |
 | 1 | DPST toggle or key switch, ≥3 A DC | Arm switch |
-| 1 | XT60 connector pair | Battery to turret, also the power switch. An anti-spark XT60 if the BMS trips on plug-in |
+| 1 | XT60 pigtail pair, 14 AWG, about 10 cm | Battery to turret, also the power switch: the male on the PDB's tab pads, the female after the fuse and BMS P−. An anti-spark XT60 if the BMS trips on plug-in |
 | 1 | Resistors 39 kΩ, 8.2 kΩ (1 %), 100 nF capacitor | Battery divider |
 | 1 | IR LED, IR phototransistor, 330 Ω, 10 kΩ | Light gate |
 | 1 | TFmini Plus | Step 3 |

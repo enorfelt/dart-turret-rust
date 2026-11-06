@@ -17,7 +17,7 @@ class Envelope(unittest.TestCase):
     def test_heights(self):
         e = tray.envelope()
         expected = {"tube_top": 42.0, "tie_top": 43.5, "power_board_bottom": 27.0, "logic_bottom": 46.0,
-                    "esp_top": 65.0, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "xt60_top": 67.6}
+                    "esp_top": 65.0, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "pdb_top": 52.6}
         for k, v in expected.items():
             self.assertAlmostEqual(e[k], v, places=6, msg=k)
 
@@ -31,8 +31,8 @@ class Envelope(unittest.TestCase):
     def test_esp_above_ceiling(self):
         self.assertFlags("ESP", esp_above_logic=29.0)
 
-    def test_xt60_above_ceiling(self):
-        self.assertFlags("XT60", pdb_bottom=56.0)
+    def test_pdb_above_ceiling(self):
+        self.assertFlags("PDB parts", pdb_bottom=72.0)
 
     def test_pdb_on_ties(self):
         self.assertFlags("zip ties", pdb_bottom=44.0)

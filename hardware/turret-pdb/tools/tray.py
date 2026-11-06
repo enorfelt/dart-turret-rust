@@ -51,7 +51,7 @@ TRAY = {
     "pillar_d": 10.0,
     "pdb_bottom": 47.0,
     "pdb_t": 1.6,
-    "xt60_h": 19.0,
+    "pdb_parts_h": 4.0,
     "min_tie_gap": 1.0,
     "nut_slot": (5.9, 2.6, 3.0),
     "nut_stop": 3.3,
@@ -75,14 +75,14 @@ def envelope(t=TRAY):
                     + t["mosfet_h"]),
         "deck_bottom": t["deck_bottom"],
         "pdb_bottom": t["pdb_bottom"],
-        "xt60_top": t["pdb_bottom"] + t["pdb_t"] + t["xt60_h"],
+        "pdb_top": t["pdb_bottom"] + t["pdb_t"] + t["pdb_parts_h"],
     }
 
 
 def check_envelope(t=TRAY):
     e = envelope(t)
     problems = []
-    for key, name in (("esp_top", "ESP"), ("xt60_top", "XT60"), ("tie_top", "zip ties over the tubes")):
+    for key, name in (("esp_top", "ESP"), ("pdb_top", "PDB parts"), ("tie_top", "zip ties over the tubes")):
         if e[key] > t["ceiling"]:
             problems.append(f"{name} top at z = {e[key]:.1f} is above the {t['ceiling']:.0f} mm ceiling")
     if e["pdb_bottom"] - e["tie_top"] < t["min_tie_gap"]:

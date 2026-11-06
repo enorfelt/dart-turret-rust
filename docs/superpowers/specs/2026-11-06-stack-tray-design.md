@@ -9,7 +9,7 @@ The [board stack spec](2026-10-22-turret-board-stack-design.md) left the holders
 - One tray and one deck, printed in PLA without supports, fastened with M3 screws, nuts and washers only. The tray has no nut traps.
 - The tray hangs under the two 12 mm tubes in cradles, held up by two zip ties per cradle. Nothing has to flex, so PLA does not crack.
 - Nothing rises above 75 mm from the floor, where the turret sweeps.
-- The BMS pads and the PDB pads stay reachable for soldering with everything mounted, and the XT60 stays reachable from the side as the power switch.
+- The BMS pads and the PDB pads stay reachable for soldering with everything mounted, and the XT60 pair stays reachable from the side as the power switch.
 - The Stack 2 mounting holes come from `tools/stack.py`, so a board change moves them.
 
 ## Measured frame and parts
@@ -20,18 +20,19 @@ The [board stack spec](2026-10-22-turret-board-stack-design.md) left the holders
 | Space above | Nothing above 75 mm; nothing outside the tubes behind the blue base |
 | Tube length | Free, cut to suit |
 | BMS | 4S 40 A, 61 × 46 mm, about 5 mm thick (1.6 mm board, tallest MOSFET 3.35 mm), flat underneath, no mounting holes. Pads on the two 46 mm ends: B3 (12.6 V), B2 (8.4 V) and B− (0 V) on one; B+ (16.8 V), P+, P− and B1 (4.2 V) on the other |
-| PDB | Matek PDB-XT60 or clone, 1.6 mm, flat underneath, 4 × M3 on about 30 × 30 mm. The XT60 lies on the tab with its mating face pointing out horizontally and stands about 19 mm above the board |
+| PDB | Matek PDB-XT60 or clone, 1.6 mm, flat underneath, parts up to 4 mm tall, 4 × M3 on about 30 × 30 mm. Its XT60 stands upright on the battery tab, which with the battery plug on top would reach about 90 mm, so it is left off and a male XT60 pigtail is soldered to the tab's pads |
 
 ## Coordinates
 
-x across the tubes (0 on the centre line, + towards the XT60 side), y along the tubes from the rear face of the blue base towards the rear, z up from the floor.
+x across the tubes (0 on the centre line, + towards the battery tab side), y along the tubes from the rear face of the blue base towards the rear, z up from the floor.
 
 ## Layout
 
 ```
  side view (z)
  75 ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ceiling
- ~68           ┌XT60┐               ~65 ESP top
+ 65                                   ┌─ ESP ─┐ top
+ 53            ┌parts─┐
  47            ├─PDB──┐ pillars       ┌──── logic board ───┐ 46
  42 ═══════════╪══════╪══════════════════════════════════════ tube top
  30 ═══════════╪deck══╪══════════════════════════════════════ tube bottom
@@ -59,8 +60,8 @@ A hook that wraps over a tube from below cannot be printed flat without supports
 
 - A flat 3 mm bar, x ±24, y 5–67, z 30–33, on the four posts. Its underside is about 2 mm above the MOSFETs (BMS top at about z = 28 on the foam), it keeps the PDB's underside away from the BMS, and it leaves both BMS pad ends open. Three vent slots over the MOSFETs, matching the floor's.
 - Four pillars, 10 mm across, z 33–47, on a 30.25 mm square centred on (0, 36), with 3.6 mm holes, so an M3 screw goes through on a PDB with either a 30 or a 30.5 mm pattern. A sideways slot for an M3 nut, 5.9 × 2.6 mm, opening outwards and ending 3.3 mm past the screw axis so the nut's leading corner stops it centred, sits 3 mm below each top; M3 × 8 screws hold the PDB. The PDB's underside is at z = 47, 3.5 mm above the zip ties.
-- The PDB's XT60 tab points to +x, out over the tube between the front and middle cradles, so the mated plug clears the tube and is reached from the side. Its top lands at about z = 68.
-- The ⊕/⊖ leads and the fuse loop run in the 14 mm between deck and PDB, and the battery-side XT60 plug comes back in on the +x side, where P+ and P− are.
+- The PDB's battery tab points to +x, towards the tube between the front and middle cradles. Its parts top out at about z = 52.6.
+- The male XT60 pigtail from the tab and the female pigtail from the fuse and BMS P− meet just outside the +x tube, each tied to the tube so pulling them apart, two-handed, never loads the solder pads. The ⊕/⊖ leads and the fuse loop run in the 14 mm between deck and PDB.
 - Prints bar down, pillars up.
 
 ## Tooling
@@ -72,8 +73,8 @@ Before writing anything, `tray.py` checks and stops on failure:
 - Every part is watertight and in one piece.
 - A failed check also removes the tray STLs left from an earlier run, so a stale file is never printed.
 - The tubes fit the cradles, and nothing of the tray is in the space Stack 2 takes.
-- The tops of the ESP (logic board underside from `stack.GAP`, plus the board and 17 mm of ESP on its sockets), the PDB with its XT60, and the zip ties are all below 75 mm.
-- The PDB's underside, and so the XT60, clears the zip ties over the tubes.
+- The tops of the ESP (logic board underside from `stack.GAP`, plus the board and 17 mm of ESP on its sockets), the PDB's parts, and the zip ties are all below 75 mm.
+- The PDB's underside clears the zip ties over the tubes.
 - The deck's underside is at least 1.5 mm above the BMS MOSFETs.
 - The Stack 2 outline at the power board's height fits between the tubes, and the logic board clears the tube tops.
 - The Stack 2 bosses sit on the `stack.py` holes.

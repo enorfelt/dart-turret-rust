@@ -28,7 +28,7 @@ The electronics sit between the two frame tubes (about 75 mm apart) behind the b
 
 | Layer | Part | Size | Mounting |
 |---|---|---|---|
-| Top | Quadcopter PDB with XT60 (Matek PDB-XT60 clone) | about 36 × 50 mm including the XT60 tab; 1.6 mm, flat underneath; the XT60 stands about 19 mm above the board | 4 × M3 on 30–30.5 mm, on the deck's pillars, XT60 pointing out over the right-hand tube |
+| Top | Quadcopter PDB (Matek PDB-XT60 clone), without its board XT60 | about 36 × 43 mm including the battery tab; 1.6 mm, flat underneath; parts up to about 4 mm tall | 4 × M3 on 30–30.5 mm, on the deck's pillars, battery tab pointing to the right-hand tube |
 | Bottom | 4S 40 A BMS | 61 × 46 mm, about 5 mm thick; pads on the two 46 mm ends | No holes; on foam tape in the tray's pocket |
 
 **Stack 2** is these two boards on four M3 standoffs: the power board at the bottom, the logic board on top, with the ESP's antenna end pointing to the rear.
@@ -74,14 +74,16 @@ Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The 
 | M3 washers | Under every screw head and nut |
 | 6 × 4.8 mm zip ties | Two per cradle, over the tubes |
 | 3–4 small zip ties | Fuse holder and wires, through the tie slots in the floor |
+| 2 small zip ties | Each XT60 pigtail's leads to the right-hand tube |
 | 1 mm double-sided foam tape | Under the BMS |
 
 1. Push the four deck-post screws up through the floor and the posts, each with a washer under its head.
 2. Solder the pack, balance and output wires to the BMS, stick it into its pocket on foam tape, and tie the wires down through the slots next to its ends.
 3. Lower the deck over the four post screws and fit a washer and nut on each. The BMS pad ends stay uncovered.
-4. Slide an M3 nut into each pillar slot, then screw the PDB on with its XT60 pointing to the right. Route the fuse loop between the deck and the PDB and tie the fuse holder down in the gap between the stacks.
+4. Leave the PDB's own XT60 off: standing upright on the tab, the battery plug on top of it would reach about 90 mm, into the turret's sweep. Solder a male XT60 pigtail (14 AWG, about 10 cm) to the tab's + and − pads instead. Slide an M3 nut into each pillar slot, then screw the PDB on with its tab pointing to the right. Route the fuse loop between the deck and the PDB and tie the fuse holder down in the gap between the stacks.
 5. Build Stack 2 completely off the tray, as under [Assembly](#assembly), with female–female 17 mm standoffs: the link wires are soldered on the power board's back, which faces the floor once it is on the tray. Then stand it on the four bosses and drive the four M3 × 12 screws, with washers, up from under the floor into the standoffs.
 6. Hold the tray up under the tubes, with Stack 1 towards the blue base, and fit two zip ties per cradle: in at the cradle's inner face, through the tunnel, up the outer face, over the tube and back.
+7. Bring the PDB's male pigtail and the female pigtail from the fuse and BMS out past the right-hand tube, between the front and middle cradles, and zip-tie each one's leads to the tube so the connectors hang free just outside it. To switch off, hold one connector in each hand and pull them apart; the ties keep the pull off the solder pads.
 
 PLA slowly gives way under constant pressure, so tighten the screws only until snug.
 
