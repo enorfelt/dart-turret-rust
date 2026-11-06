@@ -52,13 +52,13 @@ A hook that wraps over a tube from below cannot be printed flat without supports
 - **Stack 2 bosses:** four, at the `stack.py` hole positions with the board's front-left corner at (x −35, y 68): 7 mm across, 4 mm tall (z 23–27), with a 3.4 mm hole through the boss and floor. An M3 × 12 screw from under the tray goes up into the female thread of each 17 mm standoff, clamping the power board. The power board's underside sits at z = 27, below the tubes, with room for its pin tails.
 - **BMS pocket:** 61.6 × 46.6 mm, 1 mm deep (z 22–23), centred on x = 0, y = 31, long side across the tubes. The BMS sits on 1 mm double-sided foam tape in it, which holds it and damps vibration. Three 4 × 40 mm vent slots through the floor at y 21, 31 and 41.
 - **Deck posts:** four, 7 mm across, z 23–30, at x ±20, y 3.5 and 58.5, just in front of and behind the BMS, with a 3.4 mm hole through post and floor. An M3 × 16 screw from under the tray goes up through the post and the deck and takes a washer and nut on top of the deck, so the deck comes off from above.
-- **Tie-down slots:** pairs of 2.5 × 5 mm slots through the floor, 8 mm apart: one pair at x ±5, y 63 in the USB gap for the fuse holder and the 14 AWG loop, which is also where the ESP's USB cable comes in from the side; one pair at each BMS pad end, at x ±37, y 27 and 35.
+- **Tie-down slots:** pairs of 2.5 × 5 mm slots through the floor, 8 mm apart: one pair at x ±4, y 63 in the USB gap for the fuse holder and the 14 AWG loop, which is also where the ESP's USB cable comes in from the side; one pair at each BMS pad end, at x ±37, y 27 and 35.
 - Nothing on the tray is near the ESP antenna except the rear cradles beside the tubes.
 
 ### Deck
 
 - A flat 3 mm bar, x ±24, y 0–62, z 30–33, on the four posts. Its underside is about 2 mm above the MOSFETs (BMS top at about z = 28 on the foam), it keeps the PDB's underside away from the BMS, and it leaves both BMS pad ends open. Three vent slots over the MOSFETs, matching the floor's.
-- Four pillars, 8 mm across, z 33–47, on a 30.5 mm square centred on (0, 31), with 3.4 mm holes so a 30 or 30.5 mm PDB fits. A sideways slot for an M3 nut, 5.7 × 2.6 mm, opening outwards, sits 3 mm below each top; M3 × 8 screws hold the PDB. The PDB's underside is at z = 47, 3.5 mm above the zip ties.
+- Four pillars, 8 mm across, z 33–47, on a 30.25 mm square centred on (0, 31), with 3.6 mm holes, so an M3 screw goes through on a PDB with either a 30 or a 30.5 mm pattern. A sideways slot for an M3 nut, 5.7 × 2.6 mm, opening outwards, sits 3 mm below each top; M3 × 8 screws hold the PDB. The PDB's underside is at z = 47, 3.5 mm above the zip ties.
 - The PDB's XT60 tab points to +x, out over the tube between the front and middle cradles, so the mated plug clears the tube and is reached from the side. Its top lands at about z = 68.
 - The ⊕/⊖ leads and the fuse loop run in the 14 mm between deck and PDB, and the battery-side XT60 plug comes back in on the +x side, where P+ and P− are.
 - Prints bar down, pillars up.
