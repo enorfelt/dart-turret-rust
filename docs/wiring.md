@@ -49,7 +49,7 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 ```
 
 - The XT60 is the power switch: unplug it to turn the turret off. At 4S the spark from the ESC input capacitors is small; plug in quickly and firmly, without wiggling.
-- The ESC capacitor inrush on plug-in can trip the BMS short-circuit protection. Plug in a few times on the bench; if the turret ever stays dark, use a BMS that recovers by itself or an anti-spark XT60 with a pre-charge resistor.
+- The ESC capacitor inrush on plug-in can trip the BMS short-circuit protection. Plug in a few times on the bench. If the turret stays dark, the BMS has latched off: plug the charger into the pack for a moment to unlock it (see [Charging](#charging)). If it trips often, use an anti-spark XT60 with a pre-charge resistor.
 - The fuse goes as close to the battery + as possible, on the pack side of the XT60, so it protects everything downstream.
 - The + and − buses are a quadcopter power distribution board (PDB). Every + pad on it is the same copper, and so is every − pad, so each lead in the PDB pads table below can go on any pad of the right polarity. Soldered copper adds well under 1 mΩ and does not loosen from flywheel vibration.
 - Without a PDB, use two Wago 221-415 lever connectors per rail, joined by a short 14 AWG jumper. Each rail has six leads (feed, two ESCs, three bucks) and a 221-415 takes five. Solder the 26 AWG divider wires to a buck input lead instead, as they are below the Wago's minimum. Do not use screw terminals on bare stranded wire, as they loosen under vibration.
@@ -95,13 +95,13 @@ With the controller boards, pad pair 3 feeds the power board's battery input (J1
 
 The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.
 
-- **Stack 1, behind the base:** the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 43 mm with the battery tab). The PDB's board XT60 is left off, as the battery plug on top of the upright connector would reach into the turret's sweep. Instead a male XT60 pigtail on the tab's pads meets the female pigtail from the fuse and the BMS P− just outside the right-hand tube, each tied to the tube, so the pair stays within reach as the power switch.
+- **Stack 1, behind the base:** the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 43 mm with the battery tab). The PDB's board XT60 is left off, as the battery plug on top of the upright connector would reach into the turret's sweep. Instead a male XT60 pigtail on the tab's pads meets the female pigtail from the fuse and the BMS P− just outside the right-hand tube, each tied to the tube, so the pair stays within reach as the power switch. The balance plug from the BMS is tied next to the female pigtail, so the pack charges there without taking the cells out.
 - **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 41 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
 - Both stacks sit in one printed [stack tray](../hardware/turret-pdb/README.md#stack-tray) that hangs under the tubes on zip ties.
 
 ## Battery pack
 
-The printed holder takes the four cells as two stacks of two, lying front to back. The covers hold contact plates, so the plates make the series links and no wire runs between cells. The cells come out for charging in a standalone 18650 charger, which charges each cell to 4.2 V on its own, so the pack needs no balance lead.
+The printed holder takes the four cells as two stacks of two, lying front to back. The covers hold contact plates, so the plates make the series links and no wire runs between cells. The cells charge in place, through the pack-side XT60 and a balance lead from the BMS (see [Charging](#charging)), so they only come out to be replaced.
 
 Back cover (seen from behind), front cover (seen from the front):
 
@@ -127,6 +127,7 @@ The drawing assumes the long channel in the back cover sits over the bottom row.
 | B3 | Front-right bridge | BMS B3 | 26 |
 | Back bridge link | Flat plate on C2 | Spring plate on C3 | 14, or nickel strip ≥8 mm wide and 0.3 mm thick (two layers of 0.15 mm) |
 | Output − | BMS P− | XT60 −, then the − bus | 14 |
+| Balance lead | BMS B−, B1, B2, B3, B+ | JST-XH 5-pin plug, pins 1–5 in that order | 22–26 |
 
 - The BMS sits in Stack 1 behind the blue base (see [Where it sits](#where-it-sits)), so the pack leads and B1–B3 run from the battery covers out of the base to it. Strain-relieve them where they leave the base and again at the BMS, and keep them clear of the pan axis.
 - Pack leads and B2 leave through the hole in the back cover. The front cover has no hole: drill a 3 mm hole or file a notch for B1 and B3, and run them back along the frame.
@@ -138,8 +139,23 @@ The drawing assumes the long channel in the back cover sits over the bottom row.
 - Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses `arm` and reports a battery fault.
 - Use unprotected flat-top or button-top high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.
 - The 8 contacts in the chain are the weak point: at a 35 A spin-up peak, about 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA rather than PLA, and measure the drop across a contact during a spin-up; more than about 0.1 V means that contact needs attention.
-- Charge all four cells together and put them back as a set. Store them at about 3.7 V per cell.
-- With the cells removed, the BMS sees no pack. Some BMS boards stay latched off afterwards until a charger is connected to P+/P−; prefer one that recovers by itself.
+- If a cell ever comes out, charge all four together in a standalone charger and put them back as a set. With the cells removed the BMS sees no pack and latches off; the charger unlocks it.
+
+### Charging
+
+The BMS is common-port: the charger and the turret share its P+/P−, so a charger plugged into the pack-side female XT60 charges the pack through the BMS. The balance lead lets the charger measure and balance each cell, which the series pack needs once the cells no longer charge one by one.
+
+1. Unplug the XT60 pair. The turret is now off, so it cannot be armed while charging.
+2. Plug the charger's XT60 lead into the pack-side female XT60 and the balance plug into the charger's 4S balance port.
+3. Charge at 1–1.5 A in the mode that stops at 4.20 V per cell. On most hobby chargers that is LiPo; their LiIon mode stops at 4.10 V, which is also safe and gives a little less runtime. Never use LiHV (4.35 V).
+4. Unplug the charger and plug the XT60 pair back together.
+
+- Before the first charge, measure the balance plug with a multimeter: each pin should read 3–4.2 V above the one before it, from pin 1 (B−). The Gebildet board labels its tap pads 0V, 4.2V, 8.4V, 12.6V and 16.8V; 16.8V is B+ and the same pad as P+.
+- The charger stops the charge. The BMS overcharge cut-off at about 4.25 V per cell is only the backup.
+- Charge on a non-flammable surface and stay nearby.
+- The balance lead has no fuse. Keep its plug capped or clipped next to the XT60 so its pins cannot short against the frame or the connectors.
+- Before leaving the turret for more than a few weeks, use the charger's storage mode (about 3.8 V per cell).
+- The board latches off after a short-circuit or over-current trip, and when it first sees cells. Connecting the charger for a moment unlocks it.
 
 ## Battery guard (firmware)
 
@@ -222,13 +238,14 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | Standard-size positional RC servo (metal gear) | Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, stalls at about 2.5 A. Not a continuous-rotation (360°) servo, which has no position feedback |
 | 1 | 1000 µF ≥16 V low-ESR electrolytic capacitor | Across the pusher servo's supply, at the servo |
 | 4 | High-drain 18650 cell | e.g. Molicel P28A (35 A); Samsung 30Q (15 A) is the minimum |
-| 1 | 4S BMS, ≥30 A continuous, about 61 × 46 mm | Over-discharge and short protection. No balancing needed, as the cells are charged out of the holder; prefer one that recovers by itself when cells are reinserted |
+| 1 | 4S BMS, common port, ≥30 A continuous, about 61 × 46 mm | Over-discharge, overcharge and short protection; common port, so the charger and the turret share P+/P−. Built with a Gebildet E1689 (4S 40A "Enhanced"); its own balancing is not relied on, as the charger balances |
 | 1 | Printed 2×2 battery holder and covers | From the original; print the covers in PETG or ASA |
 | 2 | 18650 double contact plate, spring + button | Front cover bridges, one per stack. Match the plate's cell pitch to the holder's stack spacing; nickel-plated steel at least 0.3 mm, or phosphor bronze |
 | 1 | 18650 spring plate + 1 button plate, joined with 14 AWG or nickel strip | Back cover bridge across the two stacks. Use one double plate instead if one matches that span |
 | 1 | 18650 single spring plate | Back cover, pack − |
 | 1 | 18650 single button plate | Back cover, pack + |
-| 1 | 4-bay Li-ion charger, 4.2 V per cell | e.g. Nitecore or XTAR; charges each cell separately |
+| 1 | Hobby balance charger, 1–6S, built-in AC supply | e.g. ToolkitRC M6AC or ISDT 608AC. Needs a mode that stops at 4.20 V per cell, a 4S JST-XH balance port and a male XT60 output lead |
+| 1 | 4S JST-XH balance lead, 22 AWG silicone, about 10 cm | Soldered to the BMS tap pads. Half of a 4S balance extension works: keep the end that plugs into the charger |
 | 1 | Buck converter 7.5 V, ≥5 A | e.g. Pololu D36V50F7, or an adjustable XL4015 5 A set to 7.5 V |
 | 1 | Buck converter 6 V, ≥3 A | e.g. Pololu D36V28F6. An MP1584 module (3 A peak) handles normal pushes with the 1000 µF capacitor, but overheats and cuts out during a sustained stall; lock its trim pot after setting it, as above 7.2 V the MG996R is damaged |
 | 1 | Buck converter 5 V, ≥2 A | e.g. Pololu D36V28F5, or an MP1584 set to 5 V |

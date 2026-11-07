@@ -53,6 +53,9 @@ class Envelope(unittest.TestCase):
         with mock.patch.object(stack, "GAP", 30.0):
             self.assertTrue(any("ESP" in p for p in tray.check_envelope()))
 
+    def test_tunnel_roof_in_bore(self):
+        self.assertFlags("tunnel", tunnel=(5.0, 2.0, 25.0))
+
     def test_front_cradle_ties_clear_bms(self):
         self.assertFlags("BMS", bms_y=31.0)
 
@@ -67,7 +70,7 @@ class Tray(unittest.TestCase):
         self.assertEqual(len(self.m.decompose()), 1)
 
     def test_extent(self):
-        for got, want in zip(self.m.bounding_box(), (-51, 0, 20, 51, tray.TRAY["length"], 36)):
+        for got, want in zip(self.m.bounding_box(), (-53, 0, 20, 53, tray.TRAY["length"], 36)):
             self.assertAlmostEqual(got, want, places=3)
 
     def test_parts_check_passes(self):
@@ -79,12 +82,18 @@ class Tray(unittest.TestCase):
 
     def test_cradles(self):
         for y0 in tray.TRAY["cradles_y"]:
-            for x in (-42, 42):
+            for x in (-44, 44):
                 self.assertTrue(solid_at(self.m, x, y0 + 6, 29.5))
                 self.assertFalse(solid_at(self.m, x, y0 + 6, 31))
                 for ty in (3, 9):
-                    self.assertFalse(solid_at(self.m, x, y0 + ty, 26))
+                    self.assertFalse(solid_at(self.m, x, y0 + ty, 24))
+                    self.assertFalse(solid_at(self.m, x, y0 + ty, 27.8))
+                    self.assertTrue(solid_at(self.m, x, y0 + ty, 28.2))
+                    for dy in (-2.3, 2.3):
+                        self.assertFalse(solid_at(self.m, x, y0 + ty + dy, 25.4))
+                        self.assertTrue(solid_at(self.m, x, y0 + ty + dy, 25.9))
                 self.assertTrue(solid_at(self.m, x, y0 + 6, 26))
+                self.assertTrue(solid_at(self.m, x, y0 + 3, 23.3))
 
     def test_bosses_on_stack_holes(self):
         for hx, hy in stack.HOLES:
@@ -144,6 +153,14 @@ class Deck(unittest.TestCase):
             sx = 1 if x > 0 else -1
             self.assertFalse(solid_at(self.m, x + sx * 3.0, y, 42.7))
             self.assertTrue(solid_at(self.m, x + sx * 3.0, y, 39.0))
+
+    def test_nut_slot_is_3_mm_tall(self):
+        for x, y in tray.pillars(tray.TRAY):
+            sx = 1 if x > 0 else -1
+            for z in (41.1, 43.9):
+                self.assertFalse(solid_at(self.m, x + sx * 3.0, y, z))
+            for z in (40.85, 44.15):
+                self.assertTrue(solid_at(self.m, x + sx * 3.0, y, z))
 
     def test_nut_slot_centres_the_nut(self):
         for x, y in tray.pillars(tray.TRAY):

@@ -16,7 +16,7 @@ The [board stack spec](2026-10-22-turret-board-stack-design.md) left the holders
 
 | What | Value |
 |---|---|
-| Frame tubes | 12 mm, 72 mm clear between them (centres at x = ±42), bottoms 30 mm above the floor |
+| Frame tubes | 12 mm, 76 mm clear between them, measured (centres at x = ±44), bottoms 30 mm above the floor |
 | Space above | Nothing above 75 mm; nothing outside the tubes behind the blue base |
 | Tube length | Free, cut to suit |
 | BMS | 4S 40 A, 61 × 46 mm, about 5 mm thick (1.6 mm board, tallest MOSFET 3.35 mm), flat underneath, no mounting holes. Pads on the two 46 mm ends: B3 (12.6 V), B2 (8.4 V) and B− (0 V) on one; B+ (16.8 V), P+, P− and B1 (4.2 V) on the other |
@@ -48,8 +48,8 @@ A hook that wraps over a tube from below cannot be printed flat without supports
 
 ### Tray
 
-- **Floor:** 3 mm, z 20–23, x ±51 (under both tubes), y 0–155.
-- **Cradles:** three pairs, at y 0–12, 60–72 and 143–155, where no board sits next to the tubes, and the BMS starts at least 1 mm behind the front cradle so its tie tunnels open beside nothing. Each is a block from the floor up to the tube centre (z 36), x ±(33–51), with a 12.2 mm bowl the tube lies in, so its sides locate the tube both ways. Two tie tunnels, 5 mm along y and 2 mm tall at z 25–27, run across each block under the bowl, at y 3 and 9 within the cradle. A tie goes in at the block's inner face, through the tunnel, up the outer face, over the tube and back down. The ties top out at about z = 43.5.
+- **Floor:** 3 mm, z 20–23, x ±53 (under both tubes), y 0–155.
+- **Cradles:** three pairs, at y 0–12, 60–72 and 143–155, where no board sits next to the tubes, and the BMS starts at least 1 mm behind the front cradle so its tie tunnels open beside nothing. Each is a block from the floor up to the tube centre (z 36), x ±(35–53), with a 12.2 mm bowl the tube lies in, so its sides locate the tube both ways. Two tie tunnels, 5 mm along y, run across each block under the bowl at y 3 and 9 within the cradle. Each has straight sides at z 23.5–25.5 and a 45° pointed roof up to z 28, 1.9 mm under the bowl, so it prints without bridging; a flat roof failed to bridge in the first print. A tie goes in at the block's inner face, through the tunnel, up the outer face, over the tube and back down. The ties top out at about z = 43.5.
 - **Stack 2 bosses:** four, at the `stack.py` hole positions with the board's front-left corner at (x −35, y 73): 7 mm across, 4 mm tall (z 23–27), with a 3.4 mm hole through the boss and floor. An M3 × 12 screw from under the tray goes up into the female thread of each 17 mm female–female standoff, clamping the power board. Stack 2 is built complete before it goes on the tray, because its link wires are soldered on the power board's back. The power board's underside sits at z = 27, below the tubes, with room for its pin tails.
 - **BMS pocket:** 61.6 × 46.6 mm, 1 mm deep (z 22–23), centred on x = 0, y = 36, long side across the tubes. The BMS sits on 1 mm double-sided foam tape in it, which holds it and damps vibration. Three 4 × 40 mm vent slots through the floor at y 26, 36 and 46.
 - **Deck posts:** four, 7 mm across, z 23–30, at x ±20, y 8.5 and 63.5, just in front of and behind the BMS, with a 3.4 mm hole through post and floor. An M3 × 16 screw from under the tray goes up through the post and the deck and takes a washer and nut on top of the deck, so the deck comes off from above.
@@ -59,7 +59,7 @@ A hook that wraps over a tube from below cannot be printed flat without supports
 ### Deck
 
 - A flat 3 mm bar, x ±24, y 5–67, z 30–33, on the four posts. Its underside is about 2 mm above the MOSFETs (BMS top at about z = 28 on the foam), it keeps the PDB's underside away from the BMS, and it leaves both BMS pad ends open. Three vent slots over the MOSFETs, matching the floor's.
-- Four pillars, 10 mm across, z 33–47, on a 30.25 mm square centred on (0, 36), with 3.6 mm holes, so an M3 screw goes through on a PDB with either a 30 or a 30.5 mm pattern. A sideways slot for an M3 nut, 5.9 × 2.6 mm, opening outwards and ending 3.3 mm past the screw axis so the nut's leading corner stops it centred, sits 3 mm below each top; M3 × 8 screws hold the PDB. The PDB's underside is at z = 47, 3.5 mm above the zip ties.
+- Four pillars, 10 mm across, z 33–47, on a 30.25 mm square centred on (0, 36), with 3.6 mm holes, so an M3 screw goes through on a PDB with either a 30 or a 30.5 mm pattern. A sideways slot for an M3 nut, 5.9 × 3.0 mm (2.6 mm was too tight for a printed nut), opening outwards and ending 3.3 mm past the screw axis so the nut's leading corner stops it centred, sits 3 mm below each top; M3 × 8 screws hold the PDB. The PDB's underside is at z = 47, 3.5 mm above the zip ties.
 - The PDB's battery tab points to +x, towards the tube between the front and middle cradles. Its parts top out at about z = 52.6.
 - The male XT60 pigtail from the tab and the female pigtail from the fuse and BMS P− meet just outside the +x tube, each tied to the tube so pulling them apart, two-handed, never loads the solder pads. The ⊕/⊖ leads and the fuse loop run in the 14 mm between deck and PDB.
 - Prints bar down, pillars up.

@@ -11,19 +11,19 @@ SEGMENTS = 96
 TRAY = {
     "ceiling": 75.0,
     "tube_d": 12.0,
-    "tube_gap": 72.0,
+    "tube_gap": 76.0,
     "tube_bottom": 30.0,
     "bore_d": 12.2,
     "tie_t": 1.5,
     "floor_bottom": 20.0,
     "floor_t": 3.0,
-    "half_width": 51.0,
+    "half_width": 53.0,
     "length": 155.0,
     "cradles_y": (0.0, 60.0, 143.0),
     "cradle_len": 12.0,
-    "cradle_inner": 33.0,
+    "cradle_inner": 35.0,
     "tunnels_y": (3.0, 9.0),
-    "tunnel": (5.0, 2.0, 25.0),
+    "tunnel": (5.0, 2.0, 23.5),
     "stack2_y": 73.0,
     "boss_d": 7.0,
     "boss_h": 4.0,
@@ -53,7 +53,7 @@ TRAY = {
     "pdb_t": 1.6,
     "pdb_parts_h": 4.0,
     "min_tie_gap": 1.0,
-    "nut_slot": (5.9, 2.6, 3.0),
+    "nut_slot": (5.9, 3.0, 3.0),
     "nut_stop": 3.3,
     "tie_slot": (2.5, 5.0),
     "tie_slots": ((-4.0, 68.0, "y"), (4.0, 68.0, "y"), (-37.0, 32.0, "x"), (-37.0, 40.0, "x"),
@@ -100,6 +100,10 @@ def check_envelope(t=TRAY):
     if t["bms_y"] - t["bms"][1] / 2 < front_cradle_end + 1.0:
         problems.append(f"BMS starts within 1 mm of the front cradle's tie tunnels, "
                         f"which end at y = {front_cradle_end:.1f}")
+    bore_bottom = tube_axis(t)[1] - t["bore_d"] / 2
+    if bore_bottom - tunnel_top(t) < 1.0:
+        problems.append(f"tie tunnel roof at z = {tunnel_top(t):.1f} is within 1 mm of the cradle bore "
+                        f"at {bore_bottom:.1f}")
     if t["bore_d"] - t["tube_d"] < 0.1:
         problems.append(f"cradle bore {t['bore_d']} mm leaves under 0.1 mm around a {t['tube_d']} mm tube")
     return problems
@@ -123,6 +127,17 @@ def union(parts):
 
 def tube_axis(t):
     return t["tube_gap"] / 2 + t["tube_d"] / 2, t["tube_bottom"] + t["tube_d"] / 2
+
+
+def tunnel_top(t):
+    w, h, z0 = t["tunnel"]
+    return z0 + h + w / 2
+
+
+def tunnel(t, x0, x1, y):
+    w, h, z0 = t["tunnel"]
+    profile = [(y - w / 2, z0), (y + w / 2, z0), (y - w / 2, z0 + h), (y + w / 2, z0 + h), (y, tunnel_top(t))]
+    return Manifold.hull_points([(x, py, pz) for x in (x0, x1) for py, pz in profile])
 
 
 def floor_top(t):
@@ -166,8 +181,7 @@ def tray(t=TRAY):
             x0, x1 = sorted((s * t["cradle_inner"], s * hw))
             solid.append(box(x0, x1, y0, y1, fb, tz))
             cuts.append(ycyl(s * tx, tz, y0 - 1.0, y1 + 1.0, t["bore_d"]))
-            ty, th, tz0 = t["tunnel"]
-            cuts += [box(x0 - 1.0, x1 + 1.0, y0 + c - ty / 2, y0 + c + ty / 2, tz0, tz0 + th) for c in t["tunnels_y"]]
+            cuts += [tunnel(t, x0 - 1.0, x1 + 1.0, y0 + c) for c in t["tunnels_y"]]
     for x, y in stack2_holes(t):
         solid.append(zcyl(x, y, fb, ft + t["boss_h"], t["boss_d"]))
         cuts.append(zcyl(x, y, fb - 1.0, ft + t["boss_h"] + 1.0, t["hole_d"]))

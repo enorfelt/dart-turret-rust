@@ -13,7 +13,7 @@ Both boards are 70 × 68 mm with 4 × M3 in the same places. The minimum track w
 
 ## Where it goes on the turret
 
-The electronics sit between the two frame tubes (about 75 mm apart) behind the blue base that holds the batteries, in two stacks one behind the other. Nothing may rise above the top of the blue base, about 75 mm above the floor, because the turret sweeps that space.
+The electronics sit between the two frame tubes (76 mm apart, inner edge to inner edge) behind the blue base that holds the batteries, in two stacks one behind the other. Nothing may rise above the top of the blue base, about 75 mm above the floor, because the turret sweeps that space.
 
 ```
         front (barrel)                                   rear
@@ -61,10 +61,10 @@ One printed tray holds both stacks and hangs under the two 12 mm frame tubes, wi
 | File | Print |
 |---|---|
 | `cradle-test.stl` | One cradle with a piece of floor. Print it first and try it on a tube offcut with two ties |
-| `tray.stl` | The tray, 102 × 155 mm, floor down |
+| `tray.stl` | The tray, 106 × 155 mm, floor down |
 | `deck.stl` | The deck over the BMS, which carries the PDB, bar down |
 
-Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The tubes rest in open cradles and zip ties over them carry the tray, so nothing has to flex.
+Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The tubes rest in open cradles and zip ties over them carry the tray, so nothing has to flex. The tie tunnels through the cradles have pointed roofs, so nothing on the tray bridges.
 
 | Hardware | Use |
 |---|---|
@@ -74,16 +74,16 @@ Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The 
 | M3 washers | Under every screw head and nut |
 | 6 × 4.8 mm zip ties | Two per cradle, over the tubes |
 | 3–4 small zip ties | Fuse holder and wires, through the tie slots in the floor |
-| 2 small zip ties | Each XT60 pigtail's leads to the right-hand tube |
+| 3 small zip ties | Each XT60 pigtail's leads and the balance lead to the right-hand tube |
 | 1 mm double-sided foam tape | Under the BMS |
 
 1. Push the four deck-post screws up through the floor and the posts, each with a washer under its head.
-2. Solder the pack, balance and output wires to the BMS, stick it into its pocket on foam tape, and tie the wires down through the slots next to its ends.
+2. Solder the pack, balance and output wires and the charger's JST-XH balance lead to the BMS, stick it into its pocket on foam tape, and tie the wires down through the slots next to its ends.
 3. Lower the deck over the four post screws and fit a washer and nut on each. The BMS pad ends stay uncovered.
 4. Leave the PDB's own XT60 off: standing upright on the tab, the battery plug on top of it would reach about 90 mm, into the turret's sweep. Solder a male XT60 pigtail (14 AWG, about 10 cm) to the tab's + and − pads instead. Slide an M3 nut into each pillar slot, then screw the PDB on with its tab pointing to the right. Route the fuse loop between the deck and the PDB and tie the fuse holder down in the gap between the stacks.
 5. Build Stack 2 completely off the tray, as under [Assembly](#assembly), with female–female 17 mm standoffs: the link wires are soldered on the power board's back, which faces the floor once it is on the tray. Then stand it on the four bosses and drive the four M3 × 12 screws, with washers, up from under the floor into the standoffs.
 6. Hold the tray up under the tubes, with Stack 1 towards the blue base, and fit two zip ties per cradle: in at the cradle's inner face, through the tunnel, up the outer face, over the tube and back.
-7. Bring the PDB's male pigtail and the female pigtail from the fuse and BMS out past the right-hand tube, between the front and middle cradles, and zip-tie each one's leads to the tube so the connectors hang free just outside it. To switch off, hold one connector in each hand and pull them apart; the ties keep the pull off the solder pads.
+7. Bring the PDB's male pigtail and the female pigtail from the fuse and BMS out past the right-hand tube, between the front and middle cradles, and zip-tie each one's leads to the tube so the connectors hang free just outside it. To switch off, hold one connector in each hand and pull them apart; the ties keep the pull off the solder pads. Tie the balance lead the same way, with its plug next to the female pigtail, for [charging](../../docs/wiring.md#charging).
 
 PLA slowly gives way under constant pressure, so tighten the screws only until snug.
 
