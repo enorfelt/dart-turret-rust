@@ -135,10 +135,15 @@ The drawing assumes the long channel in the back cover sits over the bottom row.
 - Solder to the plate tabs before the plates go into the covers, with the cells out. Nickel-plated steel takes solder with a hot iron and flux.
 - Let the cover slots locate the plates; test-fit a plate before gluing. Then fix them with 2-part epoxy on the edges and tabs only, never on the contact face or the spring coils. Avoid hot glue, which softens near 60 °C, and superglue, which cracks with repeated cell swaps. Heat-staking the plate over a printed pin also works.
 - Strain-relieve every wire on the cover a few cm from its solder joint, with a zip tie through a printed loop or epoxy over the wire. Pulled wires are what tear plates loose.
+- The holder's pockets are 19.2 mm across at a 19.0 mm pitch within a stack, and its body is 65.0 mm long. The front cover's plate recess is 10.1 × 30.5 mm and 2.1 mm deep. With 65.2 mm cells, 0.3 mm plates and a back recess as deep as the front one, that leaves about 3.4 mm per cell for one button dome plus one compressed spring. Check the dome height plus the spring's solid height against that before gluing; if they do not fit, the cover cannot close.
+- Keep solder joints out from under the cells, as a blob under a dome or spring lifts the plate in its 2.1 mm recess.
 - After assembly, every spring should be visibly compressed, the covers should close without bulging, and the pack should read 12.8–16.8 V.
 - Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses `arm` and reports a battery fault.
 - Use unprotected flat-top or button-top high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.
 - The 8 contacts in the chain are the weak point: at a 35 A spin-up peak, about 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA rather than PLA, and measure the drop across a contact during a spin-up; more than about 0.1 V means that contact needs attention.
+- The springs are the worst of them. 18650 spring plates are sized for the cell, not for its current: they are made for torches and power banks drawing a few amps. Until a spring is fully compressed, the current runs along the whole coil, about 10 cm of thin steel wire, so one spring can be 30–60 mΩ. Four in series sag the pack by 4–7 V at the spin-up peak and heat each spring by tens of degrees per shot, which softens it until it no longer presses.
+- Measure every spring while the pack charges at a known current: one probe on the cell's − end next to the spring, the other on its plate. At 1.5 A, 15 mV is 10 mΩ and fine; 50 mV or more means the spring needs a shunt.
+- Shunt a spring with about 3 cm of 22–20 AWG silicone wire from its top coil, the one on the cell, to its plate. Run it inside the coil with enough slack for the spring to compress fully; the wire then carries the current and the spring only presses. Solder the top coil quickly, as heat softens the spring.
 - If a cell ever comes out, charge all four together in a standalone charger and put them back as a set. With the cells removed the BMS sees no pack and latches off; the charger unlocks it.
 
 ### Charging
@@ -241,7 +246,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 4 | High-drain 18650 cell | e.g. Molicel P28A (35 A); Samsung 30Q (15 A) is the minimum |
 | 1 | 4S BMS, common port, ≥30 A continuous, about 61 × 46 mm | Over-discharge, overcharge and short protection; common port, so the charger and the turret share P+/P−. Built with a Gebildet E1689 (4S 40A "Enhanced"); its own balancing is not relied on, as the charger balances |
 | 1 | Printed 2×2 battery holder and covers | From the original; print the covers in PETG or ASA |
-| 2 | 18650 double contact plate, spring + button | Front cover bridges, one per stack. Match the plate's cell pitch to the holder's stack spacing; nickel-plated steel at least 0.3 mm, or phosphor bronze |
+| 2 | 18650 double contact plate, spring + button | Front cover bridges, one per stack. The cells in a stack are 19.0 mm apart and the recess is 10.1 × 30.5 mm, so a spring plate and a button plate cut to fit and soldered together also work; nickel-plated steel at least 0.3 mm, or phosphor bronze. Shunt every spring (see [Battery pack](#battery-pack)) |
 | 1 | 18650 spring plate + 1 button plate, joined with 14 AWG or nickel strip | Back cover bridge across the two stacks. Use one double plate instead if one matches that span |
 | 1 | 18650 single spring plate | Back cover, pack − |
 | 1 | 18650 single button plate | Back cover, pack + |

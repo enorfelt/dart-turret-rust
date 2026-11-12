@@ -222,7 +222,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <div class="eyebrow">Turret controller · Freenove ESP32-S3 WROOM · 4S1P 18650</div>
     <h1>Dart Turret Wiring</h1>
     <p class="meta">Power and signal wiring for the turret controller, with the main fuse, power switch and hardware arm switch. Matches <code>firmware/turret/src/board.rs</code> and <code>docs/wiring.md</code>. Status: proposed, not yet wired.</p>
-    <p class="meta">Two stacked copper-tape boards for this wiring, a power board and a logic board, are in <code>hardware/turret-pdb</code>. They change the level shifter channels, the light gate LED supply and where the divider and the 1000 µF sit; see the "Controller board" section of <code>wiring.md</code>, which also shows where the boards, the PDB and the BMS sit on the frame.</p>
+    <p class="meta">Two stacked copper-tape boards for this wiring, a power board and a logic board, are in <code>hardware/turret-pdb</code>. They change the power feed, the divider, the 1000 µF, the level shifter channels and the light gate LED supply; see <a href="#board-h">Controller board</a>, which also shows where the boards, the PDB and the BMS sit on the frame.</p>
   </header>
 
   <div class="legend" role="toolbar" aria-label="Highlight a rail">
@@ -242,7 +242,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <h2 id="power-h">Power</h2>
     <figure>
       <div class="scroll">
-        <svg class="diagram" viewBox="0 0 1200 730" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the XT60, which is the power switch, onto a plus and minus bus. The bus feeds both ESCs, a 7.5 V buck for the servo bus, a 6 V buck for the pusher through the arm switch with a 1000 µF capacitor at the servo, a 5 V buck for the logic, and the battery divider into GPIO 1.">
+        <svg class="diagram" viewBox="0 0 1200 730" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the XT60, which is the power switch, onto a plus and minus bus. The bus feeds both ESCs, a 7.5 V buck for the servo bus, a 6 V buck for the pusher through the arm switch with a 1000 µF capacitor at the servo, a 5 V buck for the logic and the vision board, and the battery divider into GPIO 1.">
           <!-- battery -->
           <rect class="box key" x="20" y="50" width="160" height="130" rx="6"/>
           <text class="t" x="36" y="78">Battery</text>
@@ -367,7 +367,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <rect class="box" x="620" y="532" width="150" height="56" rx="5"/>
           <text class="t" x="636" y="556">Buck 5 V</text>
           <text class="s" x="636" y="574">≥2 A</text>
-          <path class="w n-v5" stroke-width="2.5" d="M770 550 H830 M830 516 V604 M830 516 H846 M830 538 H846 M830 560 H846 M830 582 H846 M830 604 H846"/>
+          <path class="w n-v5" stroke-width="2.5" d="M770 550 H830 M830 516 V626 M830 516 H846 M830 538 H846 M830 560 H846 M830 582 H846 M830 604 H846 M830 626 H846"/>
           <circle class="dot n-v5" cx="830" cy="550" r="4"/>
           <text class="s" x="800" y="542" text-anchor="middle">22 AWG</text>
           <text class="t" x="852" y="520">ESP32-S3 5V pin</text>
@@ -377,7 +377,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <text class="t" x="852" y="608">Light gate IR LED</text>
           <path class="w n-gnd" stroke-width="2" d="M770 570 H800"/>
           <path class="sym n-gnd w" d="M800 570 v8 M791 578 h18 M794 582 h12 M797 586 h6"/>
-          <text class="s" x="852" y="630">each load's GND joins the common ground</text>
+          <text class="t" x="852" y="630">Vision board 5V pin, through the gimbal</text>
 
           <!-- divider yc=640 -->
           <path class="w n-sense" stroke-width="2" d="M510 640 H560 M620 640 H700 M760 640 H800 V650"/>
@@ -397,15 +397,16 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <text class="s" x="560" y="672">39 kΩ at the PDB VCC pad, 26 AWG to the ESP</text>
         </svg>
       </div>
-      <figcaption>Everything is downstream of the fuse and the XT60, which is the power switch. A junction dot means the wires are joined; a wire that hops over a bus is not connected to it. The ⏚ symbol means "to the − bus".</figcaption>
+      <figcaption>Everything is downstream of the fuse and the XT60, which is the power switch. A junction dot means the wires are joined; a wire that hops over a bus is not connected to it. The ⏚ symbol means "to the − bus". All grounds are common: buck outputs, ESC signal grounds, ESP, TTLinker, TFmini and vision board.</figcaption>
     </figure>
     <ul class="notes">
       <li>Unplug the XT60 to turn the turret off. At 4S the spark from the ESC capacitors is small; plug in quickly and firmly, without wiggling.</li>
-      <li>The ESC capacitor inrush on plug-in can trip the BMS short-circuit protection. Plug in a few times on the bench; if the turret ever stays dark, use a BMS that recovers by itself or an anti-spark XT60 with a pre-charge resistor.</li>
+      <li>The ESC capacitor inrush on plug-in can trip the BMS short-circuit protection. Plug in a few times on the bench. If the turret stays dark, the BMS has latched off: plug the charger into the pack for a moment to unlock it (see <a href="#charge-h">Charging</a>). If it trips often, use an anti-spark XT60 with a pre-charge resistor.</li>
       <li>Put the fuse as close to battery + as you can, on the pack side of the XT60, so it protects every wire after it.</li>
-      <li>The + and − buses are a quadcopter power distribution board (PDB). Every + pad on it is the same copper, and so is every − pad, so each lead in the table below can go on any pad of the right polarity.</li>
+      <li>The + and − buses are a quadcopter power distribution board (PDB). Every + pad on it is the same copper, and so is every − pad, so each lead in the table below can go on any pad of the right polarity. Soldered copper adds well under 1 mΩ and does not loosen from flywheel vibration.</li>
       <li>Without a PDB, use two Wago 221-415 lever connectors per rail, joined by a short 14 AWG jumper: each rail has six leads and a 221-415 takes five. Solder the 26 AWG divider wires to a buck input lead, as they are below the Wago's minimum. Do not use screw terminals on bare stranded wire; they loosen under vibration.</li>
-      <li>Solder the 39 kΩ directly to the PDB VCC pad and put the 8.2 kΩ and 100 nF next to the ESP. The 26 AWG wire then carries only the divided voltage, so a chafed wire shorted to ground draws under 0.5 mA instead of burning before the 25 A fuse blows.</li>
+      <li>Solder the 39 kΩ directly to the PDB VCC pad and put the 8.2 kΩ and 100 nF next to the ESP. The 26 AWG wire then carries only the divided voltage, so a chafed wire shorted to ground draws under 0.5 mA instead of burning before the 25 A fuse blows. The 100 nF filters noise picked up on the long wire.</li>
+      <li>The divider sits on the turret side of the XT60, so its 0.36 mA does not drain the pack while unplugged.</li>
       <li>Two stalled SC15s draw 3.4 A, so the 7.5 V buck must be rated 5 A. The original 8 V MP1584 (3 A peak) is too small.</li>
       <li>The MG996R pusher stalls at about 2.5 A and draws spikes that size each time it starts to move. Solder a 1000 µF, ≥16 V low-ESR electrolytic across its leads at the servo end, after pole A: + to the red lead, − to the brown lead. A reversed electrolytic heats up and can burst.</li>
       <li>With pole A open, the capacitor runs the servo for only a few milliseconds, far too short to push a dart, so the arm switch still cuts the pusher.</li>
@@ -430,9 +431,30 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <p class="meta">With the controller boards, pad pair 3 feeds the power board's battery input (J1, 20 AWG), pad pairs 4 and 5 are spare and the small VCC pad stays empty.</p>
   </section>
 
+  <section aria-labelledby="board-h">
+    <h2 id="board-h">Controller board</h2>
+    <p><code>hardware/turret-pdb</code> holds two stacked two-layer KiCad 10 boards, 3D printed with raised copper and covered in copper tape. The power board carries the battery input, the bench jack, the three bucks, the divider, the arm switch and pusher connections with the 1000 µF, and the servo bus and vision 5 V outputs. The logic board carries the ESP, the level shifter and every low-current connector. Five wires join them. Build, print and assembly notes are in <code>hardware/turret-pdb/README.md</code>. They change the wiring above in these ways:</p>
+    <ul class="notes">
+      <li><strong>Power feed:</strong> a single pad pair on the PDB (20 AWG) feeds the power board's battery input in place of the three buck leads (pad pairs 3–5). The ESCs stay on the PDB.</li>
+      <li><strong>12 V bench jack:</strong> the power board also accepts a 12 V adapter, for testing the gimbal and pusher without the battery. Two SB560 Schottky diodes OR the jack and the battery into the bucks, so neither back-feeds the other and the ESCs stay unpowered on the jack.</li>
+      <li><strong>Divider:</strong> on the power board at the battery input, before its diode. It measures the pack only; on the jack alone it reads as "no pack", like USB. Only the divided voltage goes up to the logic board.</li>
+      <li><strong>Pusher capacitor:</strong> the 1000 µF is at the pusher connection on the power board, not at the servo. The pusher and arm switch wires are soldered into the power board, as a plug would not fit under the logic board.</li>
+      <li><strong>Level shifter:</strong> the Adafruit 757 is mounted upside down between the ESP's socket rows, with A1/B1 for GPIO 14 → TTLinker RXD, A2/B2 for the pusher and A4/B4 for TTLinker TXD → GPIO 21. GPIOs are unchanged.</li>
+      <li><strong>Light gate:</strong> the IR LED runs from 3V3 through 150 Ω instead of 5 V through 330 Ω.</li>
+      <li><strong>7.5 V buck:</strong> all three bucks are MP1584 modules, including the 7.5 V servo bus. It is rated 3 A peak and two stalled SC15s draw 3.4 A, so it may overheat and cut out if both stall.</li>
+    </ul>
+    <h3>Where it sits</h3>
+    <p>The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.</p>
+    <ul class="notes">
+      <li><strong>Stack 1, behind the base:</strong> the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 43 mm with the battery tab). The PDB's board XT60 is left off, as the battery plug on top of the upright connector would reach into the turret's sweep. Instead a male XT60 pigtail on the tab's pads meets the female pigtail from the fuse and the BMS P− just outside the right-hand tube, each tied to the tube, so the pair stays within reach as the power switch. The balance plug from the BMS is tied next to the female pigtail, so the pack charges there without taking the cells out.</li>
+      <li><strong>Stack 2, behind Stack 1:</strong> the power board at the bottom and the logic board on top, 70 × 68 mm, about 41 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.</li>
+      <li>Both stacks sit in one printed stack tray that hangs under the tubes on zip ties; see the stack tray section of the board README.</li>
+    </ul>
+  </section>
+
   <section aria-labelledby="pack-h">
     <h2 id="pack-h">Battery pack</h2>
-    <p>The printed holder takes the four cells as two stacks of two, lying front to back. Contact plates in the covers make the series links, so no wire runs between cells. The cells come out for charging in a standalone 18650 charger that charges each cell to 4.2 V, so the pack needs no balance lead.</p>
+    <p>The printed holder takes the four cells as two stacks of two, lying front to back. Contact plates in the covers make the series links, so no wire runs between cells. The cells charge in place, through the pack-side XT60 and a balance lead from the BMS (see <a href="#charge-h">Charging</a>), so they only come out to be replaced.</p>
     <figure>
       <div class="scroll">
         <svg class="diagram" viewBox="0 0 1200 450" role="img" aria-label="Battery holder contact plates. Back cover, seen from behind: pack minus on the top-left cell, pack plus on the top-right cell, and a bridge plate joining the bottom-left and bottom-right cells with the B2 tap. Front cover, seen from the front: a bridge plate joins the two cells of each stack, carrying the B1 and B3 taps.">
@@ -508,19 +530,45 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
             <tr><td><span class="swatch" style="--c: var(--sense)"></span>B3</td><td>Front-right bridge</td><td>BMS B3</td><td class="num">26</td></tr>
             <tr><td><span class="swatch" style="--c: var(--batt)"></span>Back bridge link</td><td>Flat plate on C2</td><td>Spring plate on C3</td><td class="num">14</td></tr>
             <tr><td><span class="swatch" style="--c: var(--gnd)"></span>Output −</td><td>BMS P−</td><td>XT60 −, then the − bus</td><td class="num">14</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--sense)"></span>Balance lead</td><td>BMS B−, B1, B2, B3, B+</td><td>JST-XH 5-pin plug, pins 1–5 in that order</td><td class="num">22–26</td></tr>
           </tbody>
         </table>
       </div>
       <ul class="notes">
-        <li>The back bridge link carries the full pack current: 14 AWG, or nickel strip at least 8 mm wide and 0.3 mm thick. Lay it in the long channel of the back cover.</li>
-        <li>Solder the plate tabs before the plates go into the covers, with the cells out.</li>
-        <li>Let the cover slots locate the plates, then fix them with 2-part epoxy on the edges and tabs only, never on the contact face or the spring coils. Avoid hot glue (softens near 60 °C) and superglue (cracks with cell swaps).</li>
-        <li>Strain-relieve every wire on the cover a few cm from its solder joint. Pulled wires are what tear plates loose.</li>
-        <li>The BMS sits in a stack with the PDB behind the blue base, so the pack leads and B1–B3 run out of the base to it. Strain-relieve them where they leave the base and again at the BMS, and keep them clear of the pan axis.</li>
-        <li class="warn">Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses to arm.</li>
-        <li>Use unprotected high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.</li>
-        <li>The 8 contacts are the weak point: at a 35 A spin-up peak, 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA, and measure the drop across a contact during a spin-up; over 0.1 V needs attention.</li>
-        <li>Charge all four cells together and put them back as a set.</li>
+        <li>The BMS sits in Stack 1 behind the blue base (see <a href="#board-h">Where it sits</a>), so the pack leads and B1–B3 run from the battery covers out of the base to it. Strain-relieve them where they leave the base and again at the BMS, and keep them clear of the pan axis.</li>
+        <li>Pack leads and B2 leave through the hole in the back cover. The front cover has no hole: drill a 3 mm hole or file a notch for B1 and B3, and run them back along the frame.</li>
+        <li>The back bridge link carries the full pack current: 14 AWG, or nickel strip at least 8 mm wide and 0.3 mm thick (two layers of 0.15 mm). Lay it in the long channel of the back cover.</li>
+        <li>Solder to the plate tabs before the plates go into the covers, with the cells out. Nickel-plated steel takes solder with a hot iron and flux.</li>
+        <li>Let the cover slots locate the plates; test-fit a plate before gluing. Then fix them with 2-part epoxy on the edges and tabs only, never on the contact face or the spring coils. Avoid hot glue (softens near 60 °C) and superglue (cracks with cell swaps). Heat-staking the plate over a printed pin also works.</li>
+        <li>Strain-relieve every wire on the cover a few cm from its solder joint, with a zip tie through a printed loop or epoxy over the wire. Pulled wires are what tear plates loose.</li>
+        <li>The holder's pockets are 19.2 mm across at a 19.0 mm pitch within a stack, and its body is 65.0 mm long. The front cover's plate recess is 10.1 × 30.5 mm and 2.1 mm deep. With 65.2 mm cells, 0.3 mm plates and a back recess as deep as the front one, that leaves about 3.4 mm per cell for one button dome plus one compressed spring. Check the dome height plus the spring's solid height against that before gluing; if they do not fit, the cover cannot close.</li>
+        <li>Keep solder joints out from under the cells, as a blob under a dome or spring lifts the plate in its 2.1 mm recess.</li>
+        <li>After assembly, every spring should be visibly compressed, the covers should close without bulging, and the pack should read 12.8–16.8 V.</li>
+        <li class="warn">Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses <code>arm</code> and reports a battery fault.</li>
+        <li>Use unprotected flat-top or button-top high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.</li>
+        <li>The 8 contacts in the chain are the weak point: at a 35 A spin-up peak, about 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA rather than PLA, and measure the drop across a contact during a spin-up; more than about 0.1 V means that contact needs attention.</li>
+        <li class="warn">The springs are the worst of them. 18650 spring plates are sized for the cell, not for its current: they are made for torches and power banks drawing a few amps. Until a spring is fully compressed, the current runs along the whole coil, about 10 cm of thin steel wire, so one spring can be 30–60 mΩ. Four in series sag the pack by 4–7 V at the spin-up peak and heat each spring by tens of degrees per shot, which softens it until it no longer presses.</li>
+        <li>Measure every spring while the pack charges at a known current: one probe on the cell's − end next to the spring, the other on its plate. At 1.5 A, 15 mV is 10 mΩ and fine; 50 mV or more means the spring needs a shunt.</li>
+        <li>Shunt a spring with about 3 cm of 22–20 AWG silicone wire from its top coil, the one on the cell, to its plate. Run it inside the coil with enough slack for the spring to compress fully; the wire then carries the current and the spring only presses. Solder the top coil quickly, as heat softens the spring.</li>
+        <li>If a cell ever comes out, charge all four together in a standalone charger and put them back as a set. With the cells removed the BMS sees no pack and latches off; the charger unlocks it.</li>
+      </ul>
+    </div>
+    <h3 id="charge-h">Charging</h3>
+    <p>The BMS is common-port: the charger and the turret share its P+/P−, so a charger plugged into the pack-side female XT60 charges the pack through the BMS. The balance lead lets the charger measure and balance each cell, which the series pack needs once the cells no longer charge one by one.</p>
+    <div class="two">
+      <ol class="check">
+        <li>Unplug the XT60 pair. The turret is now off, so it cannot be armed while charging.</li>
+        <li>Plug the charger's XT60 lead into the pack-side female XT60 and the balance plug into the charger's 4S balance port.</li>
+        <li>Charge at 1–1.5 A in the mode that stops at 4.20 V per cell. On most hobby chargers that is LiPo; their LiIon mode stops at 4.10 V, which is also safe and gives a little less runtime. <span class="warn">Never use LiHV (4.35 V).</span></li>
+        <li>Unplug the charger and plug the XT60 pair back together.</li>
+      </ol>
+      <ul class="notes">
+        <li>Before the first charge, measure the balance plug with a multimeter: each pin should read 3–4.2 V above the one before it, from pin 1 (B−). The Gebildet board labels its tap pads 0V, 4.2V, 8.4V, 12.6V and 16.8V; 16.8V is B+ and the same pad as P+.</li>
+        <li>The charger stops the charge. The BMS overcharge cut-off at about 4.25 V per cell is only the backup.</li>
+        <li class="warn">Charge on a non-flammable surface and stay nearby.</li>
+        <li>The balance lead has no fuse. Keep its plug capped or clipped next to the XT60 so its pins cannot short against the frame or the connectors.</li>
+        <li>Before leaving the turret for more than a few weeks, use the charger's storage mode (about 3.8 V per cell).</li>
+        <li>The board latches off after a short-circuit or over-current trip, and when it first sees cells. Connecting the charger for a moment unlocks it.</li>
       </ul>
     </div>
     <h3>Firmware battery guard</h3>
@@ -630,7 +678,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <text class="p" x="782" y="374" text-anchor="end">B3</text>
           <text class="s" x="640" y="362" text-anchor="middle">3.3 V</text>
           <text class="s" x="823" y="362" text-anchor="middle">5 V</text>
-          <text class="s" x="735" y="342" text-anchor="middle">PWM 50 Hz, 514–847 µs · same shifter, A3/B3</text>
+          <text class="s" x="735" y="342" text-anchor="middle">PWM 50 Hz, 500–1140 µs · same shifter, A3/B3</text>
           <rect class="box" x="860" y="352" width="110" height="36" rx="5"/>
           <text class="t" x="876" y="375">Pusher servo</text>
           <text class="s" x="985" y="375">powered from 6 V through pole A</text>
@@ -690,10 +738,26 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     </figure>
     <ul class="notes">
       <li>If <code>ping 0</code> gets no answer, swap the TTLinker RXD and TXD wires. These boards do not agree on whose side the labels name.</li>
-      <li>The pusher signal goes through the shifter like in the original: some digital servos on 6 V read 3.3 V poorly and jitter. The ESCs stay on 3.3 V signals, which BLHeli reads fine.</li>
+      <li>The light gate phototransistor pulls GPIO 42 down while lit, and a dart blocking the beam lets it go high. The original wired it from 5 V, which can push more than 3.3 V into the pin; the pull-up to 3V3 avoids that.</li>
+      <li>The arm switch is the hardware arm interlock from the safety requirements. With pole A open the pusher has no power, so no dart can fire even if the flywheels spin. Pole B lets the firmware refuse <code>arm</code> while the switch is off and disarm when it is turned off.</li>
+      <li>The pusher signal goes through the shifter like in the original: most RC servos read 3.3 V as high, but some digital servos on 6 V are marginal and jitter. A BSS138 is fast enough for a 50 Hz pulse. Its 10 kΩ pull-up holds the line high until the firmware starts the PWM; servos ignore that as an invalid pulse.</li>
+      <li>The ESCs stay on 3.3 V signals, as in the original; BLHeli ESCs read them fine.</li>
       <li>BSS138 level shifters are slow. If the servo bus shows errors at 1 Mbaud, use a 74AHCT125 buffer or lower the servo baud rate.</li>
-      <li>The light gate reads low while the beam is lit and high while a dart blocks it. The original wired the phototransistor from 5 V, which can push more than 3.3 V into the pin.</li>
     </ul>
+  </section>
+
+  <section aria-labelledby="vision-h">
+    <h2 id="vision-h">Vision node</h2>
+    <p>The vision node is a second Freenove board with its camera (a GC0308 on ours) on the camera connector. It sits on the tilt stage directly above the barrel (see the sensor mounting section of <code>docs/architecture.md</code>). Only 5 V and GND run to it through the gimbal; it has no signal wires to the controller, because it talks to the phone over its own Wi-Fi and to the controller over ESP-NOW in step 5. With Wi-Fi and the camera running, it draws up to about 500 mA, well within the 5 V buck.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Function</th><th>GPIO</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Camera</td><td class="mono">XCLK 15, SIOD 4, SIOC 5, D0–D7 11, 9, 8, 10, 12, 18, 17, 16, VSYNC 6, HREF 7, PCLK 13</td><td>Freenove's (ESP32-S3-EYE) camera map, assigned in <code>firmware/vision/src/board.rs</code></td></tr>
+          <tr><td>microSD</td><td class="mono">CMD 38, CLK 39, D0 40</td><td>SDMMC 1-bit, FAT32. Holds the enrolled people; detection runs without a card</td></tr>
+        </tbody>
+      </table>
+    </div>
   </section>
 
   <section aria-labelledby="pins-h">
@@ -760,21 +824,25 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         <thead><tr><th>Qty</th><th>Part</th><th>Notes</th></tr></thead>
         <tbody>
           <tr><td class="num">1</td><td>Freenove ESP32-S3 WROOM board</td><td>Turret controller, camera left unplugged</td></tr>
+          <tr><td class="num">1</td><td>Freenove ESP32-S3 WROOM CAM board</td><td>Vision node, step 4. Ships with a GC0308 sensor; an OV2640 module fits the same connector</td></tr>
+          <tr><td class="num">1</td><td>microSD card, FAT32</td><td>Vision node: enrolled people. Any size; 1 GB is plenty</td></tr>
           <tr><td class="num">2</td><td>Waveshare SC15 serial bus servo</td><td>Pan ID 0, tilt ID 1; 4.8–8.4 V, 1.7 A stall</td></tr>
           <tr><td class="num">1</td><td>Feetech TTLinker (mini)</td><td>UART to half-duplex servo bus</td></tr>
           <tr><td class="num">1</td><td>4-channel BSS138 level shifter (Adafruit 757)</td><td>3.3 V ↔ 5 V: TTLinker on A1/B1 and A2/B2, pusher signal on A3/B3. Low side is LV and A1–A4, high side HV and B1–B4</td></tr>
-          <tr><td class="num">2</td><td>2206 2300 KV brushless motor</td><td>Original: Armattan Oomph 2206/2300 KV. Check that a substitute fits the printed mounts</td></tr>
+          <tr><td class="num">2</td><td>2206 2300 KV brushless motor</td><td>Original: Armattan Oomph 2206/2300 KV; any 2206–2207, 2300–2500 KV with a 5 mm shaft and 16×19 mm M3 mount should fit the printed mounts (check)</td></tr>
+          <tr><td class="num">1</td><td>Aluminium flat bar 12 × 2 mm, 76 mm long</td><td>Flywheel motor plate. It slides into the 11.9 × 2.7 mm channel along the bottom of the printed flywheel holder, under both motor seats; the motors sit on it and their centre-line screws pass through it. Four 3.2 mm holes on the centre line at 7.95, 26.95, 50.45 and 66.45 mm from one end (19 mm pair for the first motor, 16 mm pair for the second). File the edges if a 12 mm bar is tight; 12 × 2.5 mm also fits, 3 mm stock does not. Where only 15 × 2 mm is sold, saw and file a piece down to width. Mount the motors with M3 × 8, so no screw reaches more than about 4 mm into the motor base and its windings</td></tr>
           <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed</td></tr>
           <tr><td class="num">1</td><td>Standard-size positional metal-gear RC servo</td><td>Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, about 2.5 A stall. Not a continuous-rotation (360°) servo</td></tr>
           <tr><td class="num">1</td><td>1000 µF ≥16 V low-ESR electrolytic capacitor</td><td>Across the pusher servo's supply, at the servo</td></tr>
           <tr><td class="num">4</td><td>High-drain 18650 cell</td><td>Molicel P28A (35 A); Samsung 30Q (15 A) at minimum</td></tr>
-          <tr><td class="num">1</td><td>4S BMS, ≥30 A continuous</td><td>Over-discharge and short protection; no balancing needed. Prefer one that recovers by itself when cells are reinserted</td></tr>
+          <tr><td class="num">1</td><td>4S BMS, common port, ≥30 A continuous, about 61 × 46 mm</td><td>Over-discharge, overcharge and short protection; common port, so the charger and the turret share P+/P−. Built with a Gebildet E1689 (4S 40A "Enhanced"); its own balancing is not relied on, as the charger balances</td></tr>
           <tr><td class="num">1</td><td>Printed 2×2 battery holder and covers</td><td>From the original; covers in PETG or ASA</td></tr>
-          <tr><td class="num">2</td><td>18650 double contact plate, spring + button</td><td>Front cover, one per stack. Match the plate's pitch to the stack spacing; nickel-plated steel ≥0.3 mm, or phosphor bronze</td></tr>
+          <tr><td class="num">2</td><td>18650 double contact plate, spring + button</td><td>Front cover, one per stack. Cells 19.0 mm apart, recess 10.1 × 30.5 mm, so a spring plate and a button plate cut and soldered together also work; nickel-plated steel ≥0.3 mm, or phosphor bronze. Shunt every spring</td></tr>
           <tr><td class="num">1</td><td>18650 spring plate + button plate, joined with 14 AWG or nickel strip</td><td>Back cover bridge across the stacks; a double plate if one matches the span</td></tr>
           <tr><td class="num">1</td><td>18650 single spring plate</td><td>Back cover, pack −</td></tr>
           <tr><td class="num">1</td><td>18650 single button plate</td><td>Back cover, pack +</td></tr>
-          <tr><td class="num">1</td><td>4-bay Li-ion charger, 4.2 V per cell</td><td>e.g. Nitecore or XTAR; charges each cell separately</td></tr>
+          <tr><td class="num">1</td><td>Hobby balance charger, 1–6S, built-in AC supply</td><td>e.g. ToolkitRC M6AC or ISDT 608AC. Needs a mode that stops at 4.20 V per cell, a 4S JST-XH balance port and a male XT60 output lead</td></tr>
+          <tr><td class="num">1</td><td>4S JST-XH balance lead, 22 AWG silicone, about 10 cm</td><td>Soldered to the BMS tap pads. Half of a 4S balance extension works: keep the end that plugs into the charger</td></tr>
           <tr><td class="num">1</td><td>Buck converter 7.5 V, ≥5 A</td><td>Pololu D36V50F7, or XL4015 set to 7.5 V</td></tr>
           <tr><td class="num">1</td><td>Buck converter 6 V, ≥3 A</td><td>Pololu D36V28F6. An MP1584 (3 A peak) handles normal pushes with the 1000 µF capacitor but cuts out during a sustained stall; lock its trim pot, as above 7.2 V the MG996R is damaged</td></tr>
           <tr><td class="num">1</td><td>Buck converter 5 V, ≥2 A</td><td>Pololu D36V28F5, or MP1584 set to 5 V</td></tr>
@@ -782,12 +850,14 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>Inline mini blade (ATM) fuse holder, 14 AWG</td><td></td></tr>
           <tr><td class="num">2</td><td>25 A mini blade fuse</td><td>One spare; never above 30 A on 14 AWG</td></tr>
           <tr><td class="num">1</td><td>DPST toggle or key switch, ≥3 A DC</td><td>Arm switch</td></tr>
-          <tr><td class="num">1</td><td>XT60 connector pair</td><td>Battery to turret, also the power switch; anti-spark XT60 if the BMS trips on plug-in</td></tr>
+          <tr><td class="num">1</td><td>XT60 pigtail pair, 14 AWG, about 10 cm</td><td>Battery to turret, also the power switch: the male on the PDB's tab pads, the female after the fuse and BMS P−. An anti-spark XT60 if the BMS trips on plug-in</td></tr>
           <tr><td class="num">1</td><td>39 kΩ and 8.2 kΩ 1 % resistors, 100 nF capacitor</td><td>Battery divider</td></tr>
           <tr><td class="num">1</td><td>IR LED, IR phototransistor, 330 Ω, 10 kΩ</td><td>Light gate</td></tr>
           <tr><td class="num">1</td><td>TFmini Plus</td><td>Roadmap step 3</td></tr>
           <tr><td class="num">–</td><td>2-part epoxy</td><td>Fixes the battery contact plates in the covers</td></tr>
           <tr><td class="num">–</td><td>Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors</td><td></td></tr>
+          <tr><td class="num">–</td><td>Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, 0.75 mm tinned copper wire for the tracks and vias (or copper foil tape), 4 × M3 standoffs for a 17 mm board gap, PLA, PETG or ASA filament</td><td>Replaces the separate bucks, the light gate resistors and the loose wiring; see <code>hardware/turret-pdb</code></td></tr>
+          <tr><td class="num">–</td><td>Stack tray: M3 screws 4 × 16, 4 × 12 and 4 × 8 mm, 8 M3 nuts, M3 washers, six 4.8 mm zip ties and a few small ones, 1 mm double-sided foam tape, PLA filament</td><td>Holds both stacks under the tubes; see the stack tray section of <code>hardware/turret-pdb/README.md</code></td></tr>
           <tr><td class="num">–</td><td>16 mm carbon tube ×1, 12 mm ×2, M3 screws</td><td>Frame, from the original build</td></tr>
         </tbody>
       </table>
