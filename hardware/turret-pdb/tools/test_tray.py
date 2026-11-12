@@ -16,8 +16,8 @@ def solid_at(m, x, y, z):
 class Envelope(unittest.TestCase):
     def test_heights(self):
         e = tray.envelope()
-        expected = {"tube_top": 42.0, "tie_top": 43.5, "power_board_bottom": 27.0, "logic_bottom": 46.0,
-                    "esp_top": 65.0, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "pdb_top": 52.6}
+        expected = {"tube_top": 42.0, "tie_top": 43.5, "power_board_bottom": 27.0, "logic_bottom": 45.6,
+                    "esp_top": 64.2, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "pdb_top": 52.6}
         for k, v in expected.items():
             self.assertAlmostEqual(e[k], v, places=6, msg=k)
 

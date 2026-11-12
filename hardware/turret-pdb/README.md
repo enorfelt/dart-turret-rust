@@ -1,13 +1,13 @@
-# Turret controller boards (3D-printed prototype)
+# Turret controller boards
 
-Two stacked two-layer KiCad 10 boards for the turret controller's low-current side. They are meant to be 3D printed, with the tracks made of copper wire laid in grooves or of copper tape, but `export.sh` also writes Gerbers for [ordering them from a fab](#ordering-from-a-fab).
+Two stacked two-layer KiCad 10 boards for the turret controller's low-current side. Ours are made by JLCPCB from the Gerbers that `export.sh` writes (see [Ordering from a fab](#ordering-from-a-fab)). The same design can also be [3D printed](#printed-boards), with the tracks made of copper wire laid in grooves or of copper tape.
 
 - **Power board** (bottom): battery input, 12 V bench jack, the two input diodes, the three MP1584 bucks, the battery divider, the arm switch and pusher connections with the 1000 µF, and the servo bus and vision 5 V outputs. All the high-current nets stay on this board.
 - **Logic board** (top): the ESP32-S3 in sockets, the level shifter, the light gate resistors and the connectors to the ESCs, TTLinker, TFmini Plus and light gate.
 
 Five wires join the two boards. The ESCs stay on the quadcopter PDB; the power board takes one 20 AWG feed from a spare PDB pad pair.
 
-Status: designed, ERC and DRC clean on both boards, not printed or assembled yet. Dimensions still to check before printing are under [Before printing](#before-printing).
+Status: ERC and DRC clean on both boards, ordered from JLCPCB at 1.6 mm, not assembled yet. The module dimensions the footprints use are under [Module dimensions](#module-dimensions).
 
 Both boards are 70 × 68 mm with 4 × M3 in the same places. The minimum track width is 2 mm, with 1 mm between tracks. The exceptions are pads and vias at 2.54 mm pitch, which need only 0.55 mm.
 
@@ -43,7 +43,7 @@ Coordinates are in mm from the board's front-left corner, seen from the componen
 |---|---|
 | Outline | 70 (x, across the tubes) × 68 (y), 4 mm corner radius |
 | M3 holes (3.2 mm) | (4, 4), (66, 4), (4, 64), (66, 64), the same on both boards |
-| Board thickness | 2.0 mm (one wired plate, or two 1.0 mm taped plates) |
+| Board thickness | 1.6 mm for the JLCPCB boards; 2.0 mm for a printed board (one wired plate, or two 1.0 mm taped plates) |
 | Gap between the boards | 17 mm, from the top of the power board to the bottom of the logic board |
 | Stack 2 height | about 41 mm: pin tails under the power board, both boards, the gap and the ESP in its sockets |
 | Link pads | x 37.1, at y 33, 39, 45, 51, 57 on both boards |
@@ -54,7 +54,7 @@ The gap is set by the tallest part on the power board (C2, a 6.3 × 11 mm can st
 
 ## Stack tray
 
-One printed tray holds both stacks and hangs under the two 12 mm frame tubes, with its floor 10 mm below them. Resting on the tubes, Stack 2 would rise about 11 mm above the 75 mm the turret sweeps. Its design is in `docs/superpowers/specs/2026-11-06-stack-tray-design.md`; every dimension is in `TRAY` at the top of `tools/tray.py`, and the Stack 2 holes come from `tools/stack.py`.
+One printed tray holds both stacks and hangs under the two 12 mm frame tubes, with its floor 10 mm below them. Resting on the tubes, Stack 2 would rise about 10 mm above the 75 mm the turret sweeps. Its design is in `docs/superpowers/specs/2026-11-06-stack-tray-design.md`; every dimension is in `TRAY` at the top of `tools/tray.py`, and the Stack 2 holes come from `tools/stack.py`.
 
 `tools/tray.py` checks the heights and the fit against the tubes, the BMS and Stack 2, and only then writes `out/tray/`:
 
@@ -129,7 +129,9 @@ On both boards every part is soldered on the back only. Front copper never conne
 
 Next to an ESP pin, a track runs either straight out or into the gap between the two header rows. Two 2 mm tracks never enter neighbouring 2.54 mm pins from the same side.
 
-## Before printing
+## Module dimensions
+
+The footprints use these dimensions, and the ordered boards were made with them.
 
 | Check | Where | Value used |
 |---|---|---|
@@ -139,101 +141,29 @@ Next to an ESP pin, a track runs either straight out or into the gap between the
 | Length of the 1000 µF body, lying on its side | `DIM["c3_length"]` | 20 mm (10 × 20 mm can) |
 | Clear height under the Freenove board between its header rows, with it plugged into the sockets | — | at least 6 mm for the shifter, measured |
 
-If a value changes, run `generate.py`. The routes move with the pads, so run `export.sh` again and fix anything DRC reports in `tools/power.py` or `tools/logic.py`.
-
-The process is new, so print a small piece first. Cut the ESP header area out of the logic board's model in Bambu Studio, then tape and solder a few pins.
-
-## Printing
-
-`export.sh` writes three ways of building each board into `out/power/` and `out/logic/`: the [wire method](#wire-method), which is one plate with no tape, and two copper tape methods. The finished board is 2.0 mm thick whichever you choose, so 2.54 mm header pins and part leads still stick out about 1 mm on the back.
-
-For the tape methods, every plate is ready to print flat side down and tracks up, and the back plates are already mirrored. Each plate is 1.0 mm thick: a 0.6 mm base with 0.4 mm raised copper.
-
-| File (per board) | Plate |
-|---|---|
-| `front-raised.stl` | Front (component side) |
-| `back-raised.stl` | Back (solder side) |
-| `preview.stl` | The whole board as one 2.0 mm solid, for checking that the two faces line up. Not for printing |
-
-1. Import both plates of a board into Bambu Studio and print them side by side. After printing they line up on the four M3 holes.
-2. Optionally cut a small piece out with the Cut tool to try the process first.
-3. Print in one of the [materials](#material) below. Use 0.2 mm layers, 4 walls, 100 % infill and ironing on the top surface, so the tape has a smooth surface to stick to.
-4. Printed holes come out small. Drill them to size by hand: 1.2 mm for pins and leads, 1.0 mm for vias, 1.7 mm for the diodes and 1.6 mm for the wire holes.
-
-### Material
-
-PLA is fine for a turret used indoors. In normal use the plate stays well under PLA's softening point of about 55 °C. The wire tracks barely warm up, and the bucks stand on their pins above the board. Only the SB560 diodes get hot, and only during long servo stalls. PETG or ASA take more heat and are more forgiving to solder on, so use one of them if the turret may stand in the sun or in a hot car.
-
-PLA softens under the iron, so with PLA:
-
-- Solder quickly with plenty of flux, and pre-tin wire ends before joining them. The wire method's 0.8 mm wire draws far more heat into the plastic than tape does, and only the plastic holds it in its groove.
-- Let a joint cool before soldering the one next to it. Hold the wires with tweezers where they meet until the solder sets.
-- Do not overtighten the M3 screws. PLA slowly gives way under constant pressure; use washers.
-- After a stall test or a long burst, touch the plate near D1 and D2. It should be comfortable to hold.
-
-## Copper tape
-
-Tape each plate on its own, before joining them.
-
-1. **Back plate (tracks).** Lay the tape over the tracks and press it onto the raised surface with a fingernail or a spudger. Cut along each track edge with a fresh blade, then peel the tape off the low areas. `back-copper-mirrored.pdf` shows the pattern as seen from the back.
-2. **Front plate.** Do the same with `front-copper.pdf` as the guide. Both faces have only tracks and pads, so no wide areas need covering.
-3. Where a track is wider than one strip, or two strips overlap at a bend, solder the seam. Copper tape adhesive does not conduct well.
-4. Bolt the plates together with the M3 screws, with a thin layer of glue between them if you like, and open the holes through the tape.
-5. Tin the power tracks on the power board (VIN, the battery input, the 12 V jack, 7.5 V, 6 V and the pusher's switched 6 V) with a layer of solder. Tape is only 35–50 µm thick.
-
-## Channel method (no knife trimming)
-
-`export.sh` also writes a second set of parts for the method used by PCB Forge. The copper sits in 0.4 mm channels, and each channel is outlined by a narrow ridge. You sand the ridges, which cuts the tape around every trace, so no knife work is needed.
-
-| File (per board) | Print | Use |
-|---|---|---|
-| `front-base.stl`, `back-base.stl` | Channels up | The two board plates: 1.0 mm thick, 0.4 mm deep channels where the copper goes, and a 0.6 mm wide, 0.4 mm tall ridge around each channel. The back one is already mirrored |
-| `front-companion.stl`, `back-companion.stl` | Bosses up | Press plates. Their bosses are the copper shapes, mirrored and inset by 0.15 mm, so they drop 0.3 mm into the channels when the plate is laid face down. Pockets around the bosses clear the ridges |
-
-1. Print the bases and companions in one of the [materials](#material), with no XY compensation.
-2. Cover a base with copper tape. Lay its companion face down on top, line it up on the M3 holes, and press hard, or clamp it, so the tape is forced into every channel.
-3. Remove the companion and sand only the ridges, with sandpaper on a flat block, until the plastic shows along every ridge. That cuts the tape around each trace; the tape in the channels stays.
-4. The tape left on the flat areas between ridges is now isolated from the traces. Peel it off, or leave it if it is stuck down well; it connects to nothing.
-5. Wipe off the dust with isopropyl alcohol, check with a meter that neighbouring tracks are isolated, then carry on from step 4 of [Copper tape](#copper-tape) and with [Assembly](#assembly) as for the raised-track version.
-
-Seams still need soldering where two strips meet in a channel.
-
-## Wire method
-
-The tracks are 0.75–0.8 mm tinned copper bus wire (about 20 AWG), pressed into grooves in a single printed plate. There is no tape, no knife work and no second plate to line up. The wire carries more current than any of the tape tracks, so the power tracks need no tinning.
-
-`wired.stl` is the whole board as one 2.0 mm plate, already turned back face up for printing. Both faces have 1.0 mm wide, 0.6 mm deep grooves along the track centre lines. The grooves continue from where a track meets a pad into the pad's hole, and each hole has a solder well 0.4 mm wider than the hole. The back has wells at every hole, the front at the vias only, since no part is soldered on the front. `plates.py` stops if two nets' grooves, wells or holes come closer than 0.4 mm, and prints how much wire each face needs.
-
-1. Print in one of the [materials](#material) as exported, back face up, with 0.2 mm layers, 100 % infill, the Arachne wall generator and no ironing. The front grooves are on the bed side; they bridge over 1 mm and need no supports. Set elephant foot compensation to about 0.15 mm so they do not close up.
-2. Drill the holes as for the tape plates. Vias need 1.0 mm for the wire.
-3. **Front.** Straighten the wire by pulling it. Lay it into one groove at a time, bending it at the corners with pliers, and press it in with the iron at about 200 °C for PLA or 250 °C for PETG and ASA, so it sinks into the plastic and stays. At a via, push the wire through the hole and leave a few millimetres on the back.
-4. **Back.** Do the same. Bend each via tail from the front into the back groove that leaves that via, or solder it to that groove's wire in the well.
-5. At a pad, stop the wire at the edge of the hole. The part's lead and the wire are soldered together in the well.
-6. Solder every place where two wires meet. Check with a meter that neighbouring tracks are isolated, then carry on with [Assembly](#assembly) from step 2. The vias are already done.
+If a value changes, run `generate.py`. The routes move with the pads, so run `export.sh` again and fix anything DRC reports in `tools/power.py` or `tools/logic.py`. The boards already ordered then no longer match.
 
 ## Ordering from a fab
 
-`export.sh` writes each board's Gerbers (both copper layers, mask, silkscreen and outline, Protel file names, no X2) and Excellon drill files (mm, plated and unplated holes in separate files) into `out/<board>/gerbers/`, and zips them as `out/<board>/turret-<board>-gerbers.zip`. Upload the zip to JLCPCB or PCBWay as it is; both read these settings.
+Ours are from JLCPCB. `export.sh` writes each board's Gerbers (both copper layers, mask, silkscreen and outline, Protel file names, no X2) and Excellon drill files (mm, plated and unplated holes in separate files) into `out/<board>/gerbers/`, and zips them as `out/<board>/turret-<board>-gerbers.zip`. Upload the zip to JLCPCB or PCBWay as it is; both read these settings.
 
 | Option | Value |
 |---|---|
 | Layers | 2 |
 | Size | 70.1 × 68.1 mm, the same for both boards |
-| Thickness | 1.6 mm is fine and cheapest; the board file says 2.0 mm only because that is the printed plate. Header pins still stick out about 1.4 mm on the back |
+| Thickness | 1.6 mm, as ordered, and the cheapest. The board file says 2.0 mm only because that is the printed plate; the Gerbers do not carry it. Header pins stick out about 1.4 mm on the back |
 | Smallest hole | 1.0 mm plated; the M3 holes are 3.2 mm unplated |
 | Copper | 1 oz is enough; the 5 V and VIN tracks are 2–4 mm wide |
 
-On a fab board every pad and via is plated, so skip step 1 of [Assembly](#assembly). In step 7 the link wires can then be soldered on either face, since the J12 holes are plated too.
-
 ## Assembly
 
-1. **Vias.** Push 0.8 mm bare copper wire through each via, solder it on both sides, and trim it flush. With the wire method this is already done.
+1. **Vias.** On the fab boards every pad and via is plated, so there is nothing to do. On a printed board, push 0.8 mm bare copper wire through each via, solder it on both sides, and trim it flush; with the wire method this is already done.
 2. **Parts.** Fit every part from the front and solder it on the back, like a single-sided board. That covers the resistors, capacitors, diodes, jack, headers and wires.
 3. **MP1584 modules.** Mount them on ordinary male header pins with the plastic spacer in place, soldered on the back. Set each output before connecting anything, then lock the trimmer with a drop of glue. The MG996R is damaged above 7.2 V.
 4. **1000 µF (C3).** Bend its leads 90° so it lies flat on the power board, body towards the board's left edge, as drawn on the assembly PDF. Standing up it would hit the logic board.
 5. **Level shifter.** The Adafruit 757 mounts **upside down**: solder its two 6-pin headers on the component side of the breakout, so the parts face the board. The footprint is mirrored to match. Its A3/B3 and LV-side GND pins have bare holes only. Trim the header pins that stick up above the breakout, so it stays under 6 mm.
 6. **ESP sockets.** Use two full 1×20 female strips. First pull the metal contacts out of every position the board has no hole for, marked x on the assembly PDF: grip each contact's tail with pliers and push it out. Then solder the remaining contacts on the back. The empty positions keep the strip in one piece without touching the tracks that run under it.
-7. **Stack.** The link tracks run on the back of both boards and the holes are not plated, so each link wire must be soldered on the back face of both boards. Cut five wires about 35 mm long: 22 AWG for GND and 5V, 26 AWG for VBAT, ARM and PUSH. Push each into the logic board's J12 from the back and solder it on the back; the pad names are on the assembly PDF, seen from the front. Bolt the power board onto four M3 standoffs so its top face and the logic board's bottom face are 17 mm apart. Lower the logic board onto the standoffs, threading each wire down through the power board's J12 hole with the same name, and solder them on the power board's back. J12 sits between the ESP sockets, so do this before plugging in the ESP.
+7. **Stack.** The link tracks run on the back of both boards. The J12 holes on the fab boards are plated, so a link wire works soldered on either face; on a printed board they are not, so each wire must be soldered on the back face of both boards. Cut five wires about 35 mm long: 22 AWG for GND and 5V, 26 AWG for VBAT, ARM and PUSH. Push each into the logic board's J12 from the back and solder it on the back; the pad names are on the assembly PDF, seen from the front. Bolt the power board onto four M3 standoffs so its top face and the logic board's bottom face are 17 mm apart. Lower the logic board onto the standoffs, threading each wire down through the power board's J12 hole with the same name, and solder them on the power board's back. J12 sits between the ESP sockets, so do this before plugging in the ESP.
 
 ## Connectors
 
@@ -283,3 +213,75 @@ Pin 1 is the square pad.
 - The ESC middle pins have no copper.
 - Check the five link wires with a meter through the joints, not on the J12 pads: GND from J10 pin 2 (power) to J7 pin 2 (logic), 5V from J10 pin 1 to J7 pin 1, and the other three from the power board part to the ESP socket contact (VBAT: R2 to GPIO 1, ARM: J3 pin 4 to GPIO 47, PUSH: J4 pin 3 to the shifter's B2). Do this before plugging in the ESP.
 - Set and lock the buck outputs before the ESP, servos or sensors are plugged in.
+
+## Printed boards
+
+The alternative to a fab, for building a board the same day. The process is new, so print a small piece first: cut the ESP header area out of the logic board's model in Bambu Studio, then tape and solder a few pins. The [module dimensions](#module-dimensions) apply to printed boards too.
+
+### Printing
+
+`export.sh` writes three ways of building each board into `out/power/` and `out/logic/`: the [wire method](#wire-method), which is one plate with no tape, and two copper tape methods. The finished board is 2.0 mm thick whichever you choose, so 2.54 mm header pins and part leads still stick out about 1 mm on the back.
+
+For the tape methods, every plate is ready to print flat side down and tracks up, and the back plates are already mirrored. Each plate is 1.0 mm thick: a 0.6 mm base with 0.4 mm raised copper.
+
+| File (per board) | Plate |
+|---|---|
+| `front-raised.stl` | Front (component side) |
+| `back-raised.stl` | Back (solder side) |
+| `preview.stl` | The whole board as one 2.0 mm solid, for checking that the two faces line up. Not for printing |
+
+1. Import both plates of a board into Bambu Studio and print them side by side. After printing they line up on the four M3 holes.
+2. Optionally cut a small piece out with the Cut tool to try the process first.
+3. Print in one of the [materials](#material) below. Use 0.2 mm layers, 4 walls, 100 % infill and ironing on the top surface, so the tape has a smooth surface to stick to.
+4. Printed holes come out small. Drill them to size by hand: 1.2 mm for pins and leads, 1.0 mm for vias, 1.7 mm for the diodes and 1.6 mm for the wire holes.
+
+#### Material
+
+PLA is fine for a turret used indoors. In normal use the plate stays well under PLA's softening point of about 55 °C. The wire tracks barely warm up, and the bucks stand on their pins above the board. Only the SB560 diodes get hot, and only during long servo stalls. PETG or ASA take more heat and are more forgiving to solder on, so use one of them if the turret may stand in the sun or in a hot car.
+
+PLA softens under the iron, so with PLA:
+
+- Solder quickly with plenty of flux, and pre-tin wire ends before joining them. The wire method's 0.8 mm wire draws far more heat into the plastic than tape does, and only the plastic holds it in its groove.
+- Let a joint cool before soldering the one next to it. Hold the wires with tweezers where they meet until the solder sets.
+- Do not overtighten the M3 screws. PLA slowly gives way under constant pressure; use washers.
+- After a stall test or a long burst, touch the plate near D1 and D2. It should be comfortable to hold.
+
+### Copper tape
+
+Tape each plate on its own, before joining them.
+
+1. **Back plate (tracks).** Lay the tape over the tracks and press it onto the raised surface with a fingernail or a spudger. Cut along each track edge with a fresh blade, then peel the tape off the low areas. `back-copper-mirrored.pdf` shows the pattern as seen from the back.
+2. **Front plate.** Do the same with `front-copper.pdf` as the guide. Both faces have only tracks and pads, so no wide areas need covering.
+3. Where a track is wider than one strip, or two strips overlap at a bend, solder the seam. Copper tape adhesive does not conduct well.
+4. Bolt the plates together with the M3 screws, with a thin layer of glue between them if you like, and open the holes through the tape.
+5. Tin the power tracks on the power board (VIN, the battery input, the 12 V jack, 7.5 V, 6 V and the pusher's switched 6 V) with a layer of solder. Tape is only 35–50 µm thick.
+
+### Channel method (no knife trimming)
+
+`export.sh` also writes a second set of parts for the method used by PCB Forge. The copper sits in 0.4 mm channels, and each channel is outlined by a narrow ridge. You sand the ridges, which cuts the tape around every trace, so no knife work is needed.
+
+| File (per board) | Print | Use |
+|---|---|---|
+| `front-base.stl`, `back-base.stl` | Channels up | The two board plates: 1.0 mm thick, 0.4 mm deep channels where the copper goes, and a 0.6 mm wide, 0.4 mm tall ridge around each channel. The back one is already mirrored |
+| `front-companion.stl`, `back-companion.stl` | Bosses up | Press plates. Their bosses are the copper shapes, mirrored and inset by 0.15 mm, so they drop 0.3 mm into the channels when the plate is laid face down. Pockets around the bosses clear the ridges |
+
+1. Print the bases and companions in one of the [materials](#material), with no XY compensation.
+2. Cover a base with copper tape. Lay its companion face down on top, line it up on the M3 holes, and press hard, or clamp it, so the tape is forced into every channel.
+3. Remove the companion and sand only the ridges, with sandpaper on a flat block, until the plastic shows along every ridge. That cuts the tape around each trace; the tape in the channels stays.
+4. The tape left on the flat areas between ridges is now isolated from the traces. Peel it off, or leave it if it is stuck down well; it connects to nothing.
+5. Wipe off the dust with isopropyl alcohol, check with a meter that neighbouring tracks are isolated, then carry on from step 4 of [Copper tape](#copper-tape) and with [Assembly](#assembly) as for the raised-track version.
+
+Seams still need soldering where two strips meet in a channel.
+
+### Wire method
+
+The tracks are 0.75–0.8 mm tinned copper bus wire (about 20 AWG), pressed into grooves in a single printed plate. There is no tape, no knife work and no second plate to line up. The wire carries more current than any of the tape tracks, so the power tracks need no tinning.
+
+`wired.stl` is the whole board as one 2.0 mm plate, already turned back face up for printing. Both faces have 1.0 mm wide, 0.6 mm deep grooves along the track centre lines. The grooves continue from where a track meets a pad into the pad's hole, and each hole has a solder well 0.4 mm wider than the hole. The back has wells at every hole, the front at the vias only, since no part is soldered on the front. `plates.py` stops if two nets' grooves, wells or holes come closer than 0.4 mm, and prints how much wire each face needs.
+
+1. Print in one of the [materials](#material) as exported, back face up, with 0.2 mm layers, 100 % infill, the Arachne wall generator and no ironing. The front grooves are on the bed side; they bridge over 1 mm and need no supports. Set elephant foot compensation to about 0.15 mm so they do not close up.
+2. Drill the holes as for the tape plates. Vias need 1.0 mm for the wire.
+3. **Front.** Straighten the wire by pulling it. Lay it into one groove at a time, bending it at the corners with pliers, and press it in with the iron at about 200 °C for PLA or 250 °C for PETG and ASA, so it sinks into the plastic and stays. At a via, push the wire through the hole and leave a few millimetres on the back.
+4. **Back.** Do the same. Bend each via tail from the front into the back groove that leaves that via, or solder it to that groove's wire in the well.
+5. At a pad, stop the wire at the edge of the hole. The part's lead and the wire are soldered together in the well.
+6. Solder every place where two wires meet. Check with a meter that neighbouring tracks are isolated, then carry on with [Assembly](#assembly) from step 2. The vias are already done.

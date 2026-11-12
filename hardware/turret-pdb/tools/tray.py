@@ -28,7 +28,7 @@ TRAY = {
     "boss_d": 7.0,
     "boss_h": 4.0,
     "hole_d": 3.4,
-    "board_t": 2.0,
+    "board_t": 1.6,
     "esp_above_logic": 17.0,
     "bms": (61.0, 46.0),
     "bms_y": 36.0,

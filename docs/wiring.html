@@ -222,7 +222,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <div class="eyebrow">Turret controller · Freenove ESP32-S3 WROOM · 4S1P 18650</div>
     <h1>Dart Turret Wiring</h1>
     <p class="meta">Power and signal wiring for the turret controller, with the main fuse, power switch and hardware arm switch. Matches <code>firmware/turret/src/board.rs</code> and <code>docs/wiring.md</code>. Status: proposed, not yet wired.</p>
-    <p class="meta">Two stacked copper-tape boards for this wiring, a power board and a logic board, are in <code>hardware/turret-pdb</code>. They change the power feed, the divider, the 1000 µF, the level shifter channels and the light gate LED supply; see <a href="#board-h">Controller board</a>, which also shows where the boards, the PDB and the BMS sit on the frame.</p>
+    <p class="meta">Two stacked controller boards for this wiring, made by JLCPCB, a power board and a logic board, are in <code>hardware/turret-pdb</code>. They change the power feed, the divider, the 1000 µF, the level shifter channels and the light gate LED supply; see <a href="#board-h">Controller board</a>, which also shows where the boards, the PDB and the BMS sit on the frame.</p>
   </header>
 
   <div class="legend" role="toolbar" aria-label="Highlight a rail">
@@ -433,7 +433,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
 
   <section aria-labelledby="board-h">
     <h2 id="board-h">Controller board</h2>
-    <p><code>hardware/turret-pdb</code> holds two stacked two-layer KiCad 10 boards, 3D printed with raised copper and covered in copper tape. The power board carries the battery input, the bench jack, the three bucks, the divider, the arm switch and pusher connections with the 1000 µF, and the servo bus and vision 5 V outputs. The logic board carries the ESP, the level shifter and every low-current connector. Five wires join them. Build, print and assembly notes are in <code>hardware/turret-pdb/README.md</code>. They change the wiring above in these ways:</p>
+    <p><code>hardware/turret-pdb</code> holds two stacked two-layer KiCad 10 boards, made by JLCPCB at 1.6 mm; they can also be 3D printed with copper tape or wire tracks. The power board carries the battery input, the bench jack, the three bucks, the divider, the arm switch and pusher connections with the 1000 µF, and the servo bus and vision 5 V outputs. The logic board carries the ESP, the level shifter and every low-current connector. Five wires join them. Build, print and assembly notes are in <code>hardware/turret-pdb/README.md</code>. They change the wiring above in these ways:</p>
     <ul class="notes">
       <li><strong>Power feed:</strong> a single pad pair on the PDB (20 AWG) feeds the power board's battery input in place of the three buck leads (pad pairs 3–5). The ESCs stay on the PDB.</li>
       <li><strong>12 V bench jack:</strong> the power board also accepts a 12 V adapter, for testing the gimbal and pusher without the battery. Two SB560 Schottky diodes OR the jack and the battery into the bucks, so neither back-feeds the other and the ESCs stay unpowered on the jack.</li>
@@ -856,7 +856,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>TFmini Plus</td><td>Roadmap step 3</td></tr>
           <tr><td class="num">–</td><td>2-part epoxy</td><td>Fixes the battery contact plates in the covers</td></tr>
           <tr><td class="num">–</td><td>Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors</td><td></td></tr>
-          <tr><td class="num">–</td><td>Controller boards only: 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, 0.75 mm tinned copper wire for the tracks and vias (or copper foil tape), 4 × M3 standoffs for a 17 mm board gap, PLA, PETG or ASA filament</td><td>Replaces the separate bucks, the light gate resistors and the loose wiring; see <code>hardware/turret-pdb</code></td></tr>
+          <tr><td class="num">–</td><td>Controller boards only: the power and logic boards from JLCPCB (2 layers, 1.6 mm, Gerbers from <code>export.sh</code>), 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, 4 × M3 standoffs for a 17 mm board gap. For printed boards instead: 0.75 mm tinned copper wire for the tracks and vias (or copper foil tape) and PLA, PETG or ASA filament</td><td>Replaces the separate bucks, the light gate resistors and the loose wiring; see <code>hardware/turret-pdb</code></td></tr>
           <tr><td class="num">–</td><td>Stack tray: M3 screws 4 × 16, 4 × 12 and 4 × 8 mm, 8 M3 nuts, M3 washers, six 4.8 mm zip ties and a few small ones, 1 mm double-sided foam tape, PLA filament</td><td>Holds both stacks under the tubes; see the stack tray section of <code>hardware/turret-pdb/README.md</code></td></tr>
           <tr><td class="num">–</td><td>16 mm carbon tube ×1, 12 mm ×2, M3 screws</td><td>Frame, from the original build</td></tr>
         </tbody>
