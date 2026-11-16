@@ -1,0 +1,10 @@
+{
+  "autodeskProduct": "Fusion",
+  "type": "script",
+  "author": "",
+  "description": {
+    "": "Stack 2 through-bolt standoff sleeves with both controller boards for reference"
+  },
+  "supportedOS": "windows|mac",
+  "editEnabled": true
+}

@@ -58,6 +58,9 @@ TRAY = {
     "tie_slot": (2.5, 5.0),
     "tie_slots": ((-4.0, 68.0, "y"), (4.0, 68.0, "y"), (-37.0, 32.0, "x"), (-37.0, 40.0, "x"),
                   (37.0, 32.0, "x"), (37.0, 40.0, "x")),
+    "sleeve_od": 5.8,
+    "sleeve_bore": 3.5,
+    "sleeve_chamfer": 0.3,
 }
 
 
@@ -247,7 +250,17 @@ def cradle_test(t=TRAY):
     return tray(t) ^ box(30.0, t["half_width"] + 1.0, y0, y0 + t["cradle_len"], t["floor_bottom"] - 1.0, 40.0)
 
 
-NAMES = ("tray", "deck", "cradle-test")
+def sleeve(t=TRAY):
+    r, c, h = t["sleeve_od"] / 2, t["sleeve_chamfer"], stack.GAP
+    body = union([
+        Manifold.cylinder(c, r - c, r, SEGMENTS),
+        Manifold.cylinder(h - 2 * c, r, r, SEGMENTS).translate((0, 0, c)),
+        Manifold.cylinder(c, r, r - c, SEGMENTS).translate((0, 0, h - c)),
+    ])
+    return body - zcyl(0, 0, -1.0, h + 1.0, t["sleeve_bore"])
+
+
+NAMES = ("tray", "deck", "cradle-test", "sleeve")
 
 
 def main(out, t=TRAY):
@@ -260,6 +273,7 @@ def main(out, t=TRAY):
     if problems:
         sys.exit("\n".join(problems))
     parts["cradle-test"] = cradle_test(t)
+    parts["sleeve"] = sleeve(t)
     os.makedirs(out, exist_ok=True)
     for name, m in parts.items():
         plates.write(os.path.join(out, f"{name}.stl"), m)

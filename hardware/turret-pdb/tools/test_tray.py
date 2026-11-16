@@ -176,11 +176,37 @@ class Deck(unittest.TestCase):
                 self.assertTrue(solid_at(self.m, x, y + dy, 42.7))
 
 
+class Sleeve(unittest.TestCase):
+    def test_spans_the_board_gap(self):
+        b = tray.sleeve().bounding_box()
+        self.assertAlmostEqual(b[5] - b[2], stack.GAP, places=6)
+
+    def test_bore_is_open(self):
+        s = tray.sleeve()
+        r = tray.TRAY["sleeve_bore"] / 2 - 0.15
+        for z in (0.1, stack.GAP / 2, stack.GAP - 0.1):
+            self.assertFalse(solid_at(s, r, 0, z), z)
+
+    def test_wall_is_solid_mid_height(self):
+        r = (tray.TRAY["sleeve_od"] + tray.TRAY["sleeve_bore"]) / 4
+        self.assertTrue(solid_at(tray.sleeve(), r, 0, stack.GAP / 2))
+
+    def test_ends_are_chamfered(self):
+        r = tray.TRAY["sleeve_od"] / 2
+        s = tray.sleeve()
+        self.assertFalse(solid_at(s, r, 0, 0))
+        self.assertFalse(solid_at(s, r, 0, stack.GAP))
+        self.assertTrue(solid_at(s, r - 0.15, 0, stack.GAP / 2))
+
+    def test_clears_the_power_board_parts(self):
+        self.assertLessEqual(tray.TRAY["sleeve_od"] / 2, 3.0)
+
+
 class Output(unittest.TestCase):
-    def test_writes_three_stls(self):
+    def test_writes_four_stls(self):
         with tempfile.TemporaryDirectory() as d:
             tray.main(d)
-            for name in ("tray.stl", "deck.stl", "cradle-test.stl"):
+            for name in ("tray.stl", "deck.stl", "cradle-test.stl", "sleeve.stl"):
                 self.assertGreater(os.path.getsize(os.path.join(d, name)), 1000)
 
     def test_failed_check_removes_old_stls(self):
