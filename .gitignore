@@ -18,3 +18,7 @@ fp-info-cache
 __pycache__/
 *.pyc
 .venv/
+
+# Scratch
+tmp/
+*:Zone.Identifier
