@@ -61,6 +61,16 @@ TRAY = {
     "sleeve_od": 5.8,
     "sleeve_bore": 3.5,
     "sleeve_chamfer": 0.3,
+    "arm_roof": 4.0,
+    "arm_plate_t": 4.0,
+    "arm_gap": 0.3,
+    "arm_rear": 12.0,
+    "cradle_tie_w": 4.8,
+    "arm_notch_w": 2.5,
+    "switch_x": 0.0,
+    "switch_hole_d": 6.3,
+    "switch_body": (13.0, 13.0, 18.0),
+    "switch_above": 22.0,
 }
 
 
@@ -79,13 +89,15 @@ def envelope(t=TRAY):
         "deck_bottom": t["deck_bottom"],
         "pdb_bottom": t["pdb_bottom"],
         "pdb_top": t["pdb_bottom"] + t["pdb_t"] + t["pdb_parts_h"],
+        "switch_top": arm_top(t) + t["switch_above"],
     }
 
 
 def check_envelope(t=TRAY):
     e = envelope(t)
     problems = []
-    for key, name in (("esp_top", "ESP"), ("pdb_top", "PDB parts"), ("tie_top", "zip ties over the tubes")):
+    for key, name in (("esp_top", "ESP"), ("pdb_top", "PDB parts"), ("tie_top", "zip ties over the tubes"),
+                      ("switch_top", "arm switch lever")):
         if e[key] > t["ceiling"]:
             problems.append(f"{name} top at z = {e[key]:.1f} is above the {t['ceiling']:.0f} mm ceiling")
     if e["pdb_bottom"] - e["tie_top"] < t["min_tie_gap"]:
@@ -216,6 +228,17 @@ def check_parts(t, parts):
             problems.append("tray: something is in the space Stack 2 takes")
         if overlaps(m, bms_space(t)):
             problems.append("tray: something is in the space the BMS takes")
+    if "arm-bracket" in parts:
+        m, base = parts["arm-bracket"], parts["tray"] if "tray" in parts else tray(t)
+        if overlaps(m, tubes(t)):
+            problems.append("arm bracket: the tubes do not fit its feet")
+        if overlaps(m, base):
+            problems.append("arm bracket hits the tray")
+        if overlaps(m, stack2_space(t)):
+            problems.append("arm bracket: something is in the space Stack 2 takes")
+        body = switch_space(t)
+        if any(overlaps(body, other) for other in (m, base, tubes(t), stack2_space(t))):
+            problems.append("arm bracket: the switch body hits the bracket, the tray, the tubes or Stack 2")
     if "deck" in parts:
         m = parts["deck"]
         if overlaps(m, parts["tray"] if "tray" in parts else tray(t)):
@@ -260,7 +283,46 @@ def sleeve(t=TRAY):
     return body - zcyl(0, 0, -1.0, h + 1.0, t["sleeve_bore"])
 
 
-NAMES = ("tray", "deck", "cradle-test", "sleeve")
+def arm_top(t):
+    return tube_axis(t)[1] + t["bore_d"] / 2 + t["arm_roof"]
+
+
+def arm_span(t):
+    return t["cradles_y"][-1], t["length"] + t["arm_rear"]
+
+
+def switch_centre(t):
+    return t["switch_x"], (t["length"] + arm_span(t)[1]) / 2
+
+
+def switch_space(t=TRAY):
+    w, l, depth = t["switch_body"]
+    x, y = switch_centre(t)
+    under_plate = arm_top(t) - t["arm_plate_t"]
+    return box(x - w / 2, x + w / 2, y - l / 2, y + l / 2, under_plate - depth, under_plate)
+
+
+def arm_bracket(t=TRAY):
+    tx, tz = tube_axis(t)
+    y0, y1 = arm_span(t)
+    top, hw, inner = arm_top(t), t["half_width"], t["cradle_inner"]
+    solid = [box(-hw, hw, y0, y1, top - t["arm_plate_t"], top)]
+    solid += [box(*sorted((s * inner, s * hw)), y0, y1, tz + t["arm_gap"], top) for s in (-1, 1)]
+    notch_end = y0 + t["tunnels_y"][-1] + t["cradle_tie_w"] / 2 + 0.5
+    w = t["arm_notch_w"]
+    sx, sy = switch_centre(t)
+    cuts = [zcyl(sx, sy, tz - 1.0, top + 1.0, t["switch_hole_d"])]
+    for s in (-1, 1):
+        cuts.append(ycyl(s * tx, tz, y0 - 1.0, y1 + 1.0, t["bore_d"]))
+        cuts.append(box(*sorted((s * (inner - w + 1.0), s * (inner + 1.0))), y0 - 1.0, notch_end, tz, top + 1.0))
+    return union(solid) - union(cuts)
+
+
+def arm_bracket_print(t=TRAY):
+    return arm_bracket(t).rotate((0.0, 180.0, 0.0))
+
+
+NAMES = ("tray", "deck", "cradle-test", "sleeve", "arm-bracket")
 
 
 def main(out, t=TRAY):
@@ -268,12 +330,13 @@ def main(out, t=TRAY):
         path = os.path.join(out, f"{name}.stl")
         if os.path.exists(path):
             os.remove(path)
-    parts = {"tray": tray(t), "deck": deck(t)}
+    parts = {"tray": tray(t), "deck": deck(t), "arm-bracket": arm_bracket(t)}
     problems = check_envelope(t) + check_parts(t, parts)
     if problems:
         sys.exit("\n".join(problems))
     parts["cradle-test"] = cradle_test(t)
     parts["sleeve"] = sleeve(t)
+    parts["arm-bracket"] = arm_bracket_print(t)
     os.makedirs(out, exist_ok=True)
     for name, m in parts.items():
         plates.write(os.path.join(out, f"{name}.stl"), m)

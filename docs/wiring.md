@@ -98,6 +98,7 @@ The electronics go between the two frame tubes behind the blue base, in two stac
 - **Stack 1, behind the base:** the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 43 mm with the battery tab). The PDB's board XT60 is left off, as the battery plug on top of the upright connector would reach into the turret's sweep. Instead a male XT60 pigtail on the tab's pads meets the female pigtail from the fuse and the BMS P− just outside the right-hand tube, each tied to the tube, so the pair stays within reach as the power switch. The balance plug from the BMS is tied next to the female pigtail, so the pack charges there without taking the cells out.
 - **Stack 2, behind Stack 1:** the power board at the bottom and the logic board on top, 70 × 68 mm, about 41 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.
 - Both stacks sit in one printed [stack tray](../hardware/turret-pdb/README.md#stack-tray) that hangs under the tubes on zip ties.
+- The arm switch, a mini toggle, stands lever up in the middle of a printed bracket that bridges the tubes over the tray's rear cradles, so it is reachable from behind.
 
 ## Battery pack
 
@@ -258,7 +259,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 | 1 | Quadcopter power distribution board, ≥5 pad pairs plus a VCC / GND sense pad, 2 oz copper | e.g. Matek PDB-XT60 or a clone with 6 pad pairs. The + and − buses; any onboard BEC stays unused. Two Wago 221-415 per rail work as a solderless fallback |
 | 1 | Inline mini blade (ATM) fuse holder, 14 AWG leads | |
 | 2 | 25 A mini blade fuse | One spare. Never go above 30 A on 14 AWG |
-| 1 | DPST toggle or key switch, ≥3 A DC | Arm switch |
+| 1 | DPST or DPDT mini toggle with a 6 mm (M6 × 0.75) bushing, ≥3 A DC | Arm switch, in the printed bracket across the rear cradles |
 | 1 | XT60 pigtail pair, 14 AWG, about 10 cm | Battery to turret, also the power switch: the male on the PDB's tab pads, the female after the fuse and BMS P−. An anti-spark XT60 if the BMS trips on plug-in |
 | 1 | Resistors 39 kΩ, 8.2 kΩ (1 %), 100 nF capacitor | Battery divider |
 | 1 | IR LED, IR phototransistor, 330 Ω, 10 kΩ | Light gate |

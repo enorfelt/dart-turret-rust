@@ -449,6 +449,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <li><strong>Stack 1, behind the base:</strong> the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 43 mm with the battery tab). The PDB's board XT60 is left off, as the battery plug on top of the upright connector would reach into the turret's sweep. Instead a male XT60 pigtail on the tab's pads meets the female pigtail from the fuse and the BMS P− just outside the right-hand tube, each tied to the tube, so the pair stays within reach as the power switch. The balance plug from the BMS is tied next to the female pigtail, so the pack charges there without taking the cells out.</li>
       <li><strong>Stack 2, behind Stack 1:</strong> the power board at the bottom and the logic board on top, 70 × 68 mm, about 41 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.</li>
       <li>Both stacks sit in one printed stack tray that hangs under the tubes on zip ties; see the stack tray section of the board README.</li>
+      <li>The arm switch, a mini toggle, stands lever up in the middle of a printed bracket that bridges the tubes over the tray's rear cradles, so it is reachable from behind.</li>
     </ul>
   </section>
 
@@ -849,7 +850,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>Quadcopter power distribution board, ≥5 pad pairs plus a VCC / GND sense pad, 2 oz copper</td><td>e.g. Matek PDB-XT60 or a clone with 6 pad pairs; the + and − buses, onboard BEC unused. Two Wago 221-415 per rail as a solderless fallback</td></tr>
           <tr><td class="num">1</td><td>Inline mini blade (ATM) fuse holder, 14 AWG</td><td></td></tr>
           <tr><td class="num">2</td><td>25 A mini blade fuse</td><td>One spare; never above 30 A on 14 AWG</td></tr>
-          <tr><td class="num">1</td><td>DPST toggle or key switch, ≥3 A DC</td><td>Arm switch</td></tr>
+          <tr><td class="num">1</td><td>DPST or DPDT mini toggle with a 6 mm (M6 × 0.75) bushing, ≥3 A DC</td><td>Arm switch, in the printed bracket across the rear cradles</td></tr>
           <tr><td class="num">1</td><td>XT60 pigtail pair, 14 AWG, about 10 cm</td><td>Battery to turret, also the power switch: the male on the PDB's tab pads, the female after the fuse and BMS P−. An anti-spark XT60 if the BMS trips on plug-in</td></tr>
           <tr><td class="num">1</td><td>39 kΩ and 8.2 kΩ 1 % resistors, 100 nF capacitor</td><td>Battery divider</td></tr>
           <tr><td class="num">1</td><td>IR LED, IR phototransistor, 330 Ω, 10 kΩ</td><td>Light gate</td></tr>

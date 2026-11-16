@@ -17,7 +17,8 @@ class Envelope(unittest.TestCase):
     def test_heights(self):
         e = tray.envelope()
         expected = {"tube_top": 42.0, "tie_top": 43.5, "power_board_bottom": 27.0, "logic_bottom": 45.6,
-                    "esp_top": 64.2, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "pdb_top": 52.6}
+                    "esp_top": 64.2, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "pdb_top": 52.6,
+                    "switch_top": 68.1}
         for k, v in expected.items():
             self.assertAlmostEqual(e[k], v, places=6, msg=k)
 
@@ -58,6 +59,9 @@ class Envelope(unittest.TestCase):
 
     def test_front_cradle_ties_clear_bms(self):
         self.assertFlags("BMS", bms_y=31.0)
+
+    def test_switch_lever_above_ceiling(self):
+        self.assertFlags("arm switch", switch_above=31.0)
 
 
 class Tray(unittest.TestCase):
@@ -202,11 +206,76 @@ class Sleeve(unittest.TestCase):
         self.assertLessEqual(tray.TRAY["sleeve_od"] / 2, 3.0)
 
 
+class ArmBracket(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.m = tray.arm_bracket()
+        cls.y0 = tray.TRAY["cradles_y"][-1]
+        cls.sx, cls.sy = tray.switch_centre(tray.TRAY)
+
+    def test_one_watertight_piece(self):
+        self.assertEqual(str(self.m.status()), "Error.NoError")
+        self.assertEqual(len(self.m.decompose()), 1)
+
+    def test_parts_check_passes(self):
+        self.assertEqual(tray.check_parts(tray.TRAY, {"tray": tray.tray(), "arm-bracket": self.m}), [])
+
+    def test_spans_the_rear_cradles_and_reaches_behind_the_tray(self):
+        b = self.m.bounding_box()
+        for got, want in zip(b, (-53, self.y0, 36.3, 53, tray.TRAY["length"] + 12, 46.1)):
+            self.assertAlmostEqual(got, want, places=3)
+
+    def test_feet_cover_the_tubes_and_sit_above_the_cradles(self):
+        for x in (-44, 44):
+            self.assertTrue(solid_at(self.m, x, self.y0 + 6, 45))
+            self.assertFalse(solid_at(self.m, x, self.y0 + 6, 41.9))
+            for fx in (x - 7.5, x + 7.5):
+                self.assertFalse(solid_at(self.m, fx, self.y0 + 6, 36.15))
+                self.assertTrue(solid_at(self.m, fx, self.y0 + 6, 36.5))
+
+    def test_cradle_ties_pass_the_inner_faces(self):
+        for x in (-34.5, 34.5, -35.5, 35.5):
+            for dy in tray.TRAY["tunnels_y"]:
+                for dz in (-2.0, 2.0):
+                    self.assertFalse(solid_at(self.m, x, self.y0 + dy + dz, 44))
+            self.assertTrue(solid_at(self.m, x, tray.TRAY["length"] + 3, 44))
+
+    def test_switch_hole_in_the_middle_behind_the_tray(self):
+        self.assertEqual(self.sx, 0.0)
+        self.assertGreater(self.sy - tray.TRAY["switch_hole_d"] / 2, tray.TRAY["length"])
+        self.assertFalse(solid_at(self.m, self.sx + 3.0, self.sy, 44))
+        self.assertTrue(solid_at(self.m, self.sx + 3.4, self.sy, 44))
+
+    def test_deep_switch_body_flagged(self):
+        t = dict(tray.TRAY, switch_body=(13.0, 13.0, 21.0))
+        problems = tray.check_parts(t, {"tray": tray.tray(t), "arm-bracket": tray.arm_bracket(t)})
+        self.assertTrue(any("switch body" in p for p in problems), problems)
+
+    def test_stack2_clash_flagged(self):
+        t = dict(tray.TRAY, stack2_y=80.0)
+        problems = tray.check_parts(t, {"arm-bracket": tray.arm_bracket(t)})
+        self.assertTrue(any("arm bracket" in p and "Stack 2" in p for p in problems), problems)
+
+    def test_tight_bore_flagged(self):
+        t = dict(tray.TRAY, bore_d=11.8)
+        problems = tray.check_parts(t, {"arm-bracket": tray.arm_bracket(t)})
+        self.assertTrue(any("feet" in p for p in problems), problems)
+
+    def test_prints_top_down_with_the_feet_open_upwards(self):
+        p = tray.arm_bracket_print()
+        b = p.bounding_box()
+        for x in (-50, 0, 50):
+            self.assertTrue(solid_at(p, x, self.y0 + 13, b[2] + 0.15))
+        for x in (-44, 44):
+            self.assertFalse(solid_at(p, x, self.y0 + 6, b[5] - 0.15))
+        self.assertAlmostEqual(b[5] - b[2], 9.8, places=3)
+
+
 class Output(unittest.TestCase):
-    def test_writes_four_stls(self):
+    def test_writes_every_stl(self):
         with tempfile.TemporaryDirectory() as d:
             tray.main(d)
-            for name in ("tray.stl", "deck.stl", "cradle-test.stl", "sleeve.stl"):
+            for name in ("tray.stl", "deck.stl", "cradle-test.stl", "sleeve.stl", "arm-bracket.stl"):
                 self.assertGreater(os.path.getsize(os.path.join(d, name)), 1000)
 
     def test_failed_check_removes_old_stls(self):

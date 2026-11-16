@@ -63,6 +63,7 @@ One printed tray holds both stacks and hangs under the two 12 mm frame tubes, wi
 | `cradle-test.stl` | One cradle with a piece of floor. Print it first and try it on a tube offcut with two ties |
 | `tray.stl` | The tray, 106 × 155 mm, floor down |
 | `deck.stl` | The deck over the BMS, which carries the PDB, bar down |
+| `arm-bracket.stl` | The arm switch bracket, top face down, 106 × 24 mm. It bridges the tubes over the two rear cradles, held by the cradles' own ties, and takes a mini toggle with a 6 mm (M6 × 0.75) bushing in the middle, 6 mm behind the tray, lever up |
 
 Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The tubes rest in open cradles and zip ties over them carry the tray, so nothing has to flex. The tie tunnels through the cradles have pointed roofs, so nothing on the tray bridges.
 
@@ -82,8 +83,9 @@ Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The 
 3. Lower the deck over the four post screws and fit a washer and nut on each. The BMS pad ends stay uncovered.
 4. Leave the PDB's own XT60 off: standing upright on the tab, the battery plug on top of it would reach about 90 mm, into the turret's sweep. Solder a male XT60 pigtail (14 AWG, about 10 cm) to the tab's + and − pads instead. Slide an M3 nut into each pillar slot, then screw the PDB on with its tab pointing to the right. Route the fuse loop between the deck and the PDB and tie the fuse holder down in the gap between the stacks.
 5. Build Stack 2 completely off the tray, as under [Assembly](#assembly), with female–female 17 mm standoffs: the link wires are soldered on the power board's back, which faces the floor once it is on the tray. Then stand it on the four bosses and drive the four M3 × 12 screws, with washers, up from under the floor into the standoffs.
-6. Hold the tray up under the tubes, with Stack 1 towards the blue base, and fit two zip ties per cradle: in at the cradle's inner face, through the tunnel, up the outer face, over the tube and back.
+6. Hold the tray up under the tubes, with Stack 1 towards the blue base, and fit two zip ties per cradle: in at the cradle's inner face, through the tunnel, up the outer face, over the tube and back. At the two rear cradles, first set the arm switch bracket (step 8) over the tubes and take the ties over its feet instead of the tubes, coming up the inner face through the bracket's notch.
 7. Bring the PDB's male pigtail and the female pigtail from the fuse and BMS out past the right-hand tube, between the front and middle cradles, and zip-tie each one's leads to the tube so the connectors hang free just outside it. To switch off, hold one connector in each hand and pull them apart; the ties keep the pull off the solder pads. Tie the balance lead the same way, with its plug next to the female pigtail, for [charging](../../docs/wiring.md#charging).
+8. Push the arm switch's bushing up through the bracket's hole and fit its nut on top, then solder its wires into J3: pole A on 1–2, pole B on 3–4. The bracket goes across the tubes on the rear cradles, notches forward, with the switch behind the tray's rear end; tie it down as in step 6. Run the J3 wires back along the side of Stack 2 and tie them to the tray. The lever top is about 68 mm up, under the turret's sweep.
 
 PLA slowly gives way under constant pressure, so tighten the screws only until snug.
 
