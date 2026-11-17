@@ -16,8 +16,8 @@ def solid_at(m, x, y, z):
 class Envelope(unittest.TestCase):
     def test_heights(self):
         e = tray.envelope()
-        expected = {"tube_top": 42.0, "tie_top": 43.5, "power_board_bottom": 27.0, "logic_bottom": 45.6,
-                    "esp_top": 64.2, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "pdb_top": 52.6,
+        expected = {"tube_top": 42.0, "tie_top": 43.5, "power_board_bottom": 34.0, "bucks_bottom": 27.0,
+                    "logic_bottom": 52.6, "esp_top": 71.2, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "pdb_top": 52.6,
                     "switch_top": 68.1}
         for k, v in expected.items():
             self.assertAlmostEqual(e[k], v, places=6, msg=k)
@@ -45,7 +45,7 @@ class Envelope(unittest.TestCase):
         self.assertFlags("between the tubes", tube_gap=stack.W)
 
     def test_logic_board_in_tubes(self):
-        self.assertFlags("logic board", floor_bottom=15.0)
+        self.assertFlags("logic board", floor_bottom=9.0)
 
     def test_bore_too_tight(self):
         self.assertFlags("bore", tube_d=12.15)
@@ -59,6 +59,9 @@ class Envelope(unittest.TestCase):
 
     def test_front_cradle_ties_clear_bms(self):
         self.assertFlags("BMS", bms_y=31.0)
+
+    def test_bucks_on_the_floor_without_risers(self):
+        self.assertFlags("buck modules", riser_h=0.0)
 
     def test_switch_lever_above_ceiling(self):
         self.assertFlags("arm switch", switch_above=31.0)
@@ -83,6 +86,10 @@ class Tray(unittest.TestCase):
     def test_tight_bore_flagged(self):
         t = dict(tray.TRAY, bore_d=11.8)
         self.assertTrue(any("tubes" in p for p in tray.check_parts(t, {"tray": tray.tray(t)})))
+
+    def test_wide_boss_under_a_buck_flagged(self):
+        t = dict(tray.TRAY, boss_d=8.0, riser_h=6.0)
+        self.assertTrue(any("buck modules" in p for p in tray.check_parts(t, {"tray": tray.tray(t)})))
 
     def test_cradles(self):
         for y0 in tray.TRAY["cradles_y"]:
@@ -206,6 +213,28 @@ class Sleeve(unittest.TestCase):
         self.assertLessEqual(tray.TRAY["sleeve_od"] / 2, 3.0)
 
 
+class Riser(unittest.TestCase):
+    def test_height(self):
+        b = tray.riser().bounding_box()
+        self.assertAlmostEqual(b[5] - b[2], tray.TRAY["riser_h"], places=6)
+
+    def test_bore_is_open(self):
+        r = tray.TRAY["sleeve_bore"] / 2 - 0.15
+        self.assertFalse(solid_at(tray.riser(), r, 0, tray.TRAY["riser_h"] / 2))
+
+    def test_clears_the_bucks(self):
+        self.assertEqual(tray.check_parts(tray.TRAY, {"riser": tray.riser()}), [])
+
+    def test_wide_riser_flagged(self):
+        t = dict(tray.TRAY, sleeve_od=8.0)
+        self.assertTrue(any("riser" in p for p in tray.check_parts(t, {"riser": tray.riser(t)})))
+
+    def test_bucks_hang_under_the_power_board(self):
+        b = tray.bucks_space().bounding_box()
+        self.assertAlmostEqual(b[5], tray.envelope()["power_board_bottom"], places=6)
+        self.assertAlmostEqual(b[2], tray.envelope()["bucks_bottom"], places=6)
+
+
 class ArmBracket(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -275,7 +304,7 @@ class Output(unittest.TestCase):
     def test_writes_every_stl(self):
         with tempfile.TemporaryDirectory() as d:
             tray.main(d)
-            for name in ("tray.stl", "deck.stl", "cradle-test.stl", "sleeve.stl", "arm-bracket.stl"):
+            for name in ("tray.stl", "deck.stl", "cradle-test.stl", "sleeve.stl", "riser.stl", "arm-bracket.stl"):
                 self.assertGreater(os.path.getsize(os.path.join(d, name)), 1000)
 
     def test_failed_check_removes_old_stls(self):

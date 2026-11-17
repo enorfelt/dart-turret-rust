@@ -1,10 +1,13 @@
+import math
 import os
 import sys
 
 from manifold3d import Error, Manifold, OpType
 
 import plates
+import power
 import stack
+from parts import DIM
 
 SEGMENTS = 96
 
@@ -27,6 +30,9 @@ TRAY = {
     "stack2_y": 73.0,
     "boss_d": 7.0,
     "boss_h": 4.0,
+    "riser_h": 7.0,
+    "buck_under": 7.0,
+    "min_floor_gap": 1.0,
     "hole_d": 3.4,
     "board_t": 1.6,
     "esp_above_logic": 17.0,
@@ -76,12 +82,13 @@ TRAY = {
 
 def envelope(t=TRAY):
     tube_top = t["tube_bottom"] + t["tube_d"]
-    power_board_bottom = t["floor_bottom"] + t["floor_t"] + t["boss_h"]
+    power_board_bottom = t["floor_bottom"] + t["floor_t"] + t["boss_h"] + t["riser_h"]
     logic_bottom = power_board_bottom + t["board_t"] + stack.GAP
     return {
         "tube_top": tube_top,
         "tie_top": tube_top + t["tie_t"],
         "power_board_bottom": power_board_bottom,
+        "bucks_bottom": power_board_bottom - t["buck_under"],
         "logic_bottom": logic_bottom,
         "esp_top": logic_bottom + t["board_t"] + t["esp_above_logic"],
         "bms_top": (t["floor_bottom"] + t["floor_t"] - t["pocket_depth"] + t["foam_t"] + t["bms_board_t"]
@@ -103,6 +110,9 @@ def check_envelope(t=TRAY):
     if e["pdb_bottom"] - e["tie_top"] < t["min_tie_gap"]:
         problems.append(f"PDB underside at z = {e['pdb_bottom']:.1f} is within {t['min_tie_gap']} mm of the zip ties "
                         f"at {e['tie_top']:.1f}")
+    if e["bucks_bottom"] - floor_top(t) < t["min_floor_gap"]:
+        problems.append(f"buck modules under the power board reach z = {e['bucks_bottom']:.1f}, within "
+                        f"{t['min_floor_gap']} mm of the floor at {floor_top(t):.1f}")
     if e["deck_bottom"] - e["bms_top"] < t["min_deck_gap"]:
         problems.append(f"deck underside at z = {e['deck_bottom']:.1f} is within {t['min_deck_gap']} mm of the BMS "
                         f"MOSFETs at {e['bms_top']:.2f}")
@@ -170,6 +180,24 @@ def stack2_space(t=TRAY):
     return box(-half, half, y, y + stack.H, envelope(t)["power_board_bottom"], t["ceiling"])
 
 
+def to_tray(t, bx, by):
+    return bx - stack.W / 2, by + t["stack2_y"]
+
+
+def bucks_space(t=TRAY):
+    dx, dy, m = DIM["mp1584_pad_dx"], DIM["mp1584_pad_dy"], DIM["mp1584_margin"]
+    top = envelope(t)["power_board_bottom"]
+    boxes = []
+    for kind, _, _, (px, py, rot) in power.PARTS.values():
+        if kind != "mp1584":
+            continue
+        c, s = round(math.cos(math.radians(rot))), round(math.sin(math.radians(rot)))
+        corners = [to_tray(t, px + lx * c + ly * s, py - lx * s + ly * c) for lx in (-m, dx + m) for ly in (-m, dy + m)]
+        xs, ys = [x for x, _ in corners], [y for _, y in corners]
+        boxes.append(box(min(xs), max(xs), min(ys), max(ys), top - t["buck_under"], top))
+    return union(boxes)
+
+
 def bms_space(t=TRAY):
     w, l = t["bms"]
     bottom = floor_top(t) - t["pocket_depth"] + t["foam_t"]
@@ -177,7 +205,7 @@ def bms_space(t=TRAY):
 
 
 def stack2_holes(t):
-    return [(hx - stack.W / 2, hy + t["stack2_y"]) for hx, hy in stack.HOLES]
+    return [to_tray(t, hx, hy) for hx, hy in stack.HOLES]
 
 
 def vents(t, z0, z1):
@@ -228,6 +256,13 @@ def check_parts(t, parts):
             problems.append("tray: something is in the space Stack 2 takes")
         if overlaps(m, bms_space(t)):
             problems.append("tray: something is in the space the BMS takes")
+        if overlaps(m, bucks_space(t)):
+            problems.append("tray: something is in the space the buck modules under the power board take")
+    if "riser" in parts:
+        z = floor_top(t) + t["boss_h"]
+        placed = union(parts["riser"].translate((x, y, z)) for x, y in stack2_holes(t))
+        if overlaps(placed, bucks_space(t)):
+            problems.append("riser: hits the buck modules under the power board")
     if "arm-bracket" in parts:
         m, base = parts["arm-bracket"], parts["tray"] if "tray" in parts else tray(t)
         if overlaps(m, tubes(t)):
@@ -273,14 +308,18 @@ def cradle_test(t=TRAY):
     return tray(t) ^ box(30.0, t["half_width"] + 1.0, y0, y0 + t["cradle_len"], t["floor_bottom"] - 1.0, 40.0)
 
 
-def sleeve(t=TRAY):
-    r, c, h = t["sleeve_od"] / 2, t["sleeve_chamfer"], stack.GAP
+def sleeve(t=TRAY, h=stack.GAP):
+    r, c = t["sleeve_od"] / 2, t["sleeve_chamfer"]
     body = union([
         Manifold.cylinder(c, r - c, r, SEGMENTS),
         Manifold.cylinder(h - 2 * c, r, r, SEGMENTS).translate((0, 0, c)),
         Manifold.cylinder(c, r, r - c, SEGMENTS).translate((0, 0, h - c)),
     ])
     return body - zcyl(0, 0, -1.0, h + 1.0, t["sleeve_bore"])
+
+
+def riser(t=TRAY):
+    return sleeve(t, t["riser_h"])
 
 
 def arm_top(t):
@@ -322,7 +361,7 @@ def arm_bracket_print(t=TRAY):
     return arm_bracket(t).rotate((0.0, 180.0, 0.0))
 
 
-NAMES = ("tray", "deck", "cradle-test", "sleeve", "arm-bracket")
+NAMES = ("tray", "deck", "cradle-test", "sleeve", "riser", "arm-bracket")
 
 
 def main(out, t=TRAY):
@@ -330,7 +369,7 @@ def main(out, t=TRAY):
         path = os.path.join(out, f"{name}.stl")
         if os.path.exists(path):
             os.remove(path)
-    parts = {"tray": tray(t), "deck": deck(t), "arm-bracket": arm_bracket(t)}
+    parts = {"tray": tray(t), "deck": deck(t), "arm-bracket": arm_bracket(t), "riser": riser(t)}
     problems = check_envelope(t) + check_parts(t, parts)
     if problems:
         sys.exit("\n".join(problems))
