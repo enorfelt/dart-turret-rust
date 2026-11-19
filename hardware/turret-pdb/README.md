@@ -92,6 +92,21 @@ Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The 
 
 PLA slowly gives way under constant pressure, so tighten the screws only until snug.
 
+## ESC holder
+
+Replaces the original's ESC holders for 30 A ESCs of 35 × 17 mm. The two tabs of the dart magazine holder leave only 34 mm of the base plate free between them, so the ESC lies flat just outside the tabs on a 1.6 mm floor, and the holder sticks out 7.1 mm past the base's side edge. Four snap clips hold the ESC, and two low stops keep it from sliding out along its length. The ESCs are 4.5 mm high at the motor end and 5.9 mm at the back, so the motor-end clips are lower than the back ones. Because of that, the left and right holders are mirror images, not one part turned round. Each clip root has a 1.0 mm fillet on its back and a 0.6 mm relief groove in the floor on its ESC side, so there is no sharp corner where the clip bends. The floor runs in between the tabs to the original holder's two screw holes. Every dimension is in `ESC_HOLDER` at the top of `tools/esc_holder.py`, in the elevation base's frame for the left side (towards −y, with the flywheels towards −x). The magazine holder's tabs, their screw heads, its side wall and its front gusset are taken from the original's STLs.
+
+`tools/esc_holder.py` checks that the holder and the ESC clear the magazine holder and that the holder's own screw heads clear its clips and the ESC. It also estimates how far each clip is strained as it bends over the ESC and refuses anything above 2.5 %. The defaults give 2.1 % at the motor end and 1.3 % at the back. Only then does it write `out/esc-holder/esc-holder-left.stl` and `esc-holder-right.stl`, each 52 × 29.1 × 8.7 mm. Print them floor down in PLA or PETG with 0.2 mm layers, at least 3 walls and no supports.
+
+| Hardware | Use |
+|---|---|
+| 2 × M3 × 6 socket head | Through the floor into the base's 2.8 mm holes. They cut their own thread in the 3 mm deep holes; tighten until snug |
+| 2 small zip ties | Wires under the overhang, through the slot at each end |
+
+1. Screw each holder down on its side, with the lower clips towards the flywheels and the straight edge out past the side edge. Seen from behind the turret, looking where it shoots, the left holder goes on the left. If its lower clips point at the pusher instead, the two are swapped. The screws sit 3 mm from the magazine holder's wall: fit the holders before the magazine holder if it is off, or use a ball-end hex key tilted away from the wall.
+2. Press the ESC straight down between the clips until all four click over its top edges, with the motor leads towards the flywheels, at the end with the lower clips. If it rattles, a strip of thin tape on its underside takes up the slack.
+3. Run the vision and light gate wires along under the overhang and tie them through the end slots: down through the slot, under the wires, and up round the outer edge. Check that the holders and the wires clear the yoke over the full tilt range.
+
 ## Files
 
 | Path | What |
@@ -105,6 +120,7 @@ PLA slowly gives way under constant pressure, so tighten the screws only until s
 | `tools/board_shapes.py` | Runs in KiCad's bundled Python and writes the exact board outline, drill holes, copper polygons and track centre lines of both layers to `shapes.json` |
 | `tools/plates.py` | Builds the plates to print from `shapes.json`: the wired plate, raised-track plates, and channel-method bases and companions. Every STL is checked to be watertight before it is kept, and the wired plate's grooves are checked for wall thickness between nets (needs `manifold3d`) |
 | `tools/tray.py`, `tools/test_tray.py` | The [stack tray](#stack-tray) and its tests |
+| `tools/esc_holder.py`, `tools/test_esc_holder.py` | The [ESC holder](#esc-holder) and its tests |
 | `tools/export.sh` | Runs ERC and DRC and writes `out/<board>/` for each board: the print plates, a one-piece `preview.stl`, copper PDFs to use as a cutting guide, an assembly PDF, renders, and Gerbers and drill files for a fab in `gerbers/` and `turret-<board>-gerbers.zip` |
 
 ```sh
@@ -113,7 +129,9 @@ python3 tools/generate.py           # both boards; only while the design lives i
 tools/export.sh                     # both boards, or name one: tools/export.sh logic
 python3 tools/route.py power GND    # route one or more nets of a board; GND alone takes under a minute
 tools/export.sh tray                # only the stack tray, into out/tray/
+tools/export.sh esc                 # only the ESC holder, into out/esc-holder/
 cd tools && .venv/bin/python -m unittest test_tray   # the stack tray's tests
+cd tools && .venv/bin/python -m unittest test_esc_holder   # the ESC holder's tests
 ```
 
 `export.sh` needs KiCad 10 on Windows; set `KICAD_CLI` to use another kicad-cli. For the print plates, it uses `tools/.venv`:

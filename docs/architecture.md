@@ -2,7 +2,7 @@
 
 Status: design proposal. Decisions marked *open* are settled in the roadmap step that needs them.
 
-The mechanical design is the [Dart-Turret](https://www.printables.com/model/338574) (2-axis gimbal, two brushless flywheels, servo dart pusher), printed unchanged. The firmware is rewritten in Rust on ESP-IDF (`esp-idf-svc`), manual control moves to our own BLE protocol and phone app, and autonomous targeting is added on top.
+The mechanical design is the [Dart-Turret](https://www.printables.com/model/338574) (2-axis gimbal, two brushless flywheels, servo dart pusher), printed unchanged except for the ESC holders, which are replaced by `hardware/turret-pdb/tools/esc_holder.py` to fit 35 × 17 mm ESCs. The firmware is rewritten in Rust on ESP-IDF (`esp-idf-svc`), manual control moves to our own BLE protocol and phone app, and autonomous targeting is added on top.
 
 ## Nodes
 

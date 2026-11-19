@@ -60,10 +60,16 @@ with zipfile.ZipFile(sys.argv[2], "w", zipfile.ZIP_DEFLATED) as z:
     return $ok
 }
 
-boards=() tray=0
-for a in "$@"; do if [ "$a" = tray ]; then tray=1; else boards+=("$a"); fi; done
+boards=() tray=0 esc=0
+for a in "$@"; do
+    case "$a" in
+        tray) tray=1 ;;
+        esc) esc=1 ;;
+        *) boards+=("$a") ;;
+    esac
+done
 if [ $# -eq 0 ]; then
-    tray=1
+    tray=1 esc=1
     for b in power logic; do [ -f "$b/turret-$b.kicad_pcb" ] && boards+=("$b"); done
 fi
 failed=()
@@ -74,6 +80,14 @@ if [ $tray -eq 1 ]; then
         "$PY" tools/tray.py out/tray || failed+=("tray")
     else
         echo "Skipping the tray: python3 -m venv tools/.venv && tools/.venv/bin/pip install manifold3d numpy"
+    fi
+fi
+if [ $esc -eq 1 ]; then
+    echo "== esc holder"
+    if "$PY" -c "import manifold3d" 2>/dev/null; then
+        "$PY" tools/esc_holder.py out/esc-holder || failed+=("esc holder")
+    else
+        echo "Skipping the ESC holder: python3 -m venv tools/.venv && tools/.venv/bin/pip install manifold3d numpy"
     fi
 fi
 if [ ${#failed[@]} -gt 0 ]; then
