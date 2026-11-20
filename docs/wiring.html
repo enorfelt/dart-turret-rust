@@ -221,8 +221,8 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
   <header>
     <div class="eyebrow">Turret controller · Freenove ESP32-S3 WROOM · 4S1P 18650</div>
     <h1>Dart Turret Wiring</h1>
-    <p class="meta">Power and signal wiring for the turret controller, with the main fuse, power switch and hardware arm switch. Matches <code>firmware/turret/src/board.rs</code> and <code>docs/wiring.md</code>. Status: proposed, not yet wired.</p>
-    <p class="meta">Two stacked controller boards for this wiring, made by JLCPCB, a power board and a logic board, are in <code>hardware/turret-pdb</code>. They change the power feed, the divider, the 1000 µF, the level shifter channels and the light gate LED supply; see <a href="#board-h">Controller board</a>, which also shows where the boards, the PDB and the BMS sit on the frame.</p>
+    <p class="meta">Power and signal wiring for the turret controller, with the main fuse, power switch and hardware arm switch. The low-current side is on two stacked controller boards from <code>hardware/turret-pdb</code>, a power board and a logic board; the flywheel ESCs stay on a quadcopter PDB. Matches <code>firmware/turret/src/board.rs</code> and <code>docs/wiring.md</code>.</p>
+    <p class="meta">Status: controller boards made by JLCPCB and assembled; the turret is not fully wired and tested yet. <a href="#board-h">Controller boards</a> lists every connector and where the boards, the PDB and the BMS sit on the frame.</p>
   </header>
 
   <div class="legend" role="toolbar" aria-label="Highlight a rail">
@@ -242,7 +242,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <h2 id="power-h">Power</h2>
     <figure>
       <div class="scroll">
-        <svg class="diagram" viewBox="0 0 1200 730" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the XT60, which is the power switch, onto a plus and minus bus. The bus feeds both ESCs, a 7.5 V buck for the servo bus, a 6 V buck for the pusher through the arm switch with a 1000 µF capacitor at the servo, a 5 V buck for the logic and the vision board, and the battery divider into GPIO 1.">
+        <svg class="diagram" viewBox="0 0 1200 800" role="img" aria-label="Power wiring: the battery feeds a 25 A fuse and the XT60, which is the power switch, onto the plus and minus buses of the PDB. Pad pairs 1 and 2 feed the ESCs; pad pair 3 feeds J1 on the power board. On the power board the battery divider sits at J1, and two SB560 diodes join the battery and the 12 V bench jack onto VIN. VIN feeds a 7.5 V buck to the TTLinker and servos through J11, a 6 V buck through the arm switch pole A to the pusher on J4 with a 1000 µF capacitor, and a 5 V buck to the vision board on J10 and the logic board over the link.">
           <!-- battery -->
           <rect class="box key" x="20" y="50" width="160" height="130" rx="6"/>
           <text class="t" x="36" y="78">Battery</text>
@@ -266,21 +266,24 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <!-- − path -->
           <path class="w n-gnd" stroke-width="4" d="M180 150 H350 M460 150 H480"/>
 
-          <!-- buses -->
-          <path class="w n-batt" stroke-width="6" d="M510 85 V660"/>
-          <path class="w n-gnd" stroke-width="6" d="M480 150 V660"/>
+          <!-- PDB buses, then pad pair 3 down to J1 -->
+          <path class="w n-batt" stroke-width="6" d="M510 85 V290"/>
+          <path class="w n-gnd" stroke-width="6" d="M480 150 V290"/>
+          <path class="w n-batt" stroke-width="2.5" d="M510 290 V430"/>
+          <path class="w n-gnd" stroke-width="2.5" d="M480 290 V430"/>
           <circle class="dot n-batt" cx="510" cy="85" r="5"/>
           <circle class="dot n-gnd" cx="480" cy="150" r="5"/>
-          <text class="t" x="470" y="684" text-anchor="end">− bus</text>
-          <text class="t" x="520" y="684" text-anchor="start">+ bus</text>
-          <text class="s" x="495" y="702" text-anchor="middle">PDB, keep short</text>
+          <text class="t" x="470" y="282" text-anchor="end">− bus</text>
+          <text class="t" x="520" y="282" text-anchor="start">+ bus</text>
+          <text class="s" x="470" y="300" text-anchor="end">PDB, keep short</text>
+          <text class="s" x="520" y="350" text-anchor="start">pad pair 3 · 20 AWG</text>
 
           <!-- row: ESC left yc=170 -->
           <path class="w n-batt" stroke-width="3" d="M510 160 H620"/>
           <path class="w n-gnd" stroke-width="3" d="M480 180 H504 a6 6 0 0 1 12 0 H620"/>
           <circle class="dot n-batt" cx="510" cy="160" r="4"/>
           <circle class="dot n-gnd" cx="480" cy="180" r="4"/>
-          <text class="s" x="568" y="152" text-anchor="middle">16 AWG</text>
+          <text class="s" x="568" y="152" text-anchor="middle">pair 1 · 16 AWG</text>
           <rect class="box" x="620" y="142" width="150" height="56" rx="5"/>
           <text class="t" x="636" y="166">ESC left</text>
           <text class="s" x="636" y="184">30 A BLHeli, 2–4S</text>
@@ -295,7 +298,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <path class="w n-gnd" stroke-width="3" d="M480 260 H504 a6 6 0 0 1 12 0 H620"/>
           <circle class="dot n-batt" cx="510" cy="240" r="4"/>
           <circle class="dot n-gnd" cx="480" cy="260" r="4"/>
-          <text class="s" x="568" y="232" text-anchor="middle">16 AWG</text>
+          <text class="s" x="568" y="232" text-anchor="middle">pair 2 · 16 AWG</text>
           <rect class="box" x="620" y="222" width="150" height="56" rx="5"/>
           <text class="t" x="636" y="246">ESC right</text>
           <text class="s" x="636" y="264">30 A BLHeli, 2–4S</text>
@@ -305,151 +308,206 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <text class="t" x="880" y="255" text-anchor="middle">M</text>
           <text class="s" x="916" y="254">2206 2300 KV flywheel motor</text>
 
-          <!-- row: buck 7.5 V yc=345 -->
-          <path class="w n-batt" stroke-width="2.5" d="M510 335 H620"/>
-          <path class="w n-gnd" stroke-width="2.5" d="M480 355 H504 a6 6 0 0 1 12 0 H620"/>
-          <circle class="dot n-batt" cx="510" cy="335" r="4"/>
-          <circle class="dot n-gnd" cx="480" cy="355" r="4"/>
-          <text class="s" x="568" y="327" text-anchor="middle">20 AWG</text>
-          <rect class="box" x="620" y="317" width="150" height="56" rx="5"/>
-          <text class="t" x="636" y="341">Buck 7.5 V</text>
-          <text class="s" x="636" y="359">≥5 A</text>
-          <path class="w n-v75" stroke-width="3" d="M770 335 H860"/>
-          <path class="w n-gnd" stroke-width="2.5" d="M770 355 H860"/>
-          <text class="s" x="815" y="327" text-anchor="middle">7.5 V · 20 AWG</text>
-          <rect class="box" x="860" y="317" width="100" height="56" rx="5"/>
-          <text class="t" x="876" y="341">TTLinker</text>
-          <text class="s" x="876" y="359">VIN, GND</text>
-          <path class="w n-v75" stroke-width="3" d="M960 335 H990 M1070 335 H1110"/>
-          <path class="w n-gnd" stroke-width="2.5" d="M960 355 H990 M1070 355 H1110"/>
-          <rect class="box" x="990" y="317" width="80" height="56" rx="5"/>
-          <text class="t" x="1006" y="341">SC15 pan</text>
-          <text class="s" x="1006" y="359">ID 0</text>
-          <rect class="box" x="1110" y="317" width="80" height="56" rx="5"/>
-          <text class="t" x="1126" y="341">SC15 tilt</text>
-          <text class="s" x="1126" y="359">ID 1</text>
-          <text class="s" x="1090" y="393" text-anchor="middle">3-pin servo cable, daisy-chained</text>
+          <!-- power board outline -->
+          <rect class="stack" x="30" y="370" width="985" height="410" rx="8"/>
+          <text class="t" x="50" y="396">Power board</text>
+          <text class="s" x="50" y="413">bottom of Stack 2 · every connection is a solder hole</text>
 
-          <!-- row: buck 6 V yc=445 -->
-          <path class="w n-batt" stroke-width="2.5" d="M510 435 H620"/>
-          <path class="w n-gnd" stroke-width="2.5" d="M480 455 H504 a6 6 0 0 1 12 0 H620"/>
-          <circle class="dot n-batt" cx="510" cy="435" r="4"/>
-          <circle class="dot n-gnd" cx="480" cy="455" r="4"/>
-          <text class="s" x="568" y="427" text-anchor="middle">20 AWG</text>
-          <rect class="box" x="620" y="417" width="150" height="56" rx="5"/>
-          <text class="t" x="636" y="441">Buck 6 V</text>
-          <text class="s" x="636" y="459">≥3 A</text>
-          <path class="w n-v6" stroke-width="3" d="M770 435 H870 M920 435 H1000"/>
-          <path class="w n-gnd" stroke-width="2.5" d="M770 455 H1000"/>
-          <circle class="dot n-v6" cx="870" cy="435" r="4"/>
-          <circle class="dot n-v6" cx="920" cy="435" r="4"/>
-          <path class="sym" d="M870 435 L914 418"/>
-          <path class="w n-v6" stroke-width="2" d="M965 435 V441"/>
-          <path class="w n-gnd" stroke-width="2" d="M965 446 V455"/>
-          <path class="sym" stroke-width="2.2" d="M952 441 H978 M952 451 Q965 443 978 451"/>
-          <circle class="dot n-v6" cx="965" cy="435" r="4"/>
-          <circle class="dot n-gnd" cx="965" cy="455" r="4"/>
-          <text class="p" x="949" y="447" text-anchor="end">+</text>
-          <text class="s" x="958" y="474" text-anchor="end">1000 µF ≥16 V</text>
-          <text class="t" x="895" y="406" text-anchor="middle">Arm switch, pole A</text>
-          <text class="s" x="815" y="427" text-anchor="middle">6 V</text>
-          <rect class="box" x="1000" y="417" width="130" height="56" rx="5"/>
-          <text class="t" x="1016" y="441">Pusher servo</text>
-          <text class="s" x="1016" y="459">MG996R, 6 V</text>
-          <text class="s" x="960" y="493" text-anchor="middle">switch off: pusher has no power, no dart can fire</text>
+          <!-- J1 -->
+          <rect class="box" x="450" y="430" width="90" height="40" rx="4"/>
+          <text class="t" x="495" y="448" text-anchor="middle">J1</text>
+          <text class="s" x="495" y="463" text-anchor="middle">VBAT · GND</text>
 
-          <!-- row: buck 5 V yc=560 -->
-          <path class="w n-batt" stroke-width="2.5" d="M510 550 H620"/>
-          <path class="w n-gnd" stroke-width="2.5" d="M480 570 H504 a6 6 0 0 1 12 0 H620"/>
-          <circle class="dot n-batt" cx="510" cy="550" r="4"/>
-          <circle class="dot n-gnd" cx="480" cy="570" r="4"/>
-          <text class="s" x="568" y="542" text-anchor="middle">20 AWG</text>
-          <rect class="box" x="620" y="532" width="150" height="56" rx="5"/>
-          <text class="t" x="636" y="556">Buck 5 V</text>
-          <text class="s" x="636" y="574">≥2 A</text>
-          <path class="w n-v5" stroke-width="2.5" d="M770 550 H830 M830 516 V626 M830 516 H846 M830 538 H846 M830 560 H846 M830 582 H846 M830 604 H846 M830 626 H846"/>
-          <circle class="dot n-v5" cx="830" cy="550" r="4"/>
-          <text class="s" x="800" y="542" text-anchor="middle">22 AWG</text>
-          <text class="t" x="852" y="520">ESP32-S3 5V pin</text>
-          <text class="t" x="852" y="542">TFmini Plus 5 V</text>
-          <text class="t" x="852" y="564">Level shifter HV</text>
-          <text class="t" x="852" y="586">TTLinker 5 V</text>
-          <text class="t" x="852" y="608">Light gate IR LED</text>
-          <path class="w n-gnd" stroke-width="2" d="M770 570 H800"/>
-          <path class="sym n-gnd w" d="M800 570 v8 M791 578 h18 M794 582 h12 M797 586 h6"/>
-          <text class="t" x="852" y="630">Vision board 5V pin, through the gimbal</text>
+          <!-- divider at J1, before D1 -->
+          <path class="w n-batt" stroke-width="2" d="M450 450 H410"/>
+          <rect class="box" x="360" y="442" width="50" height="16" rx="2"/>
+          <text class="s" x="385" y="436" text-anchor="middle">R1 39 kΩ 1 %</text>
+          <path class="w n-sense" stroke-width="2" d="M360 450 H250 M200 450 H170 V458"/>
+          <circle class="dot n-sense" cx="320" cy="450" r="4"/>
+          <circle class="dot n-sense" cx="280" cy="450" r="4"/>
+          <rect class="box" x="200" y="442" width="50" height="16" rx="2"/>
+          <text class="s" x="225" y="436" text-anchor="middle">R2 8.2 kΩ 1 %</text>
+          <path class="sym n-gnd w" d="M161 458 h18 M164 462 h12 M167 466 h6"/>
+          <path class="w n-sense" stroke-width="2" d="M280 450 V470"/>
+          <path class="sym" d="M268 470 H292 M268 476 H292"/>
+          <path class="w n-gnd" stroke-width="2" d="M280 476 V484"/>
+          <path class="sym n-gnd w" d="M271 484 h18 M274 488 h12 M277 492 h6"/>
+          <text class="s" x="262" y="478" text-anchor="end">C1 100 nF</text>
+          <path class="w n-sense" stroke-width="2" d="M320 450 V524"/>
+          <polygon class="dot n-sense" points="315,524 325,524 320,534"/>
+          <text class="tag n-sense" x="334" y="534">link VBAT → GPIO 1</text>
+          <text class="s" x="50" y="520">The divider is before D1,</text>
+          <text class="s" x="50" y="536">so it reads the pack only.</text>
 
-          <!-- divider yc=640 -->
-          <path class="w n-sense" stroke-width="2" d="M510 640 H560 M620 640 H700 M760 640 H800 V650"/>
-          <circle class="dot n-batt" cx="510" cy="640" r="4"/>
-          <rect class="box" x="560" y="632" width="60" height="16" rx="2"/>
-          <text class="s" x="590" y="626" text-anchor="middle">39 kΩ 1 %</text>
-          <circle class="dot n-sense" cx="660" cy="640" r="4"/>
-          <rect class="box" x="700" y="632" width="60" height="16" rx="2"/>
-          <text class="s" x="730" y="626" text-anchor="middle">8.2 kΩ 1 %</text>
-          <path class="sym n-gnd w" d="M800 650 v4 M791 654 h18 M794 658 h12 M797 662 h6"/>
-          <path class="w n-sense" stroke-width="2" d="M660 640 V680 H860"/>
-          <polygon class="dot n-sense" points="860,675 870,680 860,685"/>
-          <text class="t" x="878" y="684">GPIO 1 (ADC1_CH0)</text>
-          <path class="sym" d="M720 680 V690 M710 690 H730 M710 696 H730 M720 696 V702"/>
-          <path class="sym n-gnd w" d="M711 702 h18 M714 706 h12 M717 710 h6"/>
-          <text class="s" x="738" y="700">100 nF</text>
-          <text class="s" x="560" y="672">39 kΩ at the PDB VCC pad, 26 AWG to the ESP</text>
+          <!-- J2 bench jack -->
+          <rect class="box" x="450" y="595" width="90" height="40" rx="4"/>
+          <text class="t" x="495" y="613" text-anchor="middle">J2 12 V</text>
+          <text class="s" x="495" y="628" text-anchor="middle">bench jack</text>
+          <text class="s" x="495" y="652" text-anchor="middle">5.5 × 2.1 mm, centre +</text>
+
+          <!-- diode OR onto VIN -->
+          <path class="w n-batt" stroke-width="2.5" d="M540 450 H620 M647 450 H740"/>
+          <path class="sym" d="M620 440 V460 L645 450 Z M647 440 V460"/>
+          <text class="s" x="633" y="432" text-anchor="middle">D1 SB560</text>
+          <path class="w n-batt" stroke-width="2.5" d="M540 615 H620 M647 615 H740"/>
+          <path class="sym" d="M620 605 V625 L645 615 Z M647 605 V625"/>
+          <text class="s" x="633" y="597" text-anchor="middle">D2 SB560</text>
+          <path class="w n-batt" stroke-width="3" d="M740 420 V670"/>
+          <circle class="dot n-batt" cx="740" cy="450" r="4"/>
+          <circle class="dot n-batt" cx="740" cy="615" r="4"/>
+          <text class="tag n-batt" x="748" y="474">VIN</text>
+          <path class="w n-batt" stroke-width="2" d="M740 560 H700 V566"/>
+          <circle class="dot n-batt" cx="740" cy="560" r="4"/>
+          <path class="sym" stroke-width="2.2" d="M687 566 H713 M687 576 Q700 568 713 576"/>
+          <path class="w n-gnd" stroke-width="2" d="M700 572 V582"/>
+          <path class="sym n-gnd w" d="M691 582 h18 M694 586 h12 M697 590 h6"/>
+          <text class="s" x="682" y="574" text-anchor="end">C2 100 µF</text>
+
+          <!-- bucks -->
+          <path class="w n-batt" stroke-width="2.5" d="M740 420 H770 M740 530 H770 M740 670 H770"/>
+          <circle class="dot n-batt" cx="740" cy="530" r="4"/>
+          <rect class="box" x="770" y="398" width="110" height="44" rx="5"/>
+          <text class="t" x="782" y="416">U3 MP1584</text>
+          <text class="s" x="782" y="432">7.5 V</text>
+          <rect class="box" x="770" y="508" width="110" height="44" rx="5"/>
+          <text class="t" x="782" y="526">U4 MP1584</text>
+          <text class="s" x="782" y="542">6 V</text>
+          <rect class="box" x="770" y="648" width="110" height="44" rx="5"/>
+          <text class="t" x="782" y="666">U5 MP1584</text>
+          <text class="s" x="782" y="682">5 V</text>
+          <text class="s" x="770" y="710">hang under the board</text>
+
+          <!-- 7.5 V: J11 to TTLinker -->
+          <path class="w n-v75" stroke-width="3" d="M880 420 H1035"/>
+          <text class="s" x="930" y="412" text-anchor="middle">7.5 V · 20 AWG</text>
+          <text class="p" x="1008" y="412" text-anchor="end">J11</text>
+          <rect class="box" x="1035" y="398" width="155" height="44" rx="5"/>
+          <text class="t" x="1047" y="416">TTLinker VIN</text>
+          <text class="s" x="1047" y="432">→ SC15 pan, SC15 tilt</text>
+
+          <!-- 6 V: J3 through pole A to J4 -->
+          <path class="w n-v6" stroke-width="3" d="M880 530 H935 M980 530 H1000 V590 H1035"/>
+          <circle class="dot n-v6" cx="935" cy="530" r="4"/>
+          <circle class="dot n-v6" cx="980" cy="530" r="4"/>
+          <path class="sym" d="M935 530 L977 513"/>
+          <text class="s" x="905" y="522" text-anchor="middle">6 V</text>
+          <text class="s" x="935" y="548" text-anchor="middle">J3 2</text>
+          <text class="s" x="980" y="548" text-anchor="middle">J3 1</text>
+          <text class="t" x="958" y="498" text-anchor="middle">Arm switch, pole A</text>
+          <path class="w n-v6" stroke-width="2" d="M1000 590 H960 V596"/>
+          <circle class="dot n-v6" cx="1000" cy="590" r="4"/>
+          <path class="sym" stroke-width="2.2" d="M947 596 H973 M947 606 Q960 598 973 606"/>
+          <text class="p" x="943" y="603" text-anchor="end">+</text>
+          <path class="w n-gnd" stroke-width="2" d="M960 602 V612"/>
+          <path class="sym n-gnd w" d="M951 612 h18 M954 616 h12 M957 620 h6"/>
+          <text class="s" x="960" y="636" text-anchor="middle">C3 1000 µF</text>
+          <text class="p" x="1030" y="582" text-anchor="end">J4</text>
+          <rect class="box" x="1035" y="568" width="155" height="44" rx="5"/>
+          <text class="t" x="1047" y="586">Pusher servo</text>
+          <text class="s" x="1047" y="602">MG996R, 6 V</text>
+          <text class="s" x="1112" y="630" text-anchor="middle">off: pusher unpowered</text>
+
+          <!-- 5 V: J10 to vision, link to logic board -->
+          <path class="w n-v5" stroke-width="2.5" d="M880 670 H1035 M930 670 V735 H1035"/>
+          <circle class="dot n-v5" cx="930" cy="670" r="4"/>
+          <text class="s" x="985" y="662" text-anchor="middle">J10 · 22 AWG</text>
+          <text class="s" x="985" y="727" text-anchor="middle">link 5V · 22 AWG</text>
+          <rect class="box" x="1035" y="650" width="155" height="40" rx="5"/>
+          <text class="t" x="1047" y="667">Vision board 5V</text>
+          <text class="s" x="1047" y="682">through the gimbal</text>
+          <rect class="box" x="1035" y="705" width="155" height="60" rx="5"/>
+          <text class="t" x="1047" y="723">Logic board</text>
+          <text class="s" x="1047" y="739">ESP 5V, shifter HV</text>
+          <text class="s" x="1047" y="755">J7 TTLinker, J8 TFmini</text>
         </svg>
       </div>
-      <figcaption>Everything is downstream of the fuse and the XT60, which is the power switch. A junction dot means the wires are joined; a wire that hops over a bus is not connected to it. The ⏚ symbol means "to the − bus". All grounds are common: buck outputs, ESC signal grounds, ESP, TTLinker, TFmini and vision board.</figcaption>
+      <figcaption>Everything is downstream of the fuse and the XT60, which is the power switch. The dashed outline is the power board. A junction dot means the wires are joined; a wire that hops over a bus is not connected to it. The ⏚ symbol means GND. The bucks' and connectors' grounds are not drawn; all grounds are common: PDB − bus, both boards, ESC signal grounds, TTLinker, TFmini and vision board.</figcaption>
     </figure>
     <ul class="notes">
       <li>Unplug the XT60 to turn the turret off. At 4S the spark from the ESC capacitors is small; plug in quickly and firmly, without wiggling.</li>
       <li>The ESC capacitor inrush on plug-in can trip the BMS short-circuit protection. Plug in a few times on the bench. If the turret stays dark, the BMS has latched off: plug the charger into the pack for a moment to unlock it (see <a href="#charge-h">Charging</a>). If it trips often, use an anti-spark XT60 with a pre-charge resistor.</li>
       <li>Put the fuse as close to battery + as you can, on the pack side of the XT60, so it protects every wire after it.</li>
       <li>The + and − buses are a quadcopter power distribution board (PDB). Every + pad on it is the same copper, and so is every − pad, so each lead in the table below can go on any pad of the right polarity. Soldered copper adds well under 1 mΩ and does not loosen from flywheel vibration.</li>
-      <li>Without a PDB, use two Wago 221-415 lever connectors per rail, joined by a short 14 AWG jumper: each rail has six leads and a 221-415 takes five. Solder the 26 AWG divider wires to a buck input lead, as they are below the Wago's minimum. Do not use screw terminals on bare stranded wire; they loosen under vibration.</li>
-      <li>Solder the 39 kΩ directly to the PDB VCC pad and put the 8.2 kΩ and 100 nF next to the ESP. The 26 AWG wire then carries only the divided voltage, so a chafed wire shorted to ground draws under 0.5 mA instead of burning before the 25 A fuse blows. The 100 nF filters noise picked up on the long wire.</li>
+      <li>Two SB560 Schottky diodes OR the battery (D1) and the 12 V bench jack (D2) into the bucks, so neither source back-feeds the other and the ESCs on the PDB stay unpowered on the jack.</li>
+      <li>The battery divider sits at J1, before D1, so it measures the pack only. Only the divided voltage goes up the link to the logic board, and C1 filters noise on it. On the jack alone it reads under 5 V, as "no pack", the same as on USB.</li>
       <li>The divider sits on the turret side of the XT60, so its 0.36 mA does not drain the pack while unplugged.</li>
-      <li>Two stalled SC15s draw 3.4 A, so the 7.5 V buck must be rated 5 A. The original 8 V MP1584 (3 A peak) is too small.</li>
-      <li>The MG996R pusher stalls at about 2.5 A and draws spikes that size each time it starts to move. Solder a 1000 µF, ≥16 V low-ESR electrolytic across its leads at the servo end, after pole A: + to the red lead, − to the brown lead. A reversed electrolytic heats up and can burst.</li>
-      <li>With pole A open, the capacitor runs the servo for only a few milliseconds, far too short to push a dart, so the arm switch still cuts the pusher.</li>
-      <li>If an ESC has a BEC, leave its red servo-lead wire unconnected. Only signal and ground go to the ESP.</li>
-      <li class="warn">Unplug the XT60 before plugging in USB, unless you have checked that the Freenove board isolates VBUS from its 5V pin.</li>
+      <li>Two stalled SC15s draw 3.4 A. U3 is an MP1584, rated 3 A peak, so it may overheat and cut out if both stall.</li>
+      <li>The MG996R pusher stalls at about 2.5 A and draws spikes that size each time it starts to move. C3, a 1000 µF 16 V low-ESR electrolytic at J4, supplies them, so they do not sag the 6 V rail or bounce the shared ground. U4 handles normal pushes with C3, but overheats and cuts out during a sustained stall.</li>
+      <li>With pole A open, C3 runs the servo for only a few milliseconds, far too short to push a dart, so the arm switch still cuts the pusher.</li>
+      <li>Set each buck before anything is connected, then lock its trimmer with a drop of glue. <span class="warn">Above 7.2 V the MG996R is damaged.</span></li>
+      <li>Only signal and ground from the ESC servo leads reach the logic board: the middle pin of J5 and J6 has no copper, so a BEC's red wire stays unconnected.</li>
+      <li class="warn">Unplug the XT60 and the 12 V jack before plugging in USB, unless you have checked that the Freenove board isolates VBUS from its 5V pin.</li>
     </ul>
-    <table>
-      <thead><tr><th>PDB pad</th><th>Connect</th></tr></thead>
-      <tbody>
-        <tr><td>Battery input (the two large holes)</td><td>XT60 pigtail, 14 AWG</td></tr>
-        <tr><td>Pad pair 1</td><td>ESC left, 16 AWG</td></tr>
-        <tr><td>Pad pair 2</td><td>ESC right, 16 AWG</td></tr>
-        <tr><td>Pad pair 3</td><td>7.5 V buck input, 20 AWG</td></tr>
-        <tr><td>Pad pair 4</td><td>6 V buck input, 20 AWG</td></tr>
-        <tr><td>Pad pair 5</td><td>5 V buck input, 20 AWG</td></tr>
-        <tr><td>Pad pair 6</td><td>Spare</td></tr>
-        <tr><td>Small VCC pad</td><td>39 kΩ of the battery divider, soldered directly to the pad</td></tr>
-        <tr><td>Small GND pad</td><td>Empty: the divider's 8.2 kΩ and 100 nF go to ESP GND</td></tr>
-        <tr><td>5 V / 12 V BEC pads</td><td>Empty: the PDB's own regulators are not used</td></tr>
-      </tbody>
-    </table>
-    <p class="meta">With the controller boards, pad pair 3 feeds the power board's battery input (J1, 20 AWG), pad pairs 4 and 5 are spare and the small VCC pad stays empty.</p>
+    <div class="two">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>PDB pad</th><th>Connect</th></tr></thead>
+          <tbody>
+            <tr><td>Battery input (the two large holes on the tab)</td><td>Male XT60 pigtail, 14 AWG; the board XT60 is left off</td></tr>
+            <tr><td>Pad pair 1</td><td>ESC left, 16 AWG</td></tr>
+            <tr><td>Pad pair 2</td><td>ESC right, 16 AWG</td></tr>
+            <tr><td>Pad pair 3</td><td>Power board J1, 20 AWG</td></tr>
+            <tr><td>Pad pairs 4–6</td><td>Spare</td></tr>
+            <tr><td>Small VCC / GND pads</td><td>Empty: the divider is on the power board</td></tr>
+            <tr><td>5 V / 12 V BEC pads</td><td>Empty: the PDB's own regulators are not used</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 id="bench-h">Bench mode (12 V jack)</h3>
+        <ul class="notes">
+          <li>With only the jack plugged in, the bucks, ESP, gimbal and pusher have power, but the ESCs on the PDB do not.</li>
+          <li>Arming works as it does on USB, so the pusher can be exercised without flywheels.</li>
+          <li>A 12 V 2.5 A adapter (5.5 × 2.1 mm, centre positive) covers normal servo tests, but not a stall of both SC15s plus the pusher.</li>
+          <li>With only the jack plugged in, J1 should read about 0 V. That shows nothing back-feeds the PDB.</li>
+        </ul>
+      </div>
+    </div>
   </section>
 
   <section aria-labelledby="board-h">
-    <h2 id="board-h">Controller board</h2>
-    <p><code>hardware/turret-pdb</code> holds two stacked two-layer KiCad 10 boards, made by JLCPCB at 1.6 mm; they can also be 3D printed with copper tape or wire tracks. The power board carries the battery input, the bench jack, the three bucks, the divider, the arm switch and pusher connections with the 1000 µF, and the servo bus and vision 5 V outputs. The logic board carries the ESP, the level shifter and every low-current connector. Five wires join them. Build, print and assembly notes are in <code>hardware/turret-pdb/README.md</code>. They change the wiring above in these ways:</p>
+    <h2 id="board-h">Controller boards</h2>
+    <p><code>hardware/turret-pdb</code> holds two stacked two-layer KiCad 10 boards, 70 × 68 mm, made by JLCPCB at 1.6 mm. Assembly steps, the stack tray and the safety checks are in <code>hardware/turret-pdb/README.md</code>.</p>
     <ul class="notes">
-      <li><strong>Power feed:</strong> a single pad pair on the PDB (20 AWG) feeds the power board's battery input in place of the three buck leads (pad pairs 3–5). The ESCs stay on the PDB.</li>
-      <li><strong>12 V bench jack:</strong> the power board also accepts a 12 V adapter, for testing the gimbal and pusher without the battery. Two SB560 Schottky diodes OR the jack and the battery into the bucks, so neither back-feeds the other and the ESCs stay unpowered on the jack.</li>
-      <li><strong>Divider:</strong> on the power board at the battery input, before its diode. It measures the pack only; on the jack alone it reads as "no pack", like USB. Only the divided voltage goes up to the logic board.</li>
-      <li><strong>Pusher capacitor:</strong> the 1000 µF is at the pusher connection on the power board, not at the servo. The pusher and arm switch wires are soldered into the power board, as a plug would not fit under the logic board.</li>
-      <li><strong>Level shifter:</strong> the Adafruit 757 is mounted upside down between the ESP's socket rows, with A1/B1 for GPIO 14 → TTLinker RXD, A2/B2 for the pusher and A4/B4 for TTLinker TXD → GPIO 21. GPIOs are unchanged.</li>
-      <li><strong>Light gate:</strong> the IR LED runs from 3V3 through 150 Ω instead of 5 V through 330 Ω.</li>
-      <li><strong>7.5 V buck:</strong> all three bucks are MP1584 modules, including the 7.5 V servo bus. It is rated 3 A peak and two stalled SC15s draw 3.4 A, so it may overheat and cut out if both stall.</li>
+      <li><strong>Power board</strong> (bottom): battery input, 12 V bench jack, the two input diodes, the three MP1584 bucks hanging on its back, the battery divider, the arm switch and pusher connections with C3, and the servo bus and vision 5 V outputs. Every connection is a solder hole, as a plug would not fit under the logic board.</li>
+      <li><strong>Logic board</strong> (top): the ESP32-S3 in sockets, the Adafruit 757 level shifter upside down between the socket rows, the light gate resistors and 2.54 mm headers for the ESCs, TTLinker, TFmini Plus and light gate.</li>
+      <li>Five wires about 35 mm long join the boards through J12 on both: 22 AWG for GND and 5V, 26 AWG for VBAT, ARM and PUSH.</li>
     </ul>
+    <div class="two">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Power board</th><th>Goes to</th><th>Pins (1 is square)</th><th>AWG</th></tr></thead>
+          <tbody>
+            <tr><td class="num">J1</td><td>PDB pad pair 3</td><td>1 VBAT, 2 GND</td><td class="num">20</td></tr>
+            <tr><td class="num">J2</td><td>12 V bench adapter, 5.5 × 2.1 mm, centre +</td><td>Barrel jack</td><td class="num">–</td></tr>
+            <tr><td class="num">J3</td><td>Arm switch (DPST), on the bracket behind the tray</td><td>1–2 pole A (1 switched 6 V to the pusher, 2 6 V from U4), 3–4 pole B (3 GND, 4 sense to GPIO 47). Either pole can be A</td><td class="num">20 / 26</td></tr>
+            <tr><td class="num">J4</td><td>Pusher servo</td><td>1 GND (brown), 2 switched 6 V (red), 3 signal at 5 V (orange). Cut the plug off, or solder a short pigtail with a plug in line</td><td class="num">lead</td></tr>
+            <tr><td class="num">J10</td><td>Vision board, through the gimbal</td><td>1 5V, 2 GND</td><td class="num">22</td></tr>
+            <tr><td class="num">J11</td><td>TTLinker VIN</td><td>1 7.5 V, 2 GND</td><td class="num">20</td></tr>
+            <tr><td class="num">J12</td><td>Link to the logic board</td><td>1 GND, 2 5V, 3 VBAT (divided), 4 ARM, 5 PUSH</td><td class="num">22 / 26</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Logic board</th><th>Goes to</th><th>Pins (1 is square)</th><th>AWG</th></tr></thead>
+          <tbody>
+            <tr><td class="num">J5, J6</td><td>ESC left, right servo lead</td><td>1 GND, 2 not connected (BEC red wire), 3 signal</td><td class="num">lead</td></tr>
+            <tr><td class="num">J7</td><td>TTLinker logic side</td><td>1 5V, 2 GND, 3 TTLinker TXD, 4 TTLinker RXD. Swap 3 and 4 if <code>ping 0</code> gets no answer</td><td class="num">26</td></tr>
+            <tr><td class="num">J8</td><td>TFmini Plus</td><td>1 5V (red), 2 GND (black), 3 TFmini TX, 4 TFmini RX</td><td class="num">26</td></tr>
+            <tr><td class="num">J9</td><td>Light gate</td><td>1 IR LED anode, 2 phototransistor collector, 3 GND (LED cathode and emitter)</td><td class="num">26</td></tr>
+            <tr><td class="num">J12</td><td>Link to the power board</td><td>as on the power board</td><td class="num">22 / 26</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     <h3>Where it sits</h3>
     <p>The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.</p>
     <ul class="notes">
       <li><strong>Stack 1, behind the base:</strong> the 4S BMS at the bottom on foam tape (61 × 46 mm, no holes), and the PDB on top on its 30–30.5 mm M3 pattern (about 36 × 43 mm with the battery tab). The PDB's board XT60 is left off, as the battery plug on top of the upright connector would reach into the turret's sweep. Instead a male XT60 pigtail on the tab's pads meets the female pigtail from the fuse and the BMS P− just outside the right-hand tube, each tied to the tube, so the pair stays within reach as the power switch. The balance plug from the BMS is tied next to the female pigtail, so the pack charges there without taking the cells out.</li>
-      <li><strong>Stack 2, behind Stack 1:</strong> the power board at the bottom and the logic board on top, 70 × 68 mm, about 41 mm tall, with the ESP antenna at the rear edge. Outline, hole and link pad positions for the holders are in the board README.</li>
+      <li><strong>Stack 2, behind Stack 1:</strong> the power board at the bottom on four printed risers, buck modules down, and the logic board on top, 17 mm above it on M3 standoffs, about 41 mm tall in all, with the ESP antenna at the rear edge. The two boards are joined on the tray: the link wires stand up from the power board and are soldered on the logic board's front. Outline, hole and link pad positions for the holders are in the board README.</li>
       <li>Both stacks sit in one printed stack tray that hangs under the tubes on zip ties; see the stack tray section of the board README.</li>
-      <li>The arm switch, a mini toggle, stands lever up in the middle of a printed bracket that bridges the tubes over the tray's rear cradles, so it is reachable from behind.</li>
+      <li>The arm switch, a mini toggle, stands lever up in the middle of a printed bracket that bridges the tubes over the tray's rear cradles, so it is reachable from behind. Its J3 leads run back along the side of Stack 2.</li>
     </ul>
   </section>
 
@@ -545,6 +603,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         <li>The holder's pockets are 19.2 mm across at a 19.0 mm pitch within a stack, and its body is 65.0 mm long. The front cover's plate recess is 10.1 × 30.5 mm and 2.1 mm deep. With 65.2 mm cells, 0.3 mm plates and a back recess as deep as the front one, that leaves about 3.4 mm per cell for one button dome plus one compressed spring. Check the dome height plus the spring's solid height against that before gluing; if they do not fit, the cover cannot close.</li>
         <li>Keep solder joints out from under the cells, as a blob under a dome or spring lifts the plate in its 2.1 mm recess.</li>
         <li>After assembly, every spring should be visibly compressed, the covers should close without bulging, and the pack should read 12.8–16.8 V.</li>
+        <li>If the springs bottom out and the front cover only closes under hard pressure, print a shim from <code>hardware/turret-pdb/tools/battery_shim.py</code> (1.0, 1.6 or 2.2 mm, in PETG or ASA) and fit it between the holder and the cover. A 2 mm slit in each side lets B1 and B3 slide into the cell openings, so the plates stay in the cover. Pick the thinnest one that lets the cover seat by hand while every spring stays compressed. The original M3×12 screws still reach about 7 mm into the holder with the thickest one.</li>
         <li class="warn">Mark + and − next to every pocket. A reversed cell makes the pack read about 8 V; the firmware then refuses <code>arm</code> and reports a battery fault.</li>
         <li>Use unprotected flat-top or button-top high-drain cells. Protected cells are longer and limit the current far below the spin-up peak.</li>
         <li>The 8 contacts in the chain are the weak point: at a 35 A spin-up peak, about 10 mΩ each sags the pack by almost 3 V. Use thick plates, print the covers in PETG or ASA rather than PLA, and measure the drop across a contact during a spin-up; more than about 0.1 V means that contact needs attention.</li>
@@ -578,7 +637,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <table>
         <thead><tr><th>Pack</th><th>State</th><th>Effect</th></tr></thead>
         <tbody>
-          <tr><td class="num">&lt; 5 V</td><td>No pack, USB power</td><td>Arming allowed; nothing downstream has power</td></tr>
+          <tr><td class="num">&lt; 5 V</td><td>No pack: USB or the 12 V jack</td><td>Arming allowed; the ESCs have no power</td></tr>
           <tr><td class="num">5–10 V</td><td>Fault: reversed or dead cell</td><td><code>arm</code> refused, an armed turret disarms</td></tr>
           <tr><td class="num">10–13.2 V</td><td>Empty, under 3.3 V per cell</td><td><code>arm</code> refused, an armed turret disarms</td></tr>
           <tr><td class="num">13.2–14 V</td><td>Low, under 3.5 V per cell</td><td>Warning in the log</td></tr>
@@ -592,7 +651,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
     <h2 id="sig-h">Signals</h2>
     <figure>
       <div class="scroll">
-        <svg class="diagram" viewBox="0 0 1200 790" role="img" aria-label="Signal wiring of the ESP32-S3: GPIO 14 and 21 run through a level shifter and the TTLinker to the SC15 servos; GPIO 17 and 18 drive the ESCs; GPIO 41 drives the pusher through A3/B3 of the level shifter; GPIO 42 reads the light gate; GPIO 47 reads the arm switch; GPIO 6 and 7 talk to the TFmini Plus; GPIO 1 reads the battery divider.">
+        <svg class="diagram" viewBox="0 0 1200 790" role="img" aria-label="Signal wiring of the ESP32-S3 on the logic board: GPIO 14 and 21 run through level shifter channels A1/B1 and A4/B4 and J7 to the TTLinker and the SC15 servos; GPIO 17 and 18 drive the ESCs on J5 and J6; GPIO 41 drives the pusher through A2/B2 and the link to J4 on the power board; GPIO 42 reads the light gate on J9; GPIO 47 reads the arm switch on J3 over the link; GPIO 6 and 7 talk to the TFmini Plus on J8; GPIO 1 reads the battery divider over the link.">
           <defs>
             <marker id="a-servo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--servo)"/></marker>
             <marker id="a-pwm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--pwm)"/></marker>
@@ -604,7 +663,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <!-- ESP board -->
           <rect class="box key" x="380" y="30" width="220" height="730" rx="8"/>
           <text class="t" x="490" y="58" text-anchor="middle">ESP32-S3 (Freenove WROOM)</text>
-          <text class="s" x="490" y="76" text-anchor="middle">camera connector left empty</text>
+          <text class="s" x="490" y="76" text-anchor="middle">in sockets on the logic board</text>
           <text class="p" x="390" y="114">5V</text>
           <text class="p" x="390" y="164">GND</text>
           <text class="p" x="390" y="214">3V3</text>
@@ -621,20 +680,20 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
 
           <!-- left side power -->
           <path class="w n-v5" stroke-width="2.5" d="M380 110 H250"/>
-          <text class="tag n-v5" x="240" y="114" text-anchor="end">5 V buck</text>
+          <text class="tag n-v5" x="240" y="114" text-anchor="end">link 5V</text>
           <path class="w n-gnd" stroke-width="2.5" d="M380 160 H250"/>
-          <text class="tag n-gnd" x="240" y="164" text-anchor="end">− bus</text>
+          <text class="tag n-gnd" x="240" y="164" text-anchor="end">link GND</text>
           <path class="w n-v33" stroke-width="2.5" d="M380 210 H250"/>
           <text class="tag n-v33" x="240" y="206" text-anchor="end">3V3 out</text>
-          <text class="s" x="240" y="224" text-anchor="end">to shifter LV and gate pull-up</text>
+          <text class="s" x="240" y="224" text-anchor="end">to shifter LV and the light gate</text>
 
           <!-- level shifter -->
           <rect class="box" x="680" y="88" width="110" height="96" rx="5"/>
-          <text class="t" x="735" y="80" text-anchor="middle">Level shifter</text>
+          <text class="t" x="735" y="80" text-anchor="middle">Level shifter U2</text>
           <text class="p" x="688" y="114">A1</text>
-          <text class="p" x="688" y="164">A2</text>
+          <text class="p" x="688" y="164">A4</text>
           <text class="p" x="782" y="114" text-anchor="end">B1</text>
-          <text class="p" x="782" y="164" text-anchor="end">B2</text>
+          <text class="p" x="782" y="164" text-anchor="end">B4</text>
           <text class="s" x="735" y="202" text-anchor="middle">LV 3V3 · HV 5 V · GND</text>
           <path class="w n-servo" stroke-width="2" d="M600 110 H676" marker-end="url(#a-servo)"/>
           <path class="w n-servo" stroke-width="2" d="M680 160 H604" marker-end="url(#a-servo)"/>
@@ -643,12 +702,14 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
 
           <!-- TTLinker -->
           <rect class="box" x="860" y="88" width="110" height="96" rx="5"/>
-          <text class="t" x="915" y="80" text-anchor="middle">TTLinker</text>
+          <text class="t" x="915" y="80" text-anchor="middle">TTLinker · J7</text>
           <text class="p" x="868" y="114">RXD</text>
           <text class="p" x="868" y="164">TXD</text>
-          <text class="s" x="915" y="202" text-anchor="middle">VIN 7.5 V · 5 V · GND</text>
+          <text class="s" x="915" y="202" text-anchor="middle">VIN 7.5 V from J11 · 5 V · GND</text>
           <path class="w n-servo" stroke-width="2" d="M790 110 H856" marker-end="url(#a-servo)"/>
           <path class="w n-servo" stroke-width="2" d="M860 160 H794" marker-end="url(#a-servo)"/>
+          <text class="s" x="823" y="102" text-anchor="middle">pin 4</text>
+          <text class="s" x="823" y="152" text-anchor="middle">pin 3</text>
 
           <!-- servo bus -->
           <path class="w n-servo" stroke-width="2.5" d="M970 136 H1030 M1075 162 V196"/>
@@ -665,9 +726,9 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <path class="w n-pwm" stroke-width="2" d="M600 300 H856" marker-end="url(#a-pwm)"/>
           <text class="s" x="730" y="242" text-anchor="middle">PWM 50 Hz, 1000–2000 µs</text>
           <rect class="box" x="860" y="232" width="110" height="36" rx="5"/>
-          <text class="t" x="876" y="255">ESC left</text>
+          <text class="t" x="876" y="255">ESC left · J5</text>
           <rect class="box" x="860" y="282" width="110" height="36" rx="5"/>
-          <text class="t" x="876" y="305">ESC right</text>
+          <text class="t" x="876" y="305">ESC right · J6</text>
           <text class="s" x="985" y="284">signal + GND only</text>
           <text class="s" x="985" y="300">red BEC wire unused</text>
 
@@ -675,21 +736,22 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <path class="w n-pwm" stroke-width="2" d="M600 370 H676" marker-end="url(#a-pwm)"/>
           <path class="w n-pwm" stroke-width="2" d="M790 370 H856" marker-end="url(#a-pwm)"/>
           <rect class="box" x="680" y="352" width="110" height="36" rx="5"/>
-          <text class="p" x="688" y="374">A3</text>
-          <text class="p" x="782" y="374" text-anchor="end">B3</text>
+          <text class="p" x="688" y="374">A2</text>
+          <text class="p" x="782" y="374" text-anchor="end">B2</text>
           <text class="s" x="640" y="362" text-anchor="middle">3.3 V</text>
           <text class="s" x="823" y="362" text-anchor="middle">5 V</text>
-          <text class="s" x="735" y="342" text-anchor="middle">PWM 50 Hz, 500–1140 µs · same shifter, A3/B3</text>
+          <text class="s" x="735" y="342" text-anchor="middle">PWM 50 Hz, 500–1140 µs · same shifter, A2/B2</text>
           <rect class="box" x="860" y="352" width="110" height="36" rx="5"/>
           <text class="t" x="876" y="375">Pusher servo</text>
-          <text class="s" x="985" y="375">powered from 6 V through pole A</text>
+          <text class="s" x="985" y="367">link PUSH → power board J4</text>
+          <text class="s" x="985" y="383">powered from 6 V through pole A</text>
 
           <!-- light gate -->
           <path class="w n-sense" stroke-width="2" d="M600 450 H782"/>
           <circle class="dot n-sense" cx="700" cy="450" r="4"/>
           <path class="w n-sense" stroke-width="2" d="M700 450 V440 M700 410 V402"/>
           <rect class="box" x="693" y="410" width="14" height="30" rx="2"/>
-          <text class="s" x="686" y="430" text-anchor="end">10 kΩ</text>
+          <text class="s" x="686" y="430" text-anchor="end">R4 10 kΩ</text>
           <text class="tag n-v33" x="700" y="396" text-anchor="middle">3V3</text>
           <circle class="sym" cx="800" cy="450" r="18"/>
           <text class="s" x="800" y="454" text-anchor="middle">PT</text>
@@ -700,15 +762,17 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <path class="w" stroke="var(--ink-muted)" stroke-width="1.5" stroke-dasharray="4 4" d="M896 446 H824" marker-end="url(#a-beam)"/>
           <text class="s" x="860" y="438" text-anchor="middle">IR beam</text>
           <path class="sym" d="M900 432 L920 432 L910 452 Z M900 452 H920"/>
-          <path class="w n-v5" stroke-width="2" d="M910 432 V420 H940 M990 420 H1010"/>
+          <path class="w n-v33" stroke-width="2" d="M910 432 V420 H940 M990 420 H1010"/>
           <path class="w n-gnd" stroke-width="2" d="M910 452 V468"/>
           <path class="sym n-gnd w" d="M901 468 h18 M904 472 h12 M907 476 h6"/>
           <rect class="box" x="940" y="412" width="50" height="16" rx="2"/>
-          <text class="s" x="965" y="406" text-anchor="middle">330 Ω</text>
-          <text class="tag n-v5" x="1016" y="424">5 V</text>
+          <text class="s" x="965" y="406" text-anchor="middle">R3 150 Ω</text>
+          <text class="tag n-v33" x="1016" y="424">3V3</text>
           <text class="t" x="930" y="500" text-anchor="start">IR LED</text>
           <text class="s" x="930" y="516" text-anchor="start">faces the phototransistor</text>
           <text class="s" x="930" y="532" text-anchor="start">across the barrel</text>
+          <text class="s" x="1060" y="462" text-anchor="start">J9: 1 LED anode,</text>
+          <text class="s" x="1060" y="478" text-anchor="start">2 collector, 3 GND</text>
 
           <!-- arm switch pole B -->
           <path class="w n-sense" stroke-width="2" d="M600 560 H700 M750 560 H790 V566"/>
@@ -716,12 +780,13 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <circle class="dot n-sense" cx="750" cy="560" r="4"/>
           <path class="sym" d="M700 560 L745 544"/>
           <path class="sym n-gnd w" d="M781 566 h18 M784 570 h12 M787 574 h6"/>
-          <text class="t" x="725" y="534" text-anchor="middle">Arm switch, pole B</text>
+          <text class="t" x="655" y="534" text-anchor="middle">Arm switch, pole B</text>
           <text class="s" x="820" y="564">closed = on: GPIO 47 reads low (internal pull-up)</text>
+          <text class="s" x="820" y="580">J3 4 and 3 on the power board, over link ARM</text>
 
           <!-- TFmini -->
           <rect class="box" x="860" y="610" width="110" height="90" rx="5"/>
-          <text class="t" x="915" y="602" text-anchor="middle">TFmini Plus</text>
+          <text class="t" x="915" y="602" text-anchor="middle">TFmini Plus · J8</text>
           <text class="p" x="868" y="634">TX</text>
           <text class="p" x="868" y="684">RX</text>
           <path class="w n-lidar" stroke-width="2" d="M860 630 H604" marker-end="url(#a-lidar)"/>
@@ -732,16 +797,17 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
 
           <!-- battery sense -->
           <path class="w n-sense" stroke-width="2" d="M700 730 H604" marker-end="url(#a-sense)"/>
-          <text class="tag n-sense" x="708" y="734">battery divider midpoint (power diagram)</text>
+          <text class="tag n-sense" x="708" y="734">link VBAT: divider on the power board</text>
         </svg>
       </div>
-      <figcaption>Arrows point the way data travels. Signal wires are 26 AWG. Every module's GND, including each ESC's signal ground, goes to the common ground.</figcaption>
+      <figcaption>Everything here is on or plugged into the logic board, except the pusher and the arm switch, which reach the power board over the link. Arrows point the way data travels. Signal wires are 26 AWG. Every module's GND, including each ESC's signal ground, goes to the common ground.</figcaption>
     </figure>
     <ul class="notes">
-      <li>If <code>ping 0</code> gets no answer, swap the TTLinker RXD and TXD wires. These boards do not agree on whose side the labels name.</li>
-      <li>The light gate phototransistor pulls GPIO 42 down while lit, and a dart blocking the beam lets it go high. The original wired it from 5 V, which can push more than 3.3 V into the pin; the pull-up to 3V3 avoids that.</li>
+      <li>If <code>ping 0</code> gets no answer, swap J7 pins 3 and 4. These boards do not agree on whose side the labels name.</li>
+      <li>The light gate phototransistor pulls GPIO 42 down while lit, and a dart blocking the beam lets it go high. The original wired it from 5 V, which can push more than 3.3 V into the pin; the pull-up to 3V3 avoids that. The IR LED also runs from 3V3, through 150 Ω, at about 13 mA.</li>
       <li>The arm switch is the hardware arm interlock from the safety requirements. With pole A open the pusher has no power, so no dart can fire even if the flywheels spin. Pole B lets the firmware refuse <code>arm</code> while the switch is off and disarm when it is turned off.</li>
       <li>The pusher signal goes through the shifter like in the original: most RC servos read 3.3 V as high, but some digital servos on 6 V are marginal and jitter. A BSS138 is fast enough for a 50 Hz pulse. Its 10 kΩ pull-up holds the line high until the firmware starts the PWM; servos ignore that as an invalid pulse.</li>
+      <li>The shifter's A3/B3 channel is unused.</li>
       <li>The ESCs stay on 3.3 V signals, as in the original; BLHeli ESCs read them fine.</li>
       <li>BSS138 level shifters are slow. If the servo bus shows errors at 1 Mbaud, use a 74AHCT125 buffer or lower the servo baud rate.</li>
     </ul>
@@ -749,7 +815,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
 
   <section aria-labelledby="vision-h">
     <h2 id="vision-h">Vision node</h2>
-    <p>The vision node is a second Freenove board with its camera (a GC0308 on ours) on the camera connector. It sits on the tilt stage directly above the barrel (see the sensor mounting section of <code>docs/architecture.md</code>). Only 5 V and GND run to it through the gimbal; it has no signal wires to the controller, because it talks to the phone over its own Wi-Fi and to the controller over ESP-NOW in step 5. With Wi-Fi and the camera running, it draws up to about 500 mA, well within the 5 V buck.</p>
+    <p>The vision node is a second Freenove board with its camera (a GC0308 on ours) on the camera connector. It sits on the tilt stage directly above the barrel (see the sensor mounting section of <code>docs/architecture.md</code>). Only 5 V and GND run to it through the gimbal, from J10 on the power board; it has no signal wires to the controller, because it talks to the phone over its own Wi-Fi and to the controller over ESP-NOW in step 5. With Wi-Fi and the camera running, it draws up to about 500 mA, well within the 5 V buck.</p>
     <div class="tbl">
       <table>
         <thead><tr><th>Function</th><th>GPIO</th><th>Notes</th></tr></thead>
@@ -767,16 +833,16 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <table>
         <thead><tr><th>GPIO</th><th>Function</th><th>Was</th><th>Notes</th></tr></thead>
         <tbody>
-          <tr><td class="num">14</td><td><span class="swatch" style="--c: var(--servo)"></span>Servo bus TX (UART1)</td><td class="num">33</td><td>Through the level shifter to TTLinker RXD</td></tr>
-          <tr><td class="num">21</td><td><span class="swatch" style="--c: var(--servo)"></span>Servo bus RX (UART1)</td><td class="num">34</td><td>From TTLinker TXD through the level shifter</td></tr>
-          <tr><td class="num">17</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC left</td><td class="num">17</td><td>Camera pin, free with no camera</td></tr>
-          <tr><td class="num">18</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC right</td><td class="num">18</td><td>Camera pin, free with no camera</td></tr>
-          <tr><td class="num">41</td><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher servo</td><td class="num">39</td><td>Through the level shifter, A3/B3. 39 is the SD card clock on this board</td></tr>
-          <tr><td class="num">42</td><td><span class="swatch" style="--c: var(--sense)"></span>Light gate</td><td class="num">38</td><td>38 is the SD card command line on this board</td></tr>
-          <tr><td class="num">47</td><td><span class="swatch" style="--c: var(--sense)"></span>Arm switch sense</td><td class="num">–</td><td>Closed to GND = on</td></tr>
-          <tr><td class="num">6</td><td><span class="swatch" style="--c: var(--lidar)"></span>TFmini Plus TX → ESP</td><td class="num">–</td><td>UART2, roadmap step 3</td></tr>
-          <tr><td class="num">7</td><td><span class="swatch" style="--c: var(--lidar)"></span>ESP → TFmini Plus RX</td><td class="num">–</td><td>UART2, roadmap step 3</td></tr>
-          <tr><td class="num">1</td><td><span class="swatch" style="--c: var(--sense)"></span>Battery divider</td><td class="num">16</td><td>ADC1, keeps reading with Wi-Fi on</td></tr>
+          <tr><td class="num">14</td><td><span class="swatch" style="--c: var(--servo)"></span>Servo bus TX (UART1)</td><td class="num">33</td><td>Level shifter A1/B1, J7 pin 4 to TTLinker RXD</td></tr>
+          <tr><td class="num">21</td><td><span class="swatch" style="--c: var(--servo)"></span>Servo bus RX (UART1)</td><td class="num">34</td><td>TTLinker TXD on J7 pin 3, level shifter B4/A4</td></tr>
+          <tr><td class="num">17</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC left</td><td class="num">17</td><td>J5. Camera pin, free with no camera</td></tr>
+          <tr><td class="num">18</td><td><span class="swatch" style="--c: var(--pwm)"></span>ESC right</td><td class="num">18</td><td>J6. Camera pin, free with no camera</td></tr>
+          <tr><td class="num">41</td><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher servo</td><td class="num">39</td><td>Level shifter A2/B2, link PUSH, power board J4 pin 3. 39 is the SD card clock on this board</td></tr>
+          <tr><td class="num">42</td><td><span class="swatch" style="--c: var(--sense)"></span>Light gate</td><td class="num">38</td><td>J9 pin 2. 38 is the SD card command line on this board</td></tr>
+          <tr><td class="num">47</td><td><span class="swatch" style="--c: var(--sense)"></span>Arm switch sense</td><td class="num">–</td><td>Closed to GND = on. Power board J3 pin 4, link ARM</td></tr>
+          <tr><td class="num">6</td><td><span class="swatch" style="--c: var(--lidar)"></span>TFmini Plus TX → ESP</td><td class="num">–</td><td>J8 pin 3. UART2, roadmap step 3</td></tr>
+          <tr><td class="num">7</td><td><span class="swatch" style="--c: var(--lidar)"></span>ESP → TFmini Plus RX</td><td class="num">–</td><td>J8 pin 4. UART2, roadmap step 3</td></tr>
+          <tr><td class="num">1</td><td><span class="swatch" style="--c: var(--sense)"></span>Battery divider</td><td class="num">16</td><td>ADC1, keeps reading with Wi-Fi on. Divider on the power board, link VBAT</td></tr>
         </tbody>
       </table>
     </div>
@@ -790,28 +856,31 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         <table>
           <thead><tr><th>Run</th><th>AWG</th><th>Current</th></tr></thead>
           <tbody>
-            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Battery, fuse, XT60, buses</td><td class="num">14</td><td>30–40 A spin-up peaks</td></tr>
-            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Bus to each ESC</td><td class="num">16</td><td>up to ~20 A each</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Battery, fuse, XT60, PDB</td><td class="num">14</td><td>30–40 A spin-up peaks</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>PDB to each ESC</td><td class="num">16</td><td>up to ~20 A each</td></tr>
             <tr><td><span class="swatch" style="--c: var(--phase)"></span>ESC to motor</td><td class="num">as supplied</td><td>usually 18–20 AWG</td></tr>
-            <tr><td><span class="swatch" style="--c: var(--batt)"></span>Bus to buck inputs</td><td class="num">20</td><td>under 3 A</td></tr>
-            <tr><td><span class="swatch" style="--c: var(--v75)"></span>7.5 V servos, 6 V pusher</td><td class="num">20</td><td>up to 3.4 A stalled</td></tr>
-            <tr><td><span class="swatch" style="--c: var(--v5)"></span>5 V logic</td><td class="num">22</td><td>under 1 A</td></tr>
-            <tr><td><span class="swatch" style="--c: var(--sense)"></span>Signals, divider, sensors</td><td class="num">26</td><td>milliamps</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>PDB to power board J1</td><td class="num">20</td><td>under 3 A</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--v75)"></span>J11 to TTLinker VIN, J3 1–2 to pole A</td><td class="num">20</td><td>up to 3.4 A stalled</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--v5)"></span>J10 to vision node, link GND and 5V</td><td class="num">22</td><td>under 1 A</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher to J4, ESCs to J5/J6</td><td class="num">as supplied</td><td>servo leads</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--sense)"></span>Link VBAT, ARM, PUSH; J3 3–4, J7, J8, J9</td><td class="num">26</td><td>milliamps</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="meta">Use stranded silicone wire throughout so it survives the pan and tilt movement, and strain-relieve it where it crosses the gimbal axes.</p>
+      <p class="meta">Use stranded silicone wire throughout so it survives the pan and tilt movement, and strain-relieve it where it crosses the gimbal axes. J3, J4 and J10 have no tie hole on the power board, so strain-relieve those wires on the tray.</p>
     </section>
 
     <section aria-labelledby="check-h">
       <h2 id="check-h">First power-on</h2>
       <ol class="check">
-        <li>With nothing on the buck outputs, set them to 7.5 V, 6.0 V and 5.0 V with a multimeter.</li>
-        <li>Check that the + bus and − bus are not shorted, with the battery disconnected.</li>
+        <li>With the ESP out of its sockets and nothing on J4, J10 or J11, check that VIN is not shorted to GND (an MP1584 fitted the wrong way round shorts it) and that the PDB's + and − buses are not shorted.</li>
+        <li>With the arm switch off, check that there is no continuity from J3 pin 2 to J4 pin 2.</li>
+        <li>Check the five link wires through the joints, as in the safety checks of the board README.</li>
+        <li>On the 12 V jack only, set the bucks to 7.5 V at J11, 6.0 V at J3 pin 2 and 5.0 V at J10, and lock the trimmers. J1 should read about 0 V.</li>
         <li>With the cells in, measure the pack leads: 12.8–16.8 V. About 8 V means a reversed cell.</li>
-        <li>First power-on: arm switch off, no darts, flywheel motors unplugged from the ESCs.</li>
+        <li>Plug in the ESP. First battery power-on: arm switch off, no darts, flywheel motors unplugged from the ESCs.</li>
         <li>Run <code>B</code> on the console and compare with a multimeter across the pack.</li>
-        <li>Run <code>ping 0</code> and <code>ping 1</code>. No reply: swap TTLinker RXD/TXD.</li>
+        <li>Run <code>ping 0</code> and <code>ping 1</code>. No reply: swap J7 pins 3 and 4.</li>
         <li>Run <code>status</code> and flip the arm switch; it should show on and off.</li>
         <li>Calibrate both ESCs to 1000–2000 µs before the first spin-up.</li>
       </ol>
@@ -829,12 +898,21 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>microSD card, FAT32</td><td>Vision node: enrolled people. Any size; 1 GB is plenty</td></tr>
           <tr><td class="num">2</td><td>Waveshare SC15 serial bus servo</td><td>Pan ID 0, tilt ID 1; 4.8–8.4 V, 1.7 A stall</td></tr>
           <tr><td class="num">1</td><td>Feetech TTLinker (mini)</td><td>UART to half-duplex servo bus</td></tr>
-          <tr><td class="num">1</td><td>4-channel BSS138 level shifter (Adafruit 757)</td><td>3.3 V ↔ 5 V: TTLinker on A1/B1 and A2/B2, pusher signal on A3/B3. Low side is LV and A1–A4, high side HV and B1–B4</td></tr>
+          <tr><td class="num">1</td><td>Controller boards: power and logic, JLCPCB, 2 layers, 1.6 mm</td><td>Gerbers from <code>hardware/turret-pdb/tools/export.sh</code>; see <code>hardware/turret-pdb/README.md</code></td></tr>
+          <tr><td class="num">3</td><td>MP1584 buck module</td><td>U3 7.5 V, U4 6 V, U5 5 V. On male header pins on the power board's back. Lock the trimmers after setting them</td></tr>
+          <tr><td class="num">2</td><td>SB560 Schottky diode (DO-201AD)</td><td>D1, D2: battery and bench jack OR</td></tr>
+          <tr><td class="num">1</td><td>5.5 × 2.1 mm DC jack (PJ-002A)</td><td>J2, 12 V bench input</td></tr>
+          <tr><td class="num">1</td><td>100 µF 35 V electrolytic, 6.3 mm diameter, 2.5 mm pitch</td><td>C2, on VIN</td></tr>
+          <tr><td class="num">1</td><td>1000 µF 16 V low-ESR electrolytic, 10 × 20 mm</td><td>C3, at the pusher connection J4, lying flat</td></tr>
+          <tr><td class="num">1</td><td>39 kΩ and 8.2 kΩ 1 % resistors, 100 nF capacitor</td><td>R1, R2, C1: battery divider on the power board</td></tr>
+          <tr><td class="num">1</td><td>4-channel BSS138 level shifter (Adafruit 757)</td><td>U2 on the logic board, mounted upside down. GPIO 14 → TTLinker on A1/B1, TTLinker → GPIO 21 on A4/B4, pusher signal on A2/B2. Low side is LV and A1–A4, high side HV and B1–B4</td></tr>
+          <tr><td class="num">1</td><td>150 Ω and 10 kΩ resistors</td><td>R3, R4: light gate LED and pull-up on the logic board</td></tr>
+          <tr><td class="num">–</td><td>2 × 1×20 female header strip, 2.54 mm male headers, Dupont housings</td><td>ESP sockets; J5–J9 (2 × 3-pin, 2 × 4-pin, 1 × 3-pin) and pins for the MP1584s; plugs for the ESC, TTLinker, TFmini and light gate leads</td></tr>
+          <tr><td class="num">1</td><td>12 V 2.5 A adapter, 5.5 × 2.1 mm, centre positive</td><td>Optional, for bench mode</td></tr>
           <tr><td class="num">2</td><td>2206 2300 KV brushless motor</td><td>Original: Armattan Oomph 2206/2300 KV; any 2206–2207, 2300–2500 KV with a 5 mm shaft and 16×19 mm M3 mount should fit the printed mounts (check)</td></tr>
           <tr><td class="num">1</td><td>Aluminium flat bar 12 × 2 mm, 76 mm long</td><td>Flywheel motor plate. It slides into the 11.9 × 2.7 mm channel along the bottom of the printed flywheel holder, under both motor seats; the motors sit on it and their centre-line screws pass through it. Four 3.2 mm holes on the centre line at 7.95, 26.95, 50.45 and 66.45 mm from one end (19 mm pair for the first motor, 16 mm pair for the second). File the edges if a 12 mm bar is tight; 12 × 2.5 mm also fits, 3 mm stock does not. Where only 15 × 2 mm is sold, saw and file a piece down to width. Mount the motors with M3 × 8, so no screw reaches more than about 4 mm into the motor base and its windings</td></tr>
-          <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed</td></tr>
+          <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed. 35 × 17 mm, 4.5 mm high at the motor end and 5.9 mm at the back, fits the printed ESC holder</td></tr>
           <tr><td class="num">1</td><td>Standard-size positional metal-gear RC servo</td><td>Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, about 2.5 A stall. Not a continuous-rotation (360°) servo</td></tr>
-          <tr><td class="num">1</td><td>1000 µF ≥16 V low-ESR electrolytic capacitor</td><td>Across the pusher servo's supply, at the servo</td></tr>
           <tr><td class="num">4</td><td>High-drain 18650 cell</td><td>Molicel P28A (35 A); Samsung 30Q (15 A) at minimum</td></tr>
           <tr><td class="num">1</td><td>4S BMS, common port, ≥30 A continuous, about 61 × 46 mm</td><td>Over-discharge, overcharge and short protection; common port, so the charger and the turret share P+/P−. Built with a Gebildet E1689 (4S 40A "Enhanced"); its own balancing is not relied on, as the charger balances</td></tr>
           <tr><td class="num">1</td><td>Printed 2×2 battery holder and covers</td><td>From the original; covers in PETG or ASA</td></tr>
@@ -844,21 +922,18 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>18650 single button plate</td><td>Back cover, pack +</td></tr>
           <tr><td class="num">1</td><td>Hobby balance charger, 1–6S, built-in AC supply</td><td>e.g. ToolkitRC M6AC or ISDT 608AC. Needs a mode that stops at 4.20 V per cell, a 4S JST-XH balance port and a male XT60 output lead</td></tr>
           <tr><td class="num">1</td><td>4S JST-XH balance lead, 22 AWG silicone, about 10 cm</td><td>Soldered to the BMS tap pads. Half of a 4S balance extension works: keep the end that plugs into the charger</td></tr>
-          <tr><td class="num">1</td><td>Buck converter 7.5 V, ≥5 A</td><td>Pololu D36V50F7, or XL4015 set to 7.5 V</td></tr>
-          <tr><td class="num">1</td><td>Buck converter 6 V, ≥3 A</td><td>Pololu D36V28F6. An MP1584 (3 A peak) handles normal pushes with the 1000 µF capacitor but cuts out during a sustained stall; lock its trim pot, as above 7.2 V the MG996R is damaged</td></tr>
-          <tr><td class="num">1</td><td>Buck converter 5 V, ≥2 A</td><td>Pololu D36V28F5, or MP1584 set to 5 V</td></tr>
-          <tr><td class="num">1</td><td>Quadcopter power distribution board, ≥5 pad pairs plus a VCC / GND sense pad, 2 oz copper</td><td>e.g. Matek PDB-XT60 or a clone with 6 pad pairs; the + and − buses, onboard BEC unused. Two Wago 221-415 per rail as a solderless fallback</td></tr>
+          <tr><td class="num">1</td><td>Quadcopter power distribution board, ≥3 pad pairs, 2 oz copper</td><td>e.g. Matek PDB-XT60 or a clone with 6 pad pairs; the + and − buses for the ESCs and the power board, its board XT60 and any onboard BEC unused</td></tr>
           <tr><td class="num">1</td><td>Inline mini blade (ATM) fuse holder, 14 AWG</td><td></td></tr>
           <tr><td class="num">2</td><td>25 A mini blade fuse</td><td>One spare; never above 30 A on 14 AWG</td></tr>
           <tr><td class="num">1</td><td>DPST or DPDT mini toggle with a 6 mm (M6 × 0.75) bushing, ≥3 A DC</td><td>Arm switch, in the printed bracket across the rear cradles</td></tr>
           <tr><td class="num">1</td><td>XT60 pigtail pair, 14 AWG, about 10 cm</td><td>Battery to turret, also the power switch: the male on the PDB's tab pads, the female after the fuse and BMS P−. An anti-spark XT60 if the BMS trips on plug-in</td></tr>
-          <tr><td class="num">1</td><td>39 kΩ and 8.2 kΩ 1 % resistors, 100 nF capacitor</td><td>Battery divider</td></tr>
-          <tr><td class="num">1</td><td>IR LED, IR phototransistor, 330 Ω, 10 kΩ</td><td>Light gate</td></tr>
+          <tr><td class="num">1</td><td>IR LED, IR phototransistor</td><td>Light gate</td></tr>
           <tr><td class="num">1</td><td>TFmini Plus</td><td>Roadmap step 3</td></tr>
           <tr><td class="num">–</td><td>2-part epoxy</td><td>Fixes the battery contact plates in the covers</td></tr>
-          <tr><td class="num">–</td><td>Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink; JST/Dupont connectors</td><td></td></tr>
-          <tr><td class="num">–</td><td>Controller boards only: the power and logic boards from JLCPCB (2 layers, 1.6 mm, Gerbers from <code>export.sh</code>), 3 × MP1584 module, 2 × SB560 Schottky (DO-201AD), 5.5 × 2.1 mm DC jack (PJ-002A), 100 µF 35 V electrolytic (6.3 mm diameter, 2.5 mm pitch), 150 Ω and 10 kΩ resistors, 2.54 mm male headers and female header strip, 4 × M3 standoffs for a 17 mm board gap. For printed boards instead: 0.75 mm tinned copper wire for the tracks and vias (or copper foil tape) and PLA, PETG or ASA filament</td><td>Replaces the separate bucks, the light gate resistors and the loose wiring; see <code>hardware/turret-pdb</code></td></tr>
-          <tr><td class="num">–</td><td>Stack tray: M3 screws 4 × 16, 4 × 12 and 4 × 8 mm, 8 M3 nuts, M3 washers, six 4.8 mm zip ties and a few small ones, 1 mm double-sided foam tape, PLA filament</td><td>Holds both stacks under the tubes; see the stack tray section of <code>hardware/turret-pdb/README.md</code></td></tr>
+          <tr><td class="num">–</td><td>Silicone wire 14, 16, 20, 22, 26 AWG; heat shrink</td><td></td></tr>
+          <tr><td class="num">–</td><td>Stack tray: printed tray, deck, 4 risers and arm switch bracket in PLA; M3 screws 4 × 16 and 4 × 8 with 8 nuts, 4 × 20, 4 × 6; 4 M3 17 mm female–female standoffs; M3 washers; six 4.8 mm zip ties and a few small ones; 1 mm double-sided foam tape</td><td>Holds both stacks under the tubes; see the stack tray section of <code>hardware/turret-pdb/README.md</code></td></tr>
+          <tr><td class="num">–</td><td>ESC holders: left and right printed, 4 M3 × 6 socket head screws, 4 small zip ties, PLA or PETG filament</td><td>Replace the original's ESC holders; the ESCs snap in. See the ESC holder section of <code>hardware/turret-pdb/README.md</code></td></tr>
+          <tr><td class="num">–</td><td>Battery shims, optional, printed in PETG or ASA</td><td>Only if the front cover will not close; see <a href="#pack-h">Battery pack</a></td></tr>
           <tr><td class="num">–</td><td>16 mm carbon tube ×1, 12 mm ×2, M3 screws</td><td>Frame, from the original build</td></tr>
         </tbody>
       </table>

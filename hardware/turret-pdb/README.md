@@ -7,7 +7,7 @@ Two stacked two-layer KiCad 10 boards for the turret controller's low-current si
 
 Five wires join the two boards. The ESCs stay on the quadcopter PDB; the power board takes one 20 AWG feed from a spare PDB pad pair.
 
-Status: ERC and DRC clean on both boards, ordered from JLCPCB at 1.6 mm, not assembled yet. The module dimensions the footprints use are under [Module dimensions](#module-dimensions).
+Status: ERC and DRC clean on both boards, made by JLCPCB at 1.6 mm and assembled; the turret is not fully wired and tested yet. How the boards connect to the rest of the turret is in [`docs/wiring.md`](../../docs/wiring.md). The module dimensions the footprints use are under [Module dimensions](#module-dimensions).
 
 Both boards are 70 × 68 mm with 4 × M3 in the same places. The minimum track width is 2 mm, with 1 mm between tracks. The exceptions are pads and vias at 2.54 mm pitch, which need only 0.55 mm.
 
@@ -217,10 +217,10 @@ Pin 1 is the square pad.
 | J9 | Light gate | 1 IR LED anode (cathode to 3), 2 phototransistor collector, 3 GND (LED cathode and phototransistor emitter) |
 | J12 | Link to the power board | as on the power board |
 
-## Differences from the loose wiring in `docs/wiring.md`
+## Design notes
 
-- **Level shifter channels:** A1/B1 is GPIO 14 → TTLinker RXD, A2/B2 the pusher, and A4/B4 TTLinker TXD → GPIO 21. A3/B3 is unused. The firmware is unchanged.
-- **Light gate LED:** it runs from 3V3 through 150 Ω (about 13 mA) instead of 5 V through 330 Ω, since 3V3 is closer to the gate connector.
+- **Level shifter channels:** A1/B1 is GPIO 14 → TTLinker RXD, A2/B2 the pusher, and A4/B4 TTLinker TXD → GPIO 21. A3/B3 is unused.
+- **Light gate LED:** it runs from 3V3 through 150 Ω (about 13 mA), not from 5 V through 330 Ω as in the original, since 3V3 is closer to the gate connector.
 - **Divider and capacitors:** the battery divider sits on the power board at the battery input, before D1. Only the divided voltage goes up to the logic board. The 1000 µF sits at the pusher connector.
 - **Diode OR on the input:** two SB560 Schottky diodes feed the bucks from either the battery or the 12 V jack, so neither source can back-feed the other. The divider measures the battery only. On the jack alone it reads under 5 V ("no pack"), the same as on USB.
 - **7.5 V rail:** the 7.5 V servo rail is an MP1584, rated 3 A peak. Two stalled SC15s draw 3.4 A, so a double stall can make it overheat and cut out.
