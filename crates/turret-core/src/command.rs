@@ -1,5 +1,7 @@
 use core::ops::RangeInclusive;
 
+use crate::scs::BROADCAST_ID;
+
 pub const PUSHER_TEST_US: RangeInclusive<u16> = 500..=2500;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -52,6 +54,10 @@ pub enum Command {
     Disarm,
     Status,
     Ping(u8),
+    SetId {
+        old: u8,
+        new: u8,
+    },
     Pusher(Option<u16>),
     Unpair,
     Help,
@@ -130,6 +136,11 @@ fn parse_console(line: &str) -> Result<Command, ParseError> {
         Command::Help
     } else if verb.eq_ignore_ascii_case("ping") {
         Command::Ping(field(&mut words, "id")?)
+    } else if verb.eq_ignore_ascii_case("setid") {
+        Command::SetId {
+            old: servo_id(&mut words, "old id")?,
+            new: servo_id(&mut words, "new id")?,
+        }
     } else if verb.eq_ignore_ascii_case("pusher") {
         parse_pusher(&mut words)?
     } else {
@@ -147,6 +158,17 @@ fn parse_pusher<'a>(words: &mut impl Iterator<Item = &'a str>) -> Result<Command
         Ok(pulse_us) if PUSHER_TEST_US.contains(&pulse_us) => Ok(Command::Pusher(Some(pulse_us))),
         _ => Err(ParseError::Invalid("pulse")),
     }
+}
+
+fn servo_id<'a>(
+    words: &mut impl Iterator<Item = &'a str>,
+    name: &'static str,
+) -> Result<u8, ParseError> {
+    let id: u8 = field(words, name)?;
+    if id >= BROADCAST_ID {
+        return Err(ParseError::Invalid(name));
+    }
+    Ok(id)
 }
 
 fn field<'a, T: core::str::FromStr>(
@@ -254,6 +276,24 @@ mod tests {
         assert_eq!(parse("help"), Ok(Command::Help));
         assert_eq!(parse("ping 1"), Ok(Command::Ping(1)));
         assert_eq!(parse("Unpair"), Ok(Command::Unpair));
+    }
+
+    #[test]
+    fn parses_set_id() {
+        assert_eq!(parse("setid 1 0"), Ok(Command::SetId { old: 1, new: 0 }));
+        assert_eq!(
+            parse("SetId 0 253"),
+            Ok(Command::SetId { old: 0, new: 253 })
+        );
+    }
+
+    #[test]
+    fn set_id_rejects_missing_and_broadcast_ids() {
+        assert_eq!(parse("setid"), Err(ParseError::Missing("old id")));
+        assert_eq!(parse("setid 1"), Err(ParseError::Missing("new id")));
+        assert_eq!(parse("setid 254 0"), Err(ParseError::Invalid("old id")));
+        assert_eq!(parse("setid 1 254"), Err(ParseError::Invalid("new id")));
+        assert_eq!(parse("setid 1 x"), Err(ParseError::Invalid("new id")));
     }
 
     #[test]

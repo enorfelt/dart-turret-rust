@@ -50,6 +50,7 @@ Open with `espflash monitor` (or `cargo run`). Typed characters are echoed; Ente
 | `arm` / `disarm` | Allow / stop flywheels and pusher (boots disarmed); `arm` needs the arm switch on and a battery that is not empty or faulty |
 | `status` | Arming, fire phase, battery, last gimbal target |
 | `ping <id>` | Ping a serial bus servo |
+| `setid <old> <new>` | Change a serial bus servo's ID (0–253): unlock its EEPROM, write the ID, lock it again under the new ID, then ping it. Disarmed only. Every servo on the bus with the old ID takes the new one, so connect only that servo |
 | `pusher <µs>` / `pusher off` | Hold the pusher at a pulse of 500–2500 µs to calibrate it, or release it to retracted. Disarmed only; `arm` and losing the BLE link release it. The servo only has power with the arm switch on |
 | `P;pan;tilt;vpan;vtilt` | Move the gimbal, servo units |
 | `F;1;mode;throttle;burst` | Fire; mode 0 single, 1 burst, 2 auto; throttle 0–100 % |

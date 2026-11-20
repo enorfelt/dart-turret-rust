@@ -25,6 +25,7 @@ commands:
                           and a battery that is not empty or faulty)
   status                  show arming, arm switch, fire phase, battery and gimbal
   ping <id>               ping a serial bus servo
+  setid <old> <new>       change a serial bus servo's ID, disarmed only, with only that servo on the bus
   pusher <us> | off       hold the pusher at a pulse (500-2500 us) for calibration, disarmed only
   P;pan;tilt;vpan;vtilt   move the gimbal in servo units
   F;1;mode;throttle;burst fire: mode 0 single, 1 burst, 2 auto; throttle 0-100 %
@@ -231,6 +232,13 @@ fn handle(
             ),
             Err(error) => println!("servo {id}: {error}"),
         },
+        Command::SetId { .. } if fire.is_armed() => println!("setid refused: disarm first"),
+        Command::SetId { old, new } => {
+            match gimbal.set_id(old, new).and_then(|()| gimbal.ping(new)) {
+                Ok(_) => println!("servo {old} is now servo {new}"),
+                Err(error) => println!("setid {old} -> {new}: {error}"),
+            }
+        }
         Command::Pusher(_) if fire.is_armed() => println!("pusher test refused: disarm first"),
         Command::Pusher(Some(pulse_us)) => {
             state.held_pusher_us = Some(pulse_us);

@@ -9,18 +9,20 @@ use turret_core::scs::{self, Status, StatusError, MAX_PACKET};
 const REPLY_TIMEOUT: TickType = TickType::new_millis(20);
 
 #[derive(Debug)]
-pub enum PingError {
+pub enum ReplyError {
     Bus(EspError),
     NoReply,
     Corrupt(StatusError),
+    Flags(u8),
 }
 
-impl core::fmt::Display for PingError {
+impl core::fmt::Display for ReplyError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::Bus(error) => write!(f, "bus error: {error}"),
             Self::NoReply => write!(f, "no reply"),
             Self::Corrupt(error) => write!(f, "corrupt reply: {error:?}"),
+            Self::Flags(flags) => write!(f, "servo reported error flags {flags:#04x}"),
         }
     }
 }
@@ -73,20 +75,33 @@ impl Gimbal {
         Ok((pan, tilt))
     }
 
-    pub fn ping(&self, id: u8) -> Result<Status, PingError> {
-        let request = scs::ping(id);
-        self.uart.clear_rx().map_err(PingError::Bus)?;
-        self.uart.write(&request).map_err(PingError::Bus)?;
+    pub fn ping(&self, id: u8) -> Result<Status, ReplyError> {
+        self.transact(&scs::ping(id))
+    }
+
+    pub fn set_id(&self, old: u8, new: u8) -> Result<(), ReplyError> {
+        for request in scs::set_id(old, new) {
+            let status = self.transact(&request)?;
+            if status.error != 0 {
+                return Err(ReplyError::Flags(status.error));
+            }
+        }
+        Ok(())
+    }
+
+    fn transact(&self, request: &[u8]) -> Result<Status, ReplyError> {
+        self.uart.clear_rx().map_err(ReplyError::Bus)?;
+        self.uart.write(request).map_err(ReplyError::Bus)?;
         let mut reply = [0u8; 2 * MAX_PACKET];
         let received = match self.uart.read(&mut reply, REPLY_TIMEOUT.ticks()) {
             Ok(received) => received,
             Err(error) if error.code() == ESP_ERR_TIMEOUT => 0,
-            Err(error) => return Err(PingError::Bus(error)),
+            Err(error) => return Err(ReplyError::Bus(error)),
         };
-        let reply = scs::strip_echo(&reply[..received], &request);
+        let reply = scs::strip_echo(&reply[..received], request);
         if reply.is_empty() {
-            return Err(PingError::NoReply);
+            return Err(ReplyError::NoReply);
         }
-        scs::parse_status(reply).map_err(PingError::Corrupt)
+        scs::parse_status(reply).map_err(ReplyError::Corrupt)
     }
 }

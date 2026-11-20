@@ -1,7 +1,9 @@
 use heapless::Vec;
 
 pub const BROADCAST_ID: u8 = 0xFE;
+pub const ID: u8 = 5;
 pub const GOAL_POSITION: u8 = 42;
+pub const LOCK: u8 = 48;
 pub const MAX_PACKET: usize = 16;
 
 const HEADER: [u8; 2] = [0xFF, 0xFF];
@@ -36,6 +38,18 @@ pub fn ping(id: u8) -> Packet {
 
 pub fn action() -> Packet {
     packet(BROADCAST_ID, Instruction::Action, &[])
+}
+
+pub fn write_byte(id: u8, address: u8, value: u8) -> Packet {
+    packet(id, Instruction::Write, &[address, value])
+}
+
+pub fn set_id(old: u8, new: u8) -> [Packet; 3] {
+    [
+        write_byte(old, LOCK, 0),
+        write_byte(old, ID, new),
+        write_byte(new, LOCK, 1),
+    ]
 }
 
 pub fn reg_write_position(id: u8, position: u16, time: u16, speed: u16) -> Packet {
@@ -121,6 +135,24 @@ mod tests {
         assert_eq!(
             packet.as_slice(),
             &[0xFF, 0xFF, 0x00, 0x09, 0x04, 42, 0x02, 0x00, 0x00, 0x00, 0x03, 0xE8, 0xDB]
+        );
+    }
+
+    #[test]
+    fn set_id_unlocks_writes_and_locks_under_the_new_id() {
+        let [unlock, write, lock] = set_id(1, 0);
+
+        assert_eq!(
+            unlock.as_slice(),
+            &[0xFF, 0xFF, 0x01, 0x04, 0x03, 48, 0x00, 0xC7]
+        );
+        assert_eq!(
+            write.as_slice(),
+            &[0xFF, 0xFF, 0x01, 0x04, 0x03, 5, 0x00, 0xF2]
+        );
+        assert_eq!(
+            lock.as_slice(),
+            &[0xFF, 0xFF, 0x00, 0x04, 0x03, 48, 0x01, 0xC7]
         );
     }
 
