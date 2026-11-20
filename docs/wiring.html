@@ -435,7 +435,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <li>The MG996R pusher stalls at about 2.5 A and draws spikes that size each time it starts to move. C3, a 1000 µF 16 V low-ESR electrolytic at J4, supplies them, so they do not sag the 6 V rail or bounce the shared ground. U4 handles normal pushes with C3, but overheats and cuts out during a sustained stall.</li>
       <li>With pole A open, C3 runs the servo for only a few milliseconds, far too short to push a dart, so the arm switch still cuts the pusher.</li>
       <li>Set each buck before anything is connected, then lock its trimmer with a drop of glue. <span class="warn">Above 7.2 V the MG996R is damaged.</span></li>
-      <li>Only signal and ground from the ESC servo leads reach the logic board: the middle pin of J5 and J6 has no copper, so a BEC's red wire stays unconnected.</li>
+      <li>Only signal and ground from each ESC reach the logic board: the middle pin of J5 and J6 has no copper, so an ESC with a BEC red wire can plug on and the red wire stays unconnected. See <a href="#esc-h">ESC leads</a>.</li>
       <li class="warn">Unplug the XT60 and the 12 V jack before plugging in USB, unless you have checked that the Freenove board isolates VBUS from its 5V pin.</li>
     </ul>
     <div class="two">
@@ -492,7 +492,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         <table>
           <thead><tr><th>Logic board</th><th>Goes to</th><th>Pins (1 is square)</th><th>AWG</th></tr></thead>
           <tbody>
-            <tr><td class="num">J5, J6</td><td>ESC left, right servo lead</td><td>1 GND, 2 not connected (BEC red wire), 3 signal</td><td class="num">lead</td></tr>
+            <tr><td class="num">J5, J6</td><td>ESC left, right signal pair</td><td>1 GND, 2 not connected, 3 signal. 3-pin Dupont housing with the middle slot empty; see <a href="#esc-h">ESC leads</a></td><td class="num">26</td></tr>
             <tr><td class="num">J7</td><td>TTLinker logic side</td><td>1 5V, 2 GND, 3 TTLinker TXD, 4 TTLinker RXD. Swap 3 and 4 if <code>ping 0</code> gets no answer</td><td class="num">26</td></tr>
             <tr><td class="num">J8</td><td>TFmini Plus</td><td>1 5V (red), 2 GND (black), 3 TFmini TX, 4 TFmini RX</td><td class="num">26</td></tr>
             <tr><td class="num">J9</td><td>Light gate</td><td>1 IR LED anode, 2 phototransistor collector, 3 GND (LED cathode and emitter)</td><td class="num">26</td></tr>
@@ -630,6 +630,29 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <li><strong>The servo cable takes the distance.</strong> The TTLinker drives the bus hard, so the long run is the cable to the pan servo: forward along the top of the right-hand tube past Stack 1, tied to the tube, then into the blue base. That is about 15 cm plus the way into the base. If the stock cable does not reach, use a longer one of the same type.</li>
       <li><strong>IDs.</strong> Both servos may come with the same factory ID, and the firmware has no command to change it. With the power off, plug in only the pan servo, power up and run <code>ping 0</code>; then do the same with only the tilt servo and <code>ping 1</code>. If one does not answer, set its ID with Feetech's FD software through a USB serial adapter, with only that servo connected, before chaining them.</li>
     </ul>
+    <h3 id="esc-h">ESC leads</h3>
+    <p>Our ESCs have four wires besides the motor leads: a power pair (red +, black −) and a thin signal pair (signal, usually white or yellow, and ground, black or brown). There is no BEC wire. The ESCs sit on the turret beside the flywheels, so their stock leads do not reach the PDB in the tray. Both pairs need longer wires, and both cross the pan axis.</p>
+    <div class="two">
+      <div>
+        <p><strong>Power pair</strong>, to PDB pad pair 1 (left) or 2 (right):</p>
+        <ul class="notes">
+          <li>Use 16 AWG silicone wire. Best is to desolder the short leads at the ESC's pads and solder the new wire there, with no joint in between: slit the ESC's heat shrink to reach the pads and cover them with new heat shrink afterwards. Otherwise splice: solder each joint, heat shrink it, and offset the + and − joints by 2–3 cm so a worn sleeve cannot let them touch.</li>
+          <li class="warn">Mark + and − before cutting anything. A reversed ESC dies the moment the XT60 goes in.</li>
+          <li>Twist + and − together along the run. Long leads add inductance that the ESC's input capacitor has to absorb; if a run is longer than about 15 cm, solder a 470 µF 35 V low-ESR capacitor across the ESC's power pads.</li>
+        </ul>
+      </div>
+      <div>
+        <p><strong>Signal pair</strong>, to logic board J5 (left) or J6 (right):</p>
+        <ul class="notes">
+          <li>Find the ground with a meter: it has continuity to the ESC's power −.</li>
+          <li>Extend both wires with 26 AWG and twist them together for the whole run. Keep them away from the motor phase wires and the power pair where you can.</li>
+          <li>Crimp 2.54 mm Dupont female terminals onto the logic board end (strip 2.5–3 mm, ratchet crimper such as the SN-28B) and push them into a 3-pin housing: ground in slot 1, signal in slot 3, the middle slot empty. A 3-pin housing cannot sit one pin off the way two 1-pin plugs can. Mark the pin 1 side to match the square pad.</li>
+          <li class="warn">Never plug it on reversed. The ESC's ground is also tied to the PDB − bus, so GPIO 17 or 18 on pin 3 would drive straight into ground and can be damaged.</li>
+          <li>An ESC with a 3-pin servo plug plugs on as it is, brown or black on pin 1. Its red BEC wire lands on the middle pin, which has no copper.</li>
+        </ul>
+      </div>
+    </div>
+    <p>Leave a slack loop in both pairs where they cross the pan axis, tied down on both sides, as for the <a href="#servo-h">servo bus</a> cable.</p>
     <h3>Where it sits</h3>
     <p>The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.</p>
     <ul class="notes">
@@ -860,7 +883,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <rect class="box" x="860" y="282" width="110" height="36" rx="5"/>
           <text class="t" x="876" y="305">ESC right · J6</text>
           <text class="s" x="985" y="284">signal + GND only</text>
-          <text class="s" x="985" y="300">red BEC wire unused</text>
+          <text class="s" x="985" y="300">middle pin empty</text>
 
           <!-- pusher -->
           <path class="w n-pwm" stroke-width="2" d="M600 370 H676" marker-end="url(#a-pwm)"/>
@@ -987,12 +1010,13 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <thead><tr><th>Run</th><th>AWG</th><th>Current</th></tr></thead>
           <tbody>
             <tr><td><span class="swatch" style="--c: var(--batt)"></span>Battery, fuse, XT60, PDB</td><td class="num">14</td><td>30–40 A spin-up peaks</td></tr>
-            <tr><td><span class="swatch" style="--c: var(--batt)"></span>PDB to each ESC</td><td class="num">16</td><td>up to ~20 A each</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--batt)"></span>PDB to each ESC</td><td class="num">16</td><td>up to ~20 A each, twisted pair</td></tr>
             <tr><td><span class="swatch" style="--c: var(--phase)"></span>ESC to motor</td><td class="num">as supplied</td><td>usually 18–20 AWG</td></tr>
             <tr><td><span class="swatch" style="--c: var(--batt)"></span>PDB to power board J1</td><td class="num">20</td><td>under 3 A</td></tr>
             <tr><td><span class="swatch" style="--c: var(--v75)"></span>J11 to TTLinker VIN, J3 1–2 to pole A</td><td class="num">20</td><td>up to 3.4 A stalled</td></tr>
             <tr><td><span class="swatch" style="--c: var(--v5)"></span>J10 to vision node, link GND and 5V</td><td class="num">22</td><td>under 1 A</td></tr>
-            <tr><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher to J4, ESCs to J5/J6</td><td class="num">as supplied</td><td>servo leads</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--pwm)"></span>Pusher to J4</td><td class="num">as supplied</td><td>servo lead</td></tr>
+            <tr><td><span class="swatch" style="--c: var(--pwm)"></span>ESC signal pairs to J5/J6</td><td class="num">26</td><td>twisted pair</td></tr>
             <tr><td><span class="swatch" style="--c: var(--sense)"></span>Link VBAT, ARM, PUSH; J3 3–4, J7, J8, J9</td><td class="num">26</td><td>milliamps</td></tr>
           </tbody>
         </table>
@@ -1004,6 +1028,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <h2 id="check-h">First power-on</h2>
       <ol class="check">
         <li>With the ESP out of its sockets and nothing on J4, J10 or J11, check that VIN is not shorted to GND (an MP1584 fitted the wrong way round shorts it) and that the PDB's + and − buses are not shorted.</li>
+        <li>Check that each ESC's + lead has continuity to the PDB's + bus and its − lead to the − bus, and that the ESC ground reaches pin 1 of J5 or J6.</li>
         <li>With the arm switch off, check that there is no continuity from J3 pin 2 to J4 pin 2.</li>
         <li>Check the five link wires through the joints, as in the safety checks of the board README.</li>
         <li>On the 12 V jack only, set the bucks to 7.5 V at J11, 6.0 V at J3 pin 2 and 5.0 V at J10, and lock the trimmers. J1 should read about 0 V.</li>
@@ -1037,11 +1062,11 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tr><td class="num">1</td><td>39 kΩ and 8.2 kΩ 1 % resistors, 100 nF capacitor</td><td>R1, R2, C1: battery divider on the power board</td></tr>
           <tr><td class="num">1</td><td>4-channel BSS138 level shifter (Adafruit 757)</td><td>U2 on the logic board, mounted upside down. GPIO 14 → TTLinker on A1/B1, TTLinker → GPIO 21 on A4/B4, pusher signal on A2/B2. Low side is LV and A1–A4, high side HV and B1–B4</td></tr>
           <tr><td class="num">1</td><td>150 Ω and 10 kΩ resistors</td><td>R3, R4: light gate LED and pull-up on the logic board</td></tr>
-          <tr><td class="num">–</td><td>2 × 1×20 female header strip, 2.54 mm male headers, Dupont housings</td><td>ESP sockets; J5–J9 (2 × 3-pin, 2 × 4-pin, 1 × 3-pin) and pins for the MP1584s; plugs for the ESC, TTLinker, TFmini and light gate leads</td></tr>
+          <tr><td class="num">–</td><td>2 × 1×20 female header strip, 2.54 mm male headers, Dupont housings and female crimp terminals, ratchet crimper (SN-28B type)</td><td>ESP sockets; J5–J9 (2 × 3-pin, 2 × 4-pin, 1 × 3-pin) and pins for the MP1584s; plugs for the ESC, TTLinker, TFmini and light gate leads</td></tr>
           <tr><td class="num">1</td><td>12 V 2.5 A adapter, 5.5 × 2.1 mm, centre positive</td><td>Optional, for bench mode</td></tr>
           <tr><td class="num">2</td><td>2206 2300 KV brushless motor</td><td>Original: Armattan Oomph 2206/2300 KV; any 2206–2207, 2300–2500 KV with a 5 mm shaft and 16×19 mm M3 mount should fit the printed mounts (check)</td></tr>
           <tr><td class="num">1</td><td>Aluminium flat bar 12 × 2 mm, 76 mm long</td><td>Flywheel motor plate. It slides into the 11.9 × 2.7 mm channel along the bottom of the printed flywheel holder, under both motor seats; the motors sit on it and their centre-line screws pass through it. Four 3.2 mm holes on the centre line at 7.95, 26.95, 50.45 and 66.45 mm from one end (19 mm pair for the first motor, 16 mm pair for the second). File the edges if a 12 mm bar is tight; 12 × 2.5 mm also fits, 3 mm stock does not. Where only 15 × 2 mm is sold, saw and file a piece down to width. Mount the motors with M3 × 8, so no screw reaches more than about 4 mm into the motor base and its windings</td></tr>
-          <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed. 35 × 17 mm, 4.5 mm high at the motor end and 5.9 mm at the back, fits the printed ESC holder</td></tr>
+          <tr><td class="num">2</td><td>30 A BLHeli_S or BLHeli_32 ESC, 2–4S</td><td>Original: Racerstar RS30A; no BEC needed. Ours have a power pair and a signal pair and no BEC; their leads are extended as under <a href="#esc-h">ESC leads</a>. 35 × 17 mm, 4.5 mm high at the motor end and 5.9 mm at the back, fits the printed ESC holder</td></tr>
           <tr><td class="num">1</td><td>Standard-size positional metal-gear RC servo</td><td>Dart pusher, 6 V. MG996R class (TowerPro or a clone), 180°, about 2.5 A stall. Not a continuous-rotation (360°) servo</td></tr>
           <tr><td class="num">4</td><td>High-drain 18650 cell</td><td>Molicel P28A (35 A); Samsung 30Q (15 A) at minimum</td></tr>
           <tr><td class="num">1</td><td>4S BMS, common port, ≥30 A continuous, about 61 × 46 mm</td><td>Over-discharge, overcharge and short protection; common port, so the charger and the turret share P+/P−. Built with a Gebildet E1689 (4S 40A "Enhanced"); its own balancing is not relied on, as the charger balances</td></tr>
