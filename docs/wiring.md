@@ -101,7 +101,7 @@ Pin 1 is the square pad.
 |---|---|---|---|
 | J1 | PDB pad pair 3 | 1 VBAT, 2 GND | 20 |
 | J2 | 12 V bench adapter, 5.5 × 2.1 mm, centre positive | Barrel jack | – |
-| J3 | Arm switch (DPST), on the bracket behind the tray | 1 and 2 to pole A (1 switched 6 V to the pusher, 2 6 V from U4), 3 and 4 to pole B (3 GND, 4 sense to GPIO 47). Either pole can be A | 20 for 1–2, 26 for 3–4 |
+| J3 | Arm switch (DPST), on the bracket behind the tray | 1 and 2 to pole A (1 switched 6 V to the pusher, 2 6 V from U4), 3 and 4 to pole B (3 GND, 4 sense to GPIO 47). See [Arm switch](#arm-switch) | 20 for 1–2, 26 for 3–4 |
 | J4 | Pusher servo | 1 GND (brown), 2 switched 6 V (red), 3 signal at 5 V (orange). Cut the servo plug off, or solder a short pigtail with a plug in line | Servo lead |
 | J10 | Vision board 5V pin and GND, through the gimbal | 1 5V, 2 GND | 22 |
 | J11 | TTLinker VIN and GND | 1 7.5 V, 2 GND | 20 |
@@ -117,6 +117,64 @@ Pin 1 is the square pad.
 | J9 | Light gate | 1 IR LED anode, 2 phototransistor collector, 3 GND (LED cathode and phototransistor emitter) | 26 |
 | J12 | Link to the power board | as on the power board | 22 / 26 |
 
+### Arm switch
+
+The arm switch is a DPDT (6 lugs) or DPST (4 lugs) mini toggle. Its two poles are separate switches that flip together: pole A carries the pusher's 6 V, and pole B tells the firmware that the switch is on. Both must close in the same lever position.
+
+Pick the lever direction that means armed and label it on the bracket. The drawing uses lever forward, towards the turret, as armed, and lever back, towards you, as safe.
+
+```
+ DPDT, seen from the lug end (under the bracket), front of the turret at the top
+
+                pole A                 pole B
+ front lug      (empty)                (empty)
+ middle lug     J3 2   6 V from U4     J3 4   sense, link ARM to GPIO 47
+ rear lug       J3 1   6 V to pusher   J3 3   GND
+
+ Lever forward (armed): middle joins rear in both poles.
+ Lever back (safe):     middle joins front, which goes nowhere.
+```
+
+1. Fit the switch in the bracket with its two lug rows running front to back, so the lever throws forward and back. Either row can be pole A.
+2. With a meter on continuity, flip the lever forward and find the two lug pairs that close, one in each row. On most toggles the middle lug joins the end lug away from the lever, so lever forward closes middle and rear. Flip the lever back and check that both pairs open.
+3. Mark J3's four leads before trimming them, for example 2 red, 1 orange, 3 black and 4 white.
+4. Solder J3 2 and 1 across one pole and J3 4 and 3 across the other, as drawn. On a DPDT the front lugs stay empty; on a DPST each pole has only the two lugs found in step 2. Slide heat shrink over every lug.
+5. Before the first power-on, with the lever back, check that there is no continuity from J3 pin 2 to J4 pin 2 on the power board; with the lever forward, there should be. On power-on, `status` must show the switch on only with the lever forward.
+
+- J3 2 and J3 3 are 6 V and GND. Never put them on the same pole: flipping the switch would short the 6 V buck.
+- If pole B closes at the other end from pole A, the firmware reads on while the pusher has no power and off while it has. Step 5 catches that.
+
+### Servo bus
+
+The two SC15s share one 3-pin bus from the TTLinker: 7.5 V, GND and data. Each SC15 has two identical connectors joined inside the servo, so chaining them puts both servos on the same three wires. The firmware tells them apart by ID, pan 0 and tilt 1, not by their place on the cable.
+
+```
+ Top view: front (blue base) on the left, right-hand tube at the top
+
+                 ══════════════════╡ TTLinker ╞═════════════════════  right-hand tube
+ ┌───────────┐    servo cable      │    ┆   ║ J7 leads
+ │ blue base ├─────────────────────┘    ┆   ║
+ │           │   ┌─────────┐          ┌─┆───╨─────────────────┐
+ │ SC15 pan  │   │ Stack 1 │          │ ┆  J7       Stack 2   │
+ │  (ID 0)   │   │   PDB   │          │ ┆                     │
+ │           │   └─────────┘          │ J11                   │
+ └─────┬─────┘                        └───────────────────────┘
+       │         ═══════════════════════════════════════════════════  left-hand tube
+       └── SC15 tilt (ID 1), on the turret: the only cable across the pan axis
+
+ J7 (logic board) ─── 4 × 26 AWG, about 8 cm ─── TTLinker logic side
+ J11 (power board) ── 2 × 20 AWG, about 12 cm ── TTLinker VIN and GND
+ TTLinker servo port ── servo cable, forward along the right-hand tube ── SC15 pan ── SC15 tilt
+```
+
+- **Pan servo first.** The pan servo's body is fixed in the base, and the tilt servo turns with the turret. With the bus going to the pan servo first, one cable crosses the pan axis. Going to the tilt servo first would take two, one up to the tilt servo and one back down to the pan servo.
+- **Slack across the axis.** Tie the pan-to-tilt cable down close to the axis on both sides, with a loop between them long enough for the full pan travel. Size the loop with the turret in the middle of its range. Keep the cable out of the battery holder's middle tunnel, which the pan servo fills.
+- **TTLinker on the fixed side, beside J7.** It is about 33 × 21 mm and 8 mm thick with its connectors, too big for the 3 mm between Stack 2 and the tubes. Lay it flat on top of the right-hand tube, just behind the middle cradle and level with J7, on foam tape with two zip ties around the tube. Line its inner edge up with the inside of the tube so it does not overhang Stack 2; the rest sticks out past the tube. Its top is then about 51 mm up, under the 75 mm sweep. If the board allows, turn the servo port to face forward.
+- **Short J7 leads.** The data line from the ESP rises only through the level shifter's 10 kΩ pull-up. That is already slow at 1 Mbaud, and every centimetre of wire slows it more. Beside J7, the four 26 AWG leads need only about 8 cm. Keep them under 15 cm.
+- **J11 can be long.** Its two leads leave the power board at the front left corner. Run them across the front of Stack 2, in the gap between the stacks, to the TTLinker: about 12 cm of 20 AWG.
+- **The servo cable takes the distance.** The TTLinker drives the bus hard, so the long run is the cable to the pan servo: forward along the top of the right-hand tube past Stack 1, tied to the tube, then into the blue base. That is about 15 cm plus the way into the base. If the stock cable does not reach, use a longer one of the same type.
+- **IDs.** Both servos may come with the same factory ID, and the firmware has no command to change it. With the power off, plug in only the pan servo, power up and run `ping 0`; then do the same with only the tilt servo and `ping 1`. If one does not answer, set its ID with Feetech's FD software through a USB serial adapter, with only that servo connected, before chaining them.
+
 ### Where it sits
 
 The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.
@@ -125,6 +183,7 @@ The electronics go between the two frame tubes behind the blue base, in two stac
 - **Stack 2, behind Stack 1:** the power board at the bottom on four printed risers, buck modules down, and the logic board on top, 17 mm above it on M3 standoffs, about 41 mm tall in all, with the ESP antenna at the rear edge. The two boards are joined on the tray: the link wires stand up from the power board and are soldered on the logic board's front. Outline, hole and link pad positions for the holders are in the board README.
 - Both stacks sit in one printed [stack tray](../hardware/turret-pdb/README.md#stack-tray) that hangs under the tubes on zip ties.
 - The arm switch, a mini toggle, stands lever up in the middle of a printed bracket that bridges the tubes over the tray's rear cradles, so it is reachable from behind. Its J3 leads run back along the side of Stack 2.
+- The TTLinker lies flat on top of the right-hand tube beside J7, just behind the middle cradle; see [Servo bus](#servo-bus).
 
 ## Battery pack
 
@@ -269,7 +328,7 @@ Use stranded silicone wire everywhere; it survives the pan and tilt movement. Ad
 5. With the cells in, measure the pack leads: 12.8–16.8 V. About 8 V means a reversed cell.
 6. Plug in the ESP. First battery power-on: arm switch off, no darts, flywheel motors unplugged from the ESCs.
 7. Run `B` on the console and compare with a multimeter across the pack.
-8. Run `ping 0` and `ping 1`. No reply: swap J7 pins 3 and 4.
+8. Run `ping 0` and `ping 1`. No reply: swap J7 pins 3 and 4. Still none: check the IDs as under [Servo bus](#servo-bus).
 9. Run `status` and flip the arm switch; it should show on and off.
 10. Calibrate both ESCs to 1000–2000 µs before the first spin-up.
 

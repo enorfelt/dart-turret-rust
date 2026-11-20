@@ -480,7 +480,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <tbody>
             <tr><td class="num">J1</td><td>PDB pad pair 3</td><td>1 VBAT, 2 GND</td><td class="num">20</td></tr>
             <tr><td class="num">J2</td><td>12 V bench adapter, 5.5 × 2.1 mm, centre +</td><td>Barrel jack</td><td class="num">–</td></tr>
-            <tr><td class="num">J3</td><td>Arm switch (DPST), on the bracket behind the tray</td><td>1–2 pole A (1 switched 6 V to the pusher, 2 6 V from U4), 3–4 pole B (3 GND, 4 sense to GPIO 47). Either pole can be A</td><td class="num">20 / 26</td></tr>
+            <tr><td class="num">J3</td><td>Arm switch (DPST), on the bracket behind the tray</td><td>1–2 pole A (1 switched 6 V to the pusher, 2 6 V from U4), 3–4 pole B (3 GND, 4 sense to GPIO 47). See <a href="#arm-h">Arm switch</a></td><td class="num">20 / 26</td></tr>
             <tr><td class="num">J4</td><td>Pusher servo</td><td>1 GND (brown), 2 switched 6 V (red), 3 signal at 5 V (orange). Cut the plug off, or solder a short pigtail with a plug in line</td><td class="num">lead</td></tr>
             <tr><td class="num">J10</td><td>Vision board, through the gimbal</td><td>1 5V, 2 GND</td><td class="num">22</td></tr>
             <tr><td class="num">J11</td><td>TTLinker VIN</td><td>1 7.5 V, 2 GND</td><td class="num">20</td></tr>
@@ -501,6 +501,135 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         </table>
       </div>
     </div>
+    <h3 id="arm-h">Arm switch</h3>
+    <p>The arm switch is a DPDT (6 lugs) or DPST (4 lugs) mini toggle. Its two poles are separate switches that flip together: pole A carries the pusher's 6 V, and pole B tells the firmware that the switch is on. Both must close in the same lever position. Pick the lever direction that means armed and label it on the bracket; the drawing uses lever forward, towards the turret, as armed.</p>
+    <figure>
+      <div class="scroll">
+        <svg class="diagram" viewBox="0 0 1200 290" role="img" aria-label="Arm switch lugs of a DPDT toggle, seen from the lug end with the front of the turret at the top. Pole A: middle lug to J3 pin 2, 6 V from the buck; rear lug to J3 pin 1, 6 V to the pusher. Pole B: middle lug to J3 pin 4, the sense line; rear lug to J3 pin 3, GND. The front lugs stay empty. Lever forward joins middle and rear in both poles.">
+          <text class="s" x="600" y="24" text-anchor="middle">front of the turret · lever forward = armed</text>
+          <rect class="box key" x="500" y="40" width="200" height="200" rx="8"/>
+          <text class="t" x="560" y="66" text-anchor="middle">pole A</text>
+          <text class="t" x="640" y="66" text-anchor="middle">pole B</text>
+          <rect class="box" x="546" y="88" width="28" height="12" rx="2"/>
+          <rect class="box" x="626" y="88" width="28" height="12" rx="2"/>
+          <rect class="box" x="546" y="138" width="28" height="12" rx="2"/>
+          <rect class="box" x="626" y="138" width="28" height="12" rx="2"/>
+          <rect class="box" x="546" y="188" width="28" height="12" rx="2"/>
+          <rect class="box" x="626" y="188" width="28" height="12" rx="2"/>
+          <path class="w" stroke="var(--ink-muted)" stroke-width="1.5" stroke-dasharray="3 3" d="M538 150 V188 M662 150 V188"/>
+          <text class="s" x="600" y="168" text-anchor="middle">closed</text>
+          <text class="s" x="600" y="184" text-anchor="middle">when armed</text>
+          <text class="s" x="490" y="98" text-anchor="end">front lugs: empty</text>
+          <text class="s" x="710" y="98">empty</text>
+
+          <path class="w n-v6" stroke-width="3" d="M546 144 H400"/>
+          <circle class="dot n-v6" cx="546" cy="144" r="4"/>
+          <text class="tag n-v6" x="390" y="140" text-anchor="end">J3 2</text>
+          <text class="s" x="390" y="156" text-anchor="end">6 V from U4 · 20 AWG</text>
+          <path class="w n-v6" stroke-width="3" d="M546 194 H400"/>
+          <circle class="dot n-v6" cx="546" cy="194" r="4"/>
+          <text class="tag n-v6" x="390" y="190" text-anchor="end">J3 1</text>
+          <text class="s" x="390" y="206" text-anchor="end">6 V to the pusher (J4) · 20 AWG</text>
+
+          <path class="w n-sense" stroke-width="2" d="M654 144 H800"/>
+          <circle class="dot n-sense" cx="654" cy="144" r="4"/>
+          <text class="tag n-sense" x="810" y="140">J3 4</text>
+          <text class="s" x="810" y="156">sense, link ARM to GPIO 47 · 26 AWG</text>
+          <path class="w n-gnd" stroke-width="2" d="M654 194 H800"/>
+          <circle class="dot n-gnd" cx="654" cy="194" r="4"/>
+          <text class="tag n-gnd" x="810" y="190">J3 3</text>
+          <text class="s" x="810" y="206">GND · 26 AWG</text>
+
+          <text class="s" x="600" y="266" text-anchor="middle">rear, towards you · lever back = safe</text>
+        </svg>
+      </div>
+      <figcaption>A DPDT seen from the lug end, under the bracket. Either row can be pole A. On most toggles the middle lug joins the end lug away from the lever, so lever forward closes middle and rear; check yours with a meter.</figcaption>
+    </figure>
+    <ol class="check">
+      <li>Fit the switch in the bracket with its two lug rows running front to back, so the lever throws forward and back.</li>
+      <li>With a meter on continuity, flip the lever forward and find the two lug pairs that close, one in each row. Flip it back and check that both pairs open.</li>
+      <li>Mark J3's four leads before trimming them, for example 2 red, 1 orange, 3 black and 4 white.</li>
+      <li>Solder J3 2 and 1 across one pole and J3 4 and 3 across the other, as drawn. On a DPDT the front lugs stay empty; on a DPST each pole has only the two lugs found in step 2. Slide heat shrink over every lug.</li>
+      <li>Before the first power-on, with the lever back, check that there is no continuity from J3 pin 2 to J4 pin 2 on the power board; with the lever forward, there should be. On power-on, <code>status</code> must show the switch on only with the lever forward.</li>
+    </ol>
+    <ul class="notes">
+      <li class="warn">J3 2 and J3 3 are 6 V and GND. Never put them on the same pole: flipping the switch would short the 6 V buck.</li>
+      <li>If pole B closes at the other end from pole A, the firmware reads on while the pusher has no power and off while it has. The last step catches that.</li>
+    </ul>
+    <h3 id="servo-h">Servo bus</h3>
+    <p>The two SC15s share one 3-pin bus from the TTLinker: 7.5 V, GND and data. Each SC15 has two identical connectors joined inside the servo, so chaining them puts both servos on the same three wires. The firmware tells them apart by ID, pan 0 and tilt 1, not by their place on the cable.</p>
+    <figure>
+      <div class="scroll">
+        <svg class="diagram" viewBox="0 0 1200 470" role="img" aria-label="Top view of the frame with the front on the left. The TTLinker lies on top of the right-hand tube just behind the middle cradle, beside J7 on Stack 2. Short J7 leads go up to it from the logic board, and J11's leads come from the power board's front left corner across the front of Stack 2. The servo cable runs forward along the right-hand tube to the pan servo in the blue base, and one cable goes from the pan servo across the pan axis to the tilt servo on the turret.">
+          <text class="s" x="90" y="24">← front</text>
+          <text class="s" x="830" y="24" text-anchor="end">rear, ESP antenna →</text>
+
+          <rect class="stack" x="330" y="61" width="465" height="318" rx="4"/>
+          <rect class="box" x="310" y="70" width="520" height="36" rx="18"/>
+          <rect class="box" x="310" y="334" width="520" height="36" rx="18"/>
+          <text class="s" x="840" y="92">right-hand tube</text>
+          <text class="s" x="840" y="356">left-hand tube</text>
+          <rect class="stack" x="330" y="64" width="36" height="48"/>
+          <rect class="stack" x="510" y="64" width="36" height="48"/>
+          <rect class="stack" x="759" y="64" width="36" height="48"/>
+          <rect class="stack" x="330" y="328" width="36" height="48"/>
+          <rect class="stack" x="510" y="328" width="36" height="48"/>
+          <rect class="stack" x="759" y="328" width="36" height="48"/>
+          <text class="s" x="528" y="394" text-anchor="middle">middle cradle</text>
+          <text class="s" x="777" y="394" text-anchor="middle">rear cradle</text>
+          <text class="s" x="795" y="412" text-anchor="end">dashed: stack tray</text>
+
+          <rect class="box key" x="90" y="130" width="220" height="180" rx="8"/>
+          <text class="t" x="200" y="155" text-anchor="middle">blue base</text>
+          <text class="s" x="200" y="171" text-anchor="middle">battery holder</text>
+          <rect class="box" x="150" y="190" width="100" height="60" rx="6"/>
+          <text class="t" x="200" y="215" text-anchor="middle">SC15 pan</text>
+          <text class="s" x="200" y="232" text-anchor="middle">ID 0 · fixed</text>
+          <circle class="sym" cx="200" cy="282" r="7"/>
+          <path class="sym" d="M190 282 H210 M200 272 V292"/>
+          <text class="s" x="214" y="286">pan axis</text>
+
+          <rect class="box" x="369" y="128" width="138" height="184" rx="6"/>
+          <text class="t" x="438" y="215" text-anchor="middle">Stack 1</text>
+          <text class="s" x="438" y="232" text-anchor="middle">BMS, PDB</text>
+
+          <rect class="box" x="549" y="115" width="204" height="210" rx="6"/>
+          <text class="t" x="660" y="228" text-anchor="middle">Stack 2</text>
+          <text class="s" x="660" y="245" text-anchor="middle">power board, logic on top</text>
+
+          <path class="w n-servo" stroke-width="3" d="M565 82 H270 V210 H250"/>
+          <text class="s" x="410" y="54" text-anchor="middle">servo cable, tied along the tube</text>
+          <path class="w n-servo" stroke-width="3" d="M200 250 V400"/>
+          <text class="s" x="214" y="390">the only cable across the pan axis · slack loop</text>
+          <rect class="box" x="110" y="400" width="180" height="46" rx="6"/>
+          <text class="t" x="200" y="419" text-anchor="middle">SC15 tilt</text>
+          <text class="s" x="200" y="436" text-anchor="middle">ID 1 · turns with the turret</text>
+
+          <path class="w n-servo" stroke-width="3" d="M615 142 V106"/>
+          <circle class="dot n-servo" cx="615" cy="142" r="4"/>
+          <text class="tag n-servo" x="626" y="146">J7</text>
+          <text class="s" x="626" y="162">26 AWG, about 8 cm</text>
+          <path class="w n-v75" stroke-width="3" d="M560 292 H540 V111 H580 V106"/>
+          <circle class="dot n-v75" cx="560" cy="292" r="4"/>
+          <text class="tag n-v75" x="570" y="296">J11</text>
+          <text class="s" x="570" y="312">20 AWG, about 12 cm</text>
+
+          <rect class="box key" x="565" y="43" width="99" height="63" rx="4"/>
+          <text class="t" x="614" y="70" text-anchor="middle">TTLinker</text>
+          <text class="s" x="614" y="87" text-anchor="middle">on the tube</text>
+        </svg>
+      </div>
+      <figcaption>Roughly to scale. The TTLinker sits on the fixed side next to J7, so the slow UART leads stay short; the servo cable takes the distance to the base, and only the pan-to-tilt cable crosses the pan axis.</figcaption>
+    </figure>
+    <ul class="notes">
+      <li><strong>Pan servo first.</strong> The pan servo's body is fixed in the base, and the tilt servo turns with the turret. With the bus going to the pan servo first, one cable crosses the pan axis. Going to the tilt servo first would take two, one up to the tilt servo and one back down to the pan servo.</li>
+      <li><strong>Slack across the axis.</strong> Tie the pan-to-tilt cable down close to the axis on both sides, with a loop between them long enough for the full pan travel. Size the loop with the turret in the middle of its range. Keep the cable out of the battery holder's middle tunnel, which the pan servo fills.</li>
+      <li><strong>TTLinker on the fixed side, beside J7.</strong> It is about 33 × 21 mm and 8 mm thick with its connectors, too big for the 3 mm between Stack 2 and the tubes. Lay it flat on top of the right-hand tube, just behind the middle cradle and level with J7, on foam tape with two zip ties around the tube. Line its inner edge up with the inside of the tube so it does not overhang Stack 2; the rest sticks out past the tube. Its top is then about 51 mm up, under the 75 mm sweep. If the board allows, turn the servo port to face forward.</li>
+      <li><strong>Short J7 leads.</strong> The data line from the ESP rises only through the level shifter's 10 kΩ pull-up. That is already slow at 1 Mbaud, and every centimetre of wire slows it more. Beside J7, the four 26 AWG leads need only about 8 cm. Keep them under 15 cm.</li>
+      <li><strong>J11 can be long.</strong> Its two leads leave the power board at the front left corner. Run them across the front of Stack 2, in the gap between the stacks, to the TTLinker: about 12 cm of 20 AWG.</li>
+      <li><strong>The servo cable takes the distance.</strong> The TTLinker drives the bus hard, so the long run is the cable to the pan servo: forward along the top of the right-hand tube past Stack 1, tied to the tube, then into the blue base. That is about 15 cm plus the way into the base. If the stock cable does not reach, use a longer one of the same type.</li>
+      <li><strong>IDs.</strong> Both servos may come with the same factory ID, and the firmware has no command to change it. With the power off, plug in only the pan servo, power up and run <code>ping 0</code>; then do the same with only the tilt servo and <code>ping 1</code>. If one does not answer, set its ID with Feetech's FD software through a USB serial adapter, with only that servo connected, before chaining them.</li>
+    </ul>
     <h3>Where it sits</h3>
     <p>The electronics go between the two frame tubes behind the blue base, in two stacks one behind the other, and stay below the top of the blue base, which the turret sweeps.</p>
     <ul class="notes">
@@ -508,6 +637,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <li><strong>Stack 2, behind Stack 1:</strong> the power board at the bottom on four printed risers, buck modules down, and the logic board on top, 17 mm above it on M3 standoffs, about 41 mm tall in all, with the ESP antenna at the rear edge. The two boards are joined on the tray: the link wires stand up from the power board and are soldered on the logic board's front. Outline, hole and link pad positions for the holders are in the board README.</li>
       <li>Both stacks sit in one printed stack tray that hangs under the tubes on zip ties; see the stack tray section of the board README.</li>
       <li>The arm switch, a mini toggle, stands lever up in the middle of a printed bracket that bridges the tubes over the tray's rear cradles, so it is reachable from behind. Its J3 leads run back along the side of Stack 2.</li>
+      <li>The TTLinker lies flat on top of the right-hand tube beside J7, just behind the middle cradle; see <a href="#servo-h">Servo bus</a>.</li>
     </ul>
   </section>
 
@@ -880,7 +1010,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
         <li>With the cells in, measure the pack leads: 12.8–16.8 V. About 8 V means a reversed cell.</li>
         <li>Plug in the ESP. First battery power-on: arm switch off, no darts, flywheel motors unplugged from the ESCs.</li>
         <li>Run <code>B</code> on the console and compare with a multimeter across the pack.</li>
-        <li>Run <code>ping 0</code> and <code>ping 1</code>. No reply: swap J7 pins 3 and 4.</li>
+        <li>Run <code>ping 0</code> and <code>ping 1</code>. No reply: swap J7 pins 3 and 4. Still none: check the IDs as under <a href="#servo-h">Servo bus</a>.</li>
         <li>Run <code>status</code> and flip the arm switch; it should show on and off.</li>
         <li>Calibrate both ESCs to 1000–2000 µs before the first spin-up.</li>
       </ol>
