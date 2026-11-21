@@ -17,6 +17,7 @@ export interface AimTuning {
   pan: AxisRange;
   tilt: AxisRange;
   sendIntervalMs: number;
+  leadMs: number;
   minSpeed: number;
   maxSpeed: number;
   invertPan: boolean;
@@ -26,11 +27,12 @@ export interface AimTuning {
 export const AIM_TUNING: AimTuning = {
   deadzone: 0.08,
   expo: 2,
-  maxRate: 600,
+  maxRate: 300,
   pan: { min: 0, max: 990 },
   tilt: { min: 375, max: 600 },
   sendIntervalMs: 50,
-  minSpeed: 50,
+  leadMs: 150,
+  minSpeed: 20,
   maxSpeed: 1000,
   invertPan: false,
   invertTilt: true,
@@ -69,20 +71,25 @@ export class AimController {
       tilt: clamp(this.position.tilt + this.rates.tilt * seconds, this.tuning.tilt),
     };
     if (nowMs - this.lastSentAt < this.tuning.sendIntervalMs) return null;
-    const command = this.unsentCommand();
+    const command = this.unsentCommand(this.tuning.leadMs);
     if (command) this.lastSentAt = nowMs;
     return command;
   }
 
   end(): AimCommand | null {
-    const command = this.unsentCommand();
+    const command = this.unsentCommand(0);
     this.position = null;
     return command;
   }
 
-  private unsentCommand(): AimCommand | null {
+  private unsentCommand(leadMs: number): AimCommand | null {
     if (!this.position) return null;
-    const target = { pan: Math.round(this.position.pan), tilt: Math.round(this.position.tilt) };
+    const lead = leadMs / 1000;
+    const { pan, tilt } = this.tuning;
+    const target = {
+      pan: Math.round(clamp(this.position.pan + this.rates.pan * lead, pan)),
+      tilt: Math.round(clamp(this.position.tilt + this.rates.tilt * lead, tilt)),
+    };
     if (this.sent?.pan === target.pan && this.sent.tilt === target.tilt) return null;
     this.sent = target;
     return {

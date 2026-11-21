@@ -8,6 +8,7 @@ const tuning: AimTuning = {
   pan: { min: 0, max: 1023 },
   tilt: { min: 0, max: 1023 },
   sendIntervalMs: 50,
+  leadMs: 0,
   minSpeed: 50,
   maxSpeed: 1000,
   invertPan: false,
@@ -94,6 +95,30 @@ describe('AimController', () => {
     const aim = started(undefined, { invertPan: true, invertTilt: true });
 
     expect(aim.step({ x: 1, y: 1 }, 100)).toMatchObject({ pan: 440, tilt: 440 });
+  });
+
+  it('leads the target ahead of the aim while the stick is held', () => {
+    const aim = started(undefined, { leadMs: 150 });
+
+    expect(aim.step({ x: 1, y: -1 }, 100)).toMatchObject({
+      pan: 650,
+      tilt: 350,
+      panSpeed: 600,
+      tiltSpeed: 600,
+    });
+  });
+
+  it('keeps the led target inside the range', () => {
+    const aim = started({ pan: 1000, tilt: 500 }, { leadMs: 150 });
+
+    expect(aim.step({ x: 1, y: 0 }, 10)).toMatchObject({ pan: 1023 });
+  });
+
+  it('stops at the aim, not the led target, on end', () => {
+    const aim = started(undefined, { leadMs: 150 });
+    aim.step({ x: 1, y: 0 }, 100);
+
+    expect(aim.end()).toMatchObject({ pan: 560 });
   });
 
   it('does nothing before begin', () => {
