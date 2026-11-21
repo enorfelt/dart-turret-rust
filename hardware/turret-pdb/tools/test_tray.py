@@ -5,6 +5,7 @@ from unittest import mock
 
 from manifold3d import Manifold
 
+import power
 import stack
 import tray
 
@@ -18,7 +19,7 @@ class Envelope(unittest.TestCase):
         e = tray.envelope()
         expected = {"tube_top": 42.0, "tie_top": 43.5, "power_board_bottom": 34.0, "bucks_bottom": 27.0,
                     "logic_bottom": 52.6, "esp_top": 71.2, "bms_top": 27.95, "deck_bottom": 30.0, "pdb_bottom": 47.0, "pdb_top": 52.6,
-                    "switch_top": 68.1}
+                    "switch_top": 56.0, "switch_bottom": 12.0}
         for k, v in expected.items():
             self.assertAlmostEqual(e[k], v, places=6, msg=k)
 
@@ -64,7 +65,10 @@ class Envelope(unittest.TestCase):
         self.assertFlags("buck modules", riser_h=0.0)
 
     def test_switch_lever_above_ceiling(self):
-        self.assertFlags("arm switch", switch_above=31.0)
+        self.assertFlags("arm switch", switch_above=42.0)
+
+    def test_switch_body_near_floor_flagged(self):
+        self.assertFlags("floor", switch_body=(13.0, 13.0, 26.0))
 
 
 class Tray(unittest.TestCase):
@@ -251,7 +255,7 @@ class ArmBracket(unittest.TestCase):
 
     def test_spans_the_rear_cradles_and_reaches_behind_the_tray(self):
         b = self.m.bounding_box()
-        for got, want in zip(b, (-53, self.y0, 36.3, 53, tray.TRAY["length"] + 12, 46.1)):
+        for got, want in zip(b, (-53, self.y0, 30.0, 53, tray.TRAY["length"] + 16, 46.1)):
             self.assertAlmostEqual(got, want, places=3)
 
     def test_feet_cover_the_tubes_and_sit_above_the_cradles(self):
@@ -269,19 +273,45 @@ class ArmBracket(unittest.TestCase):
                     self.assertFalse(solid_at(self.m, x, self.y0 + dy + dz, 44))
             self.assertTrue(solid_at(self.m, x, tray.TRAY["length"] + 3, 44))
 
-    def test_switch_hole_in_the_middle_behind_the_tray(self):
-        self.assertEqual(self.sx, 0.0)
-        self.assertGreater(self.sy - tray.TRAY["switch_hole_d"] / 2, tray.TRAY["length"])
-        self.assertFalse(solid_at(self.m, self.sx + 3.0, self.sy, 44))
-        self.assertTrue(solid_at(self.m, self.sx + 3.4, self.sy, 44))
+    def test_switch_hole_on_the_bar_left_of_the_jack(self):
+        self.assertEqual(self.sx, -15.0)
+        self.assertAlmostEqual(self.sy, 163.5, places=6)
+        self.assertGreater(self.sy - tray.TRAY["switch_hole_d"] / 2, tray.TRAY["length"] + tray.TRAY["arm_bar_gap"])
+        self.assertFalse(solid_at(self.m, self.sx + 3.0, self.sy, 32))
+        self.assertTrue(solid_at(self.m, self.sx + 3.4, self.sy, 32))
 
-    def test_deep_switch_body_flagged(self):
-        t = dict(tray.TRAY, switch_body=(13.0, 13.0, 21.0))
+    def test_nothing_above_the_bar_between_the_legs(self):
+        for x in (-20, 0, 15, 25):
+            for z in (36, 40, 45):
+                self.assertFalse(solid_at(self.m, x, 163.5, z), (x, z))
+
+    def test_legs_join_feet_to_bar(self):
+        for x in (-33, 33):
+            for z in (32, 40, 45):
+                self.assertTrue(solid_at(self.m, x, 163.5, z), (x, z))
+
+    def test_high_bar_flagged(self):
+        t = dict(tray.TRAY, arm_bar_top=38.0)
         problems = tray.check_parts(t, {"tray": tray.tray(t), "arm-bracket": tray.arm_bracket(t)})
-        self.assertTrue(any("switch body" in p for p in problems), problems)
+        self.assertTrue(any("plug" in p for p in problems), problems)
+
+    def test_plug_space_follows_j2(self):
+        jx, jz = tray.jack_xz(tray.TRAY)
+        self.assertAlmostEqual(jx, 15.0, places=6)
+        self.assertAlmostEqual(jz, 42.1, places=6)
+        for got, want in zip(tray.plug_space().bounding_box(), (9, 141, 36.1, 21, 172, 75)):
+            self.assertAlmostEqual(got, want, places=3)
+        j2 = power.PARTS["J2"]
+        with mock.patch.dict(power.PARTS, {"J2": j2[:3] + ((30.0,) + j2[3][1:],)}):
+            self.assertAlmostEqual(tray.jack_xz(tray.TRAY)[0], -5.0, places=6)
+
+    def test_plug_path_open_to_the_ceiling(self):
+        plug = tray.plug_space()
+        self.assertFalse(tray.overlaps(self.m, plug))
+        self.assertFalse(tray.overlaps(tray.switch_space(), plug))
 
     def test_stack2_clash_flagged(self):
-        t = dict(tray.TRAY, stack2_y=80.0)
+        t = dict(tray.TRAY, stack2_y=90.0)
         problems = tray.check_parts(t, {"arm-bracket": tray.arm_bracket(t)})
         self.assertTrue(any("arm bracket" in p and "Stack 2" in p for p in problems), problems)
 
@@ -290,14 +320,15 @@ class ArmBracket(unittest.TestCase):
         problems = tray.check_parts(t, {"arm-bracket": tray.arm_bracket(t)})
         self.assertTrue(any("feet" in p for p in problems), problems)
 
-    def test_prints_top_down_with_the_feet_open_upwards(self):
+    def test_prints_on_its_rear_face(self):
         p = tray.arm_bracket_print()
         b = p.bounding_box()
-        for x in (-50, 0, 50):
-            self.assertTrue(solid_at(p, x, self.y0 + 13, b[2] + 0.15))
+        self.assertAlmostEqual(b[5] - b[2], 28.0, places=3)
+        for x, y in ((-50, 40), (50, 40), (0, 32)):
+            self.assertTrue(solid_at(p, x, y, b[2] + 0.15), (x, y))
         for x in (-44, 44):
-            self.assertFalse(solid_at(p, x, self.y0 + 6, b[5] - 0.15))
-        self.assertAlmostEqual(b[5] - b[2], 9.8, places=3)
+            for z in (b[2] + 0.15, b[5] - 0.15):
+                self.assertFalse(solid_at(p, x, 36, z))
 
 
 class Output(unittest.TestCase):

@@ -68,15 +68,21 @@ TRAY = {
     "sleeve_bore": 3.5,
     "sleeve_chamfer": 0.3,
     "arm_roof": 4.0,
-    "arm_plate_t": 4.0,
     "arm_gap": 0.3,
-    "arm_rear": 12.0,
+    "arm_rear": 16.0,
+    "arm_leg_w": 4.0,
+    "arm_bar_gap": 1.0,
+    "arm_bar_top": 34.0,
+    "arm_bar_t": 4.0,
     "cradle_tie_w": 4.8,
     "arm_notch_w": 2.5,
-    "switch_x": 0.0,
+    "switch_x": -15.0,
     "switch_hole_d": 6.3,
     "switch_body": (13.0, 13.0, 18.0),
     "switch_above": 22.0,
+    "min_floor_clear": 5.0,
+    "jack_axis": 6.5,
+    "plug_d": 12.0,
 }
 
 
@@ -96,7 +102,8 @@ def envelope(t=TRAY):
         "deck_bottom": t["deck_bottom"],
         "pdb_bottom": t["pdb_bottom"],
         "pdb_top": t["pdb_bottom"] + t["pdb_t"] + t["pdb_parts_h"],
-        "switch_top": arm_top(t) + t["switch_above"],
+        "switch_top": t["arm_bar_top"] + t["switch_above"],
+        "switch_bottom": arm_bar(t)[2] - t["switch_body"][2],
     }
 
 
@@ -107,6 +114,9 @@ def check_envelope(t=TRAY):
                       ("switch_top", "arm switch lever")):
         if e[key] > t["ceiling"]:
             problems.append(f"{name} top at z = {e[key]:.1f} is above the {t['ceiling']:.0f} mm ceiling")
+    if e["switch_bottom"] < t["min_floor_clear"]:
+        problems.append(f"arm switch body bottom at z = {e['switch_bottom']:.1f} is within "
+                        f"{t['min_floor_clear']:.0f} mm of the floor")
     if e["pdb_bottom"] - e["tie_top"] < t["min_tie_gap"]:
         problems.append(f"PDB underside at z = {e['pdb_bottom']:.1f} is within {t['min_tie_gap']} mm of the zip ties "
                         f"at {e['tie_top']:.1f}")
@@ -271,9 +281,13 @@ def check_parts(t, parts):
             problems.append("arm bracket hits the tray")
         if overlaps(m, stack2_space(t)):
             problems.append("arm bracket: something is in the space Stack 2 takes")
+        plug = plug_space(t)
+        if overlaps(m, plug):
+            problems.append("arm bracket: something is in the 12 V plug's path")
         body = switch_space(t)
-        if any(overlaps(body, other) for other in (m, base, tubes(t), stack2_space(t))):
-            problems.append("arm bracket: the switch body hits the bracket, the tray, the tubes or Stack 2")
+        if any(overlaps(body, other) for other in (m, base, tubes(t), stack2_space(t), plug)):
+            problems.append("arm bracket: the switch body hits the bracket, the tray, the tubes, Stack 2 "
+                            "or the 12 V plug's path")
     if "deck" in parts:
         m = parts["deck"]
         if overlaps(m, parts["tray"] if "tray" in parts else tray(t)):
@@ -330,27 +344,49 @@ def arm_span(t):
     return t["cradles_y"][-1], t["length"] + t["arm_rear"]
 
 
+def arm_bar(t):
+    top = t["arm_bar_top"]
+    return t["length"] + t["arm_bar_gap"], arm_span(t)[1], top - t["arm_bar_t"], top
+
+
 def switch_centre(t):
-    return t["switch_x"], (t["length"] + arm_span(t)[1]) / 2
+    y0, y1, _, _ = arm_bar(t)
+    return t["switch_x"], (y0 + y1) / 2
 
 
 def switch_space(t=TRAY):
     w, l, depth = t["switch_body"]
     x, y = switch_centre(t)
-    under_plate = arm_top(t) - t["arm_plate_t"]
-    return box(x - w / 2, x + w / 2, y - l / 2, y + l / 2, under_plate - depth, under_plate)
+    under_bar = arm_bar(t)[2]
+    return box(x - w / 2, x + w / 2, y - l / 2, y + l / 2, under_bar - depth, under_bar)
+
+
+def jack_xz(t):
+    bx, by = power.PARTS["J2"][3][:2]
+    power_board_bottom = t["floor_bottom"] + t["floor_t"] + t["boss_h"] + t["riser_h"]
+    return to_tray(t, bx, by)[0], power_board_bottom + t["board_t"] + t["jack_axis"]
+
+
+def plug_space(t=TRAY):
+    x, z = jack_xz(t)
+    r = t["plug_d"] / 2
+    return box(x - r, x + r, t["stack2_y"] + stack.H, arm_span(t)[1] + 1.0, z - r, t["ceiling"])
 
 
 def arm_bracket(t=TRAY):
     tx, tz = tube_axis(t)
     y0, y1 = arm_span(t)
     top, hw, inner = arm_top(t), t["half_width"], t["cradle_inner"]
-    solid = [box(-hw, hw, y0, y1, top - t["arm_plate_t"], top)]
-    solid += [box(*sorted((s * inner, s * hw)), y0, y1, tz + t["arm_gap"], top) for s in (-1, 1)]
+    by0, by1, bz0, bz1 = arm_bar(t)
+    leg = inner - t["arm_leg_w"]
+    solid = [box(-inner, inner, by0, by1, bz0, bz1)]
+    for s in (-1, 1):
+        solid.append(box(*sorted((s * inner, s * hw)), y0, y1, tz + t["arm_gap"], top))
+        solid.append(box(*sorted((s * leg, s * inner)), by0, by1, bz0, top))
     notch_end = y0 + t["tunnels_y"][-1] + t["cradle_tie_w"] / 2 + 0.5
     w = t["arm_notch_w"]
     sx, sy = switch_centre(t)
-    cuts = [zcyl(sx, sy, tz - 1.0, top + 1.0, t["switch_hole_d"])]
+    cuts = [zcyl(sx, sy, bz0 - 1.0, bz1 + 1.0, t["switch_hole_d"])]
     for s in (-1, 1):
         cuts.append(ycyl(s * tx, tz, y0 - 1.0, y1 + 1.0, t["bore_d"]))
         cuts.append(box(*sorted((s * (inner - w + 1.0), s * (inner + 1.0))), y0 - 1.0, notch_end, tz, top + 1.0))
@@ -358,7 +394,7 @@ def arm_bracket(t=TRAY):
 
 
 def arm_bracket_print(t=TRAY):
-    return arm_bracket(t).rotate((0.0, 180.0, 0.0))
+    return arm_bracket(t).rotate((-90.0, 0.0, 0.0))
 
 
 NAMES = ("tray", "deck", "cradle-test", "sleeve", "riser", "arm-bracket")
