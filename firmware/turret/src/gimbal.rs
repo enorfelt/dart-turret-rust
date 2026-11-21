@@ -61,13 +61,13 @@ impl Gimbal {
         let tilt = self.config.tilt.clamp(tilt);
         self.uart.write(&scs::reg_write_position(
             self.config.pan_id,
-            pan,
+            self.config.pan.servo_position(pan),
             0,
             pan_speed,
         ))?;
         self.uart.write(&scs::reg_write_position(
             self.config.tilt_id,
-            tilt,
+            self.config.tilt.servo_position(tilt),
             0,
             tilt_speed,
         ))?;

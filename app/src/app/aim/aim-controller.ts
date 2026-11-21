@@ -5,12 +5,17 @@ export interface Deflection {
   y: number;
 }
 
+export interface AxisRange {
+  min: number;
+  max: number;
+}
+
 export interface AimTuning {
   deadzone: number;
   expo: number;
   maxRate: number;
-  min: number;
-  max: number;
+  pan: AxisRange;
+  tilt: AxisRange;
   sendIntervalMs: number;
   minSpeed: number;
   maxSpeed: number;
@@ -22,13 +27,13 @@ export const AIM_TUNING: AimTuning = {
   deadzone: 0.08,
   expo: 2,
   maxRate: 600,
-  min: 0,
-  max: 1023,
+  pan: { min: 0, max: 990 },
+  tilt: { min: 375, max: 600 },
   sendIntervalMs: 50,
   minSpeed: 50,
   maxSpeed: 1000,
   invertPan: false,
-  invertTilt: false,
+  invertTilt: true,
 };
 
 const CENTER: GimbalPosition = { pan: 512, tilt: 512 };
@@ -60,8 +65,8 @@ export class AimController {
       tilt: this.rate(deflection.y) * (invertTilt ? -1 : 1),
     };
     this.position = {
-      pan: this.clamp(this.position.pan + this.rates.pan * seconds),
-      tilt: this.clamp(this.position.tilt + this.rates.tilt * seconds),
+      pan: clamp(this.position.pan + this.rates.pan * seconds, this.tuning.pan),
+      tilt: clamp(this.position.tilt + this.rates.tilt * seconds, this.tuning.tilt),
     };
     if (nowMs - this.lastSentAt < this.tuning.sendIntervalMs) return null;
     const command = this.unsentCommand();
@@ -99,8 +104,8 @@ export class AimController {
     const { minSpeed, maxSpeed } = this.tuning;
     return Math.round(Math.min(Math.max(Math.abs(rate), minSpeed), maxSpeed));
   }
+}
 
-  private clamp(value: number): number {
-    return Math.min(Math.max(value, this.tuning.min), this.tuning.max);
-  }
+function clamp(value: number, { min, max }: AxisRange): number {
+  return Math.min(Math.max(value, min), max);
 }

@@ -23,7 +23,7 @@ The mechanical design is the [Dart-Turret](https://www.printables.com/model/3385
 
 | Function | GPIO | Interface | Notes |
 |---|---|---|---|
-| Pan/tilt | TX 14, RX 21 | 2x Waveshare SC15 on UART1 through a level shifter and a Feetech TTLinker, 1 Mbaud, Feetech SCS protocol, IDs 0 (pan) / 1 (tilt) | `REG_WRITE` both, then broadcast `ACTION` so the axes move together; positions clamped to 0–1023 until the mechanical limits are measured |
+| Pan/tilt | TX 14, RX 21 | 2x Waveshare SC15 on UART1 through a level shifter and a Feetech TTLinker, 1 Mbaud, Feetech SCS protocol, IDs 0 (pan) / 1 (tilt) | `REG_WRITE` both, then broadcast `ACTION` so the axes move together; positions clamped to the measured limits in `TurretConfig` (pan 0–990, tilt 375–600; higher pan turns right, higher tilt points down), and pan trimmed by +33 so that 512 points forward |
 | Flywheels | 17, 18 | 2x ESC, 1000–2000 µs at 50 Hz via LEDC (14-bit) | Standard RC range, unlike the original 500–1000 µs; **calibrate the ESCs to it before the first spin-up** |
 | Pusher | 41 | RC servo, 50 Hz via LEDC, 5 V signal through the level shifter | Retracted 500 µs, extended 1140 µs, measured on the printed pusher with `pusher <µs>`. The 640 µs of travel takes the servo longer than the original 333 µs, so pushing and retracting get 450 ms each |
 | Range | RX 6, TX 7 | TFmini Plus on UART2, 115200 8N1 | 9-byte frames `0x59 0x59 distL distH strL strH tempL tempH checksum`, 0.1–12 m (step 3) |
@@ -223,7 +223,7 @@ Angular 22 PWA over Web Bluetooth, for Chromium on Android and desktop. It is se
 | `protocol/turret-protocol.ts` | The [BLE protocol](#ble-protocol) codec, the TypeScript twin of `turret_core::remote`. Its tests use the same byte vectors as the Rust tests |
 | `link/` | `TurretLink` interface and the Web Bluetooth implementation. `CommandQueue` keeps one write in flight: a newer Aim or Pusher command replaces a queued one, Disarm drops everything queued, and Cease fire jumps ahead of queued Fire |
 | `turret/turret.ts` | Connection, state, event log and shots as signals; the only place commands are sent from |
-| `aim/aim-controller.ts` | Rate-control joystick maths: deadzone, expo, integration, clamp to 0–1023, at most one Aim per 50 ms. Tunables are in `AIM_TUNING` |
+| `aim/aim-controller.ts` | Rate-control joystick maths: deadzone, expo, integration, clamp to each axis's range, at most one Aim per 50 ms. Tunables are in `AIM_TUNING`; its pan and tilt ranges mirror the gimbal limits in `TurretConfig`, so keep them in step |
 | `protocol/vision-stream.ts` | The [vision stream](#vision-stream-protocol) codec, the TypeScript twin of `vision_core::stream` |
 | `vision/` | `VisionLink` (WebSocket with Local Network Access) and the `Vision` service: connection, latest frame, retry, camera address kept in localStorage. `overlay.ts` holds the torso hint geometry and `OVERLAY_TUNING` |
 | `ui/` | Connect screen, control panel, joystick, hold-to-arm switch, fire panel (Signal Forms), telemetry, pusher calibration (shown while disarmed and idle, without the camera), video view (camera canvas with crosshair, face boxes and torso hints; greyed out when a frame is over 500 ms old). With the camera on, the page goes full screen in landscape and the video fills it, with the status line, arm switch, joystick and a compact fire panel overlaid and the log hidden |

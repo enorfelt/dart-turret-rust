@@ -5,8 +5,8 @@ const tuning: AimTuning = {
   deadzone: 0.1,
   expo: 1,
   maxRate: 600,
-  min: 0,
-  max: 1023,
+  pan: { min: 0, max: 1023 },
+  tilt: { min: 0, max: 1023 },
   sendIntervalMs: 50,
   minSpeed: 50,
   maxSpeed: 1000,
@@ -47,6 +47,15 @@ describe('AimController', () => {
     const aim = started({ pan: 1010, tilt: 5 });
 
     expect(aim.step({ x: 1, y: -1 }, 100)).toMatchObject({ pan: 1023, tilt: 0 });
+  });
+
+  it('clamps each axis to its own range', () => {
+    const aim = started(
+      { pan: 500, tilt: 590 },
+      { pan: { min: 0, max: 520 }, tilt: { min: 375, max: 600 } },
+    );
+
+    expect(aim.step({ x: 1, y: 1 }, 100)).toMatchObject({ pan: 520, tilt: 600 });
   });
 
   it('starts at the center when the turret has not moved yet', () => {
