@@ -230,7 +230,7 @@ Pin 1 is the square pad.
 - With only the jack plugged in, the bucks, ESP, gimbal and pusher have power, but the ESCs on the PDB do not.
 - Arming works as it does on USB, so the pusher can be exercised without flywheels.
 - A 12 V 2.5 A adapter covers normal servo tests, but not a stall of both SC15s plus the pusher.
-- Unplug both the jack and the battery before plugging in USB, as with the XT60.
+- Unplug both the jack and the battery before plugging in an ordinary USB cable: the Freenove board has no diode between USB 5 V and its 5V pin. For the console on the jack, use a cable without 5 V, as under [Bench mode](../../docs/wiring.md#bench-mode-12-v-jack) in the wiring guide.
 - After assembly, check that J1 reads about 0 V with only the jack plugged in. That shows nothing back-feeds the PDB.
 
 ## Safety checks after assembly

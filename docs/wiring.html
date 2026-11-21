@@ -436,7 +436,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <li>With pole A open, C3 runs the servo for only a few milliseconds, far too short to push a dart, so the arm switch still cuts the pusher.</li>
       <li>Set each buck before anything is connected, then lock its trimmer with a drop of glue. <span class="warn">Above 7.2 V the MG996R is damaged.</span></li>
       <li>Only signal and ground from each ESC reach the logic board: the middle pin of J5 and J6 has no copper, so an ESC with a BEC red wire can plug on and the red wire stays unconnected. See <a href="#esc-h">ESC leads</a>.</li>
-      <li class="warn">Unplug the XT60 and the 12 V jack before plugging in USB, unless you have checked that the Freenove board isolates VBUS from its 5V pin.</li>
+      <li class="warn">The Freenove board's USB 5 V is wired straight to its 5V pin, with no diode (measured on the USB-OTG port; treat USB-UART the same). Unplug the XT60 and the 12 V jack before plugging in an ordinary USB cable, or the 5 V buck and the computer's port drive the same rail. For the console on bench power, use a cable without 5 V, as under <a href="#bench-h">Bench mode</a>.</li>
     </ul>
     <div class="two">
       <div class="tbl">
@@ -460,6 +460,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
           <li>Arming works as it does on USB, so the pusher can be exercised without flywheels.</li>
           <li>A 12 V 2.5 A adapter (5.5 × 2.1 mm, centre positive) covers normal servo tests, but not a stall of both SC15s plus the pusher.</li>
           <li>With only the jack plugged in, J1 should read about 0 V. That shows nothing back-feeds the PDB.</li>
+          <li>For the console with the jack plugged in, for example to set the servo IDs, use a USB cable that carries no 5 V: a USB power blocker, or a USB-A to USB-C cable with its red wire cut. Check it with a meter first: from USB-A pin 1 to the ESP's 5V pin must be open both ways, and GND must still connect. Plug in the jack first, then USB to the USB-OTG port.</li>
         </ul>
       </div>
     </div>
@@ -628,7 +629,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
       <li><strong>Short J7 leads.</strong> The data line from the ESP rises only through the level shifter's 10 kΩ pull-up. That is already slow at 1 Mbaud, and every centimetre of wire slows it more. Beside J7, the four 26 AWG leads need only about 8 cm. Keep them under 15 cm.</li>
       <li><strong>J11 can be long.</strong> Its two leads leave the power board at the front left corner. Run them across the front of Stack 2, in the gap between the stacks, to the TTLinker: about 12 cm of 20 AWG.</li>
       <li><strong>The servo cable takes the distance.</strong> The TTLinker drives the bus hard, so the long run is the cable to the pan servo: forward along the top of the right-hand tube past Stack 1, tied to the tube, then into the blue base. That is about 15 cm plus the way into the base. If the stock cable does not reach, use a longer one of the same type.</li>
-      <li><strong>IDs.</strong> Both servos may come with the same factory ID, often 1. Set them one at a time, before chaining them. With the power off, plug in only the pan servo, power up and run <code>ping 0</code>. No answer: find its ID with <code>ping 1</code> (or other low numbers) and change it with <code>setid 1 0</code>, which pings the new ID when it is done. Then do the same with only the tilt servo, which must answer <code>ping 1</code>. <code>setid</code> works only while disarmed, and every servo on the bus with the old ID takes the new one, so never run it with both connected.</li>
+      <li><strong>IDs.</strong> Both servos may come with the same factory ID, often 1. Set them one at a time, before chaining them. With the power off, plug in only the pan servo, power up from the jack with the console on a cable without 5 V (see <a href="#bench-h">Bench mode</a>) and run <code>ping 0</code>. No answer: find its ID with <code>ping 1</code> (or other low numbers) and change it with <code>setid 1 0</code>, which pings the new ID when it is done. Then do the same with only the tilt servo, which must answer <code>ping 1</code>. <code>setid</code> works only while disarmed, and every servo on the bus with the old ID takes the new one, so never run it with both connected.</li>
     </ul>
     <h3 id="esc-h">ESC leads</h3>
     <p>Our ESCs have four wires besides the motor leads: a power pair (red +, black −) and a thin signal pair (signal, usually white or yellow, and ground, black or brown). There is no BEC wire. The ESCs sit on the turret beside the flywheels, so their stock leads do not reach the PDB in the tray. Both pairs need longer wires, and both cross the pan axis.</p>
@@ -968,7 +969,7 @@ ol.check { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; max-width: 8
 
   <section aria-labelledby="vision-h">
     <h2 id="vision-h">Vision node</h2>
-    <p>The vision node is a second Freenove board with its camera (a GC0308 on ours) on the camera connector. It sits on the tilt stage directly above the barrel (see the sensor mounting section of <code>docs/architecture.md</code>). Only 5 V and GND run to it through the gimbal, from J10 on the power board; it has no signal wires to the controller, because it talks to the phone over its own Wi-Fi and to the controller over ESP-NOW in step 5. With Wi-Fi and the camera running, it draws up to about 500 mA, well within the 5 V buck.</p>
+    <p>The vision node is a second Freenove board with its camera (a GC0308 on ours) on the camera connector. It sits on the tilt stage directly above the barrel (see the sensor mounting section of <code>docs/architecture.md</code>). Only 5 V and GND run to it through the gimbal, from J10 on the power board; it has no signal wires to the controller, because it talks to the phone over its own Wi-Fi and to the controller over ESP-NOW in step 5. With Wi-Fi and the camera running, it draws up to about 500 mA, well within the 5 V buck. Its USB 5 V is wired straight to the 5V pin too, so plug USB into it only with the turret off, or with a cable that carries no 5 V.</p>
     <div class="tbl">
       <table>
         <thead><tr><th>Function</th><th>GPIO</th><th>Notes</th></tr></thead>

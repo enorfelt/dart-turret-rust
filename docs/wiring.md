@@ -64,7 +64,7 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 - The pusher servo (MG996R class) stalls at about 2.5 A and draws spikes of that size every time it starts to move. C3, a 1000 µF 16 V low-ESR electrolytic at J4, supplies those spikes, so they do not sag the 6 V rail or bounce the shared ground. U4 handles normal pushes with C3, but overheats and cuts out during a sustained stall.
 - With pole A open, C3 holds enough charge to run the servo for a few milliseconds, far too short to push a dart, so the arm switch still cuts the pusher.
 - Set each buck before anything is connected, then lock its trimmer with a drop of glue. Above 7.2 V the MG996R is damaged.
-- Unplug the XT60 and the 12 V jack before plugging in USB, unless the Freenove board's schematic shows that VBUS and the 5V pin are isolated by a diode.
+- The Freenove board's USB 5 V is wired straight to its 5V pin, with no diode (measured on the USB-OTG port; treat USB-UART the same). Unplug the XT60 and the 12 V jack before plugging in an ordinary USB cable, or the 5 V buck and the computer's port drive the same rail. For the console on bench power, use a cable without 5 V, as under [Bench mode](#bench-mode-12-v-jack).
 
 ### PDB pads
 
@@ -84,6 +84,7 @@ Avoid: 0, 3, 45, 46 (strapping), 2 (LED), 48 (WS2812), 19/20 (USB), 43/44 (UART0
 - Arming works as it does on USB, so the pusher can be exercised without flywheels.
 - A 12 V 2.5 A adapter (5.5 × 2.1 mm, centre positive) covers normal servo tests, but not a stall of both SC15s plus the pusher.
 - With only the jack plugged in, J1 should read about 0 V. That shows nothing back-feeds the PDB.
+- For the console with the jack plugged in, for example to set the servo IDs, use a USB cable that carries no 5 V: a USB power blocker, or a USB-A to USB-C cable with its red wire cut. Check it with a meter first: from USB-A pin 1 to the ESP's 5V pin must be open both ways, and GND must still connect. Plug in the jack first, then USB to the USB-OTG port.
 
 ## Controller boards
 
@@ -174,7 +175,7 @@ The two SC15s share one 3-pin bus from the TTLinker: 7.5 V, GND and data. Each S
 - **Short J7 leads.** The data line from the ESP rises only through the level shifter's 10 kΩ pull-up. That is already slow at 1 Mbaud, and every centimetre of wire slows it more. From J7 on the right edge, run the four 26 AWG leads across the board front to the TTLinker's header, lying flat under the ESP's USB plug: about 8 cm. Keep them under 15 cm.
 - **Short J11 leads.** Its two leads leave the power board at the front left corner, right under the TTLinker: about 8 cm of 20 AWG.
 - **The servo cable takes the distance.** The TTLinker drives the bus hard, so the long run is the cable to the pan servo: back from the ports, down beside Stack 2 and forward along the top of the left-hand tube past Stack 1, tied to the tube, then into the blue base. That is about 25 cm plus the way into the base. If the stock cable does not reach, use a longer one of the same type.
-- **IDs.** Both servos may come with the same factory ID, often 1. Set them one at a time, before chaining them. With the power off, plug in only the pan servo, power up and run `ping 0`. No answer: find its ID with `ping 1` (or other low numbers) and change it with `setid 1 0`, which pings the new ID when it is done. Then do the same with only the tilt servo, which must answer `ping 1`. `setid` works only while disarmed, and every servo on the bus with the old ID takes the new one, so never run it with both connected.
+- **IDs.** Both servos may come with the same factory ID, often 1. Set them one at a time, before chaining them. With the power off, plug in only the pan servo, power up from the jack with the console on a cable without 5 V (see [Bench mode](#bench-mode-12-v-jack)) and run `ping 0`. No answer: find its ID with `ping 1` (or other low numbers) and change it with `setid 1 0`, which pings the new ID when it is done. Then do the same with only the tilt servo, which must answer `ping 1`. `setid` works only while disarmed, and every servo on the bus with the old ID takes the new one, so never run it with both connected.
 
 ### ESC leads
 
@@ -318,7 +319,7 @@ The guard only sees the whole pack. The BMS is what protects each cell.
 
 ## Vision node
 
-The vision node is a second Freenove board with its camera (a GC0308 on ours) on the camera connector. It sits on the tilt stage directly above the barrel (see [Sensor mounting](architecture.md#sensor-mounting-and-aim-point-open)). Only 5 V and GND run to it through the gimbal, from J10 on the power board; it has no signal wires to the controller, because it talks to the phone over its own Wi-Fi and to the controller over ESP-NOW in step 5. With Wi-Fi and the camera running, it draws up to about 500 mA, well within the 5 V buck.
+The vision node is a second Freenove board with its camera (a GC0308 on ours) on the camera connector. It sits on the tilt stage directly above the barrel (see [Sensor mounting](architecture.md#sensor-mounting-and-aim-point-open)). Only 5 V and GND run to it through the gimbal, from J10 on the power board; it has no signal wires to the controller, because it talks to the phone over its own Wi-Fi and to the controller over ESP-NOW in step 5. With Wi-Fi and the camera running, it draws up to about 500 mA, well within the 5 V buck. Its USB 5 V is wired straight to the 5V pin too, so plug USB into it only with the turret off, or with a cable that carries no 5 V.
 
 | Function | GPIO | Notes |
 |---|---|---|
