@@ -151,28 +151,29 @@ The two SC15s share one 3-pin bus from the TTLinker: 7.5 V, GND and data. Each S
 ```
  Top view: front (blue base) on the left, right-hand tube at the top
 
-                 ══════════════════╡ TTLinker ╞═════════════════════  right-hand tube
- ┌───────────┐    servo cable      │    ┆   ║ J7 leads
- │ blue base ├─────────────────────┘    ┆   ║
- │           │   ┌─────────┐          ┌─┆───╨─────────────────┐
- │ SC15 pan  │   │ Stack 1 │          │ ┆  J7       Stack 2   │
- │  (ID 0)   │   │   PDB   │          │ ┆                     │
- │           │   └─────────┘          │ J11                   │
- └─────┬─────┘                        └───────────────────────┘
-       │         ═══════════════════════════════════════════════════  left-hand tube
-       └── SC15 tilt (ID 1), on the turret: the only cable across the pan axis
+                 ═══════════════════════════════════════════════════  right-hand tube
+ ┌───────────┐                        ┌─J7──────────────────────┐
+ │ blue base │   ┌─────────┐          │ ║ J7 leads              │
+ │           │   │ Stack 1 │          │ ║  ┌───────────────┐    │
+ │ SC15 pan  │   │   PDB   │          │ ║  │      ESP      │    │
+ │  (ID 0)   │   └─────────┘          │ ║  └───────────────┘    │
+ │           │                        │ ╚═╡ TTLinker ╞─┐        │
+ └─┬───┬─────┘                        └────────────────┼────────┘
+   │   │         ══════════════════════════════════════╪════════════  left-hand tube
+   │   └──────── servo cable, along the left-hand tube ┘
+   └── SC15 tilt (ID 1), on the turret: the only cable across the pan axis
 
- J7 (logic board) ─── 4 × 26 AWG, about 8 cm ─── TTLinker logic side
- J11 (power board) ── 2 × 20 AWG, about 12 cm ── TTLinker VIN and GND
- TTLinker servo port ── servo cable, forward along the right-hand tube ── SC15 pan ── SC15 tilt
+ J7 (logic board) ─── 4 × 26 AWG, about 8 cm, across the board front ─── TTLinker logic side
+ J11 (power board) ── 2 × 20 AWG, about 8 cm, up from the front-left corner ── TTLinker VIN and GND
+ TTLinker servo port ── servo cable, back, then forward along the left-hand tube ── SC15 pan ── SC15 tilt
 ```
 
 - **Pan servo first.** The pan servo's body is fixed in the base, and the tilt servo turns with the turret. With the bus going to the pan servo first, one cable crosses the pan axis. Going to the tilt servo first would take two, one up to the tilt servo and one back down to the pan servo.
 - **Slack across the axis.** Tie the pan-to-tilt cable down close to the axis on both sides, with a loop between them long enough for the full pan travel. Size the loop with the turret in the middle of its range. Keep the cable out of the battery holder's middle tunnel, which the pan servo fills.
-- **TTLinker on the fixed side, beside J7.** It is about 33 × 21 mm and 8 mm thick with its connectors, too big for the 3 mm between Stack 2 and the tubes. Lay it flat on top of the right-hand tube, just behind the middle cradle and level with J7, on foam tape with two zip ties around the tube. Line its inner edge up with the inside of the tube so it does not overhang Stack 2; the rest sticks out past the tube. Its top is then about 51 mm up, under the 75 mm sweep. If the board allows, turn the servo port to face forward.
-- **Short J7 leads.** The data line from the ESP rises only through the level shifter's 10 kΩ pull-up. That is already slow at 1 Mbaud, and every centimetre of wire slows it more. Beside J7, the four 26 AWG leads need only about 8 cm. Keep them under 15 cm.
-- **J11 can be long.** Its two leads leave the power board at the front left corner. Run them across the front of Stack 2, in the gap between the stacks, to the TTLinker: about 12 cm of 20 AWG.
-- **The servo cable takes the distance.** The TTLinker drives the bus hard, so the long run is the cable to the pan servo: forward along the top of the right-hand tube past Stack 1, tied to the tube, then into the blue base. That is about 15 cm plus the way into the base. If the stock cable does not reach, use a longer one of the same type.
+- **TTLinker on the logic board.** Its board is about 30 × 21 mm, with foam on the bottom, a right-angle 4-pin header at one end and the servo ports at the other. Stick it with double-sided foam tape on the logic board's strip left of the ESP, flat on the bare board between the front-left corner screw and R3/R4. Put the header forward, overhanging the screw head, and the servo ports backwards, over R3/R4, which they clear. J9 stays free to plug into from above. Its top is about 63 mm up, under the 75 mm sweep.
+- **Short J7 leads.** The data line from the ESP rises only through the level shifter's 10 kΩ pull-up. That is already slow at 1 Mbaud, and every centimetre of wire slows it more. From J7 on the right edge, run the four 26 AWG leads across the board front to the TTLinker's header, lying flat under the ESP's USB plug: about 8 cm. Keep them under 15 cm.
+- **Short J11 leads.** Its two leads leave the power board at the front left corner, right under the TTLinker: about 8 cm of 20 AWG.
+- **The servo cable takes the distance.** The TTLinker drives the bus hard, so the long run is the cable to the pan servo: back from the ports, down beside Stack 2 and forward along the top of the left-hand tube past Stack 1, tied to the tube, then into the blue base. That is about 25 cm plus the way into the base. If the stock cable does not reach, use a longer one of the same type.
 - **IDs.** Both servos may come with the same factory ID, often 1. Set them one at a time, before chaining them. With the power off, plug in only the pan servo, power up and run `ping 0`. No answer: find its ID with `ping 1` (or other low numbers) and change it with `setid 1 0`, which pings the new ID when it is done. Then do the same with only the tilt servo, which must answer `ping 1`. `setid` works only while disarmed, and every servo on the bus with the old ID takes the new one, so never run it with both connected.
 
 ### ESC leads
@@ -203,7 +204,7 @@ The electronics go between the two frame tubes behind the blue base, in two stac
 - **Stack 2, behind Stack 1:** the power board at the bottom on four printed risers, buck modules down, and the logic board on top, 17 mm above it on M3 standoffs, about 41 mm tall in all, with the ESP antenna at the rear edge. The two boards are joined on the tray: the link wires stand up from the power board and are soldered on the logic board's front. Outline, hole and link pad positions for the holders are in the board README.
 - Both stacks sit in one printed [stack tray](../hardware/turret-pdb/README.md#stack-tray) that hangs under the tubes on zip ties.
 - The arm switch, a mini toggle, stands lever up on the left of a printed bracket's low cross-bar, just behind the tray; the bracket's feet sit on the tubes over the tray's rear cradles. The switch is reachable from behind, and the cross-bar stays under the 12 V jack, so the bench plug goes straight in. Its J3 leads run back along the side of Stack 2.
-- The TTLinker lies flat on top of the right-hand tube beside J7, just behind the middle cradle; see [Servo bus](#servo-bus).
+- The TTLinker is stuck to the logic board, left of the ESP, servo ports backwards; see [Servo bus](#servo-bus).
 
 ## Battery pack
 
