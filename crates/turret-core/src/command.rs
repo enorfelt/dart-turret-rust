@@ -1,8 +1,9 @@
 use core::ops::RangeInclusive;
 
-use crate::scs::BROADCAST_ID;
+use crate::scs::{BROADCAST_ID, ID, LOCK};
 
 pub const PUSHER_TEST_US: RangeInclusive<u16> = 500..=2500;
+pub const REGISTER_READ_LEN: RangeInclusive<u8> = 1..=8;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FireMode {
@@ -57,6 +58,16 @@ pub enum Command {
     SetId {
         old: u8,
         new: u8,
+    },
+    ReadRegister {
+        id: u8,
+        address: u8,
+        len: u8,
+    },
+    WriteRegister {
+        id: u8,
+        address: u8,
+        value: u8,
     },
     Pusher(Option<u16>),
     Unpair,
@@ -141,6 +152,14 @@ fn parse_console(line: &str) -> Result<Command, ParseError> {
             old: servo_id(&mut words, "old id")?,
             new: servo_id(&mut words, "new id")?,
         }
+    } else if verb.eq_ignore_ascii_case("regr") {
+        parse_register_read(&mut words)?
+    } else if verb.eq_ignore_ascii_case("regw") {
+        Command::WriteRegister {
+            id: servo_id(&mut words, "id")?,
+            address: register_address(&mut words)?,
+            value: field(&mut words, "value")?,
+        }
     } else if verb.eq_ignore_ascii_case("pusher") {
         parse_pusher(&mut words)?
     } else {
@@ -158,6 +177,29 @@ fn parse_pusher<'a>(words: &mut impl Iterator<Item = &'a str>) -> Result<Command
         Ok(pulse_us) if PUSHER_TEST_US.contains(&pulse_us) => Ok(Command::Pusher(Some(pulse_us))),
         _ => Err(ParseError::Invalid("pulse")),
     }
+}
+
+fn parse_register_read<'a>(
+    words: &mut impl Iterator<Item = &'a str>,
+) -> Result<Command, ParseError> {
+    let id = servo_id(words, "id")?;
+    let address = field(words, "address")?;
+    let len = match words.next() {
+        Some(word) => word.parse().map_err(|_| ParseError::Invalid("length"))?,
+        None => 1,
+    };
+    if !REGISTER_READ_LEN.contains(&len) {
+        return Err(ParseError::Invalid("length"));
+    }
+    Ok(Command::ReadRegister { id, address, len })
+}
+
+fn register_address<'a>(words: &mut impl Iterator<Item = &'a str>) -> Result<u8, ParseError> {
+    let address = field(words, "address")?;
+    if address == ID || address == LOCK {
+        return Err(ParseError::Invalid("address"));
+    }
+    Ok(address)
 }
 
 fn servo_id<'a>(
@@ -294,6 +336,53 @@ mod tests {
         assert_eq!(parse("setid 254 0"), Err(ParseError::Invalid("old id")));
         assert_eq!(parse("setid 1 254"), Err(ParseError::Invalid("new id")));
         assert_eq!(parse("setid 1 x"), Err(ParseError::Invalid("new id")));
+    }
+
+    #[test]
+    fn parses_register_read_with_an_optional_length() {
+        assert_eq!(
+            parse("regr 0 24"),
+            Ok(Command::ReadRegister {
+                id: 0,
+                address: 24,
+                len: 1
+            })
+        );
+        assert_eq!(
+            parse("regr 1 21 6"),
+            Ok(Command::ReadRegister {
+                id: 1,
+                address: 21,
+                len: 6
+            })
+        );
+    }
+
+    #[test]
+    fn register_read_length_is_bounded() {
+        assert_eq!(parse("regr 0 21 0"), Err(ParseError::Invalid("length")));
+        assert_eq!(parse("regr 0 21 9"), Err(ParseError::Invalid("length")));
+        assert_eq!(parse("regr 254 21"), Err(ParseError::Invalid("id")));
+    }
+
+    #[test]
+    fn parses_register_write() {
+        assert_eq!(
+            parse("regw 0 26 0"),
+            Ok(Command::WriteRegister {
+                id: 0,
+                address: 26,
+                value: 0
+            })
+        );
+    }
+
+    #[test]
+    fn register_write_cannot_touch_the_id_or_the_eeprom_lock() {
+        assert_eq!(parse("regw 0 5 3"), Err(ParseError::Invalid("address")));
+        assert_eq!(parse("regw 0 48 0"), Err(ParseError::Invalid("address")));
+        assert_eq!(parse("regw 0 26"), Err(ParseError::Missing("value")));
+        assert_eq!(parse("regw 0 26 256"), Err(ParseError::Invalid("value")));
     }
 
     #[test]

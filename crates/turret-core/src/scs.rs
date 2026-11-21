@@ -40,6 +40,10 @@ pub fn action() -> Packet {
     packet(BROADCAST_ID, Instruction::Action, &[])
 }
 
+pub fn read(id: u8, address: u8, len: u8) -> Packet {
+    packet(id, Instruction::Read, &[address, len])
+}
+
 pub fn write_byte(id: u8, address: u8, value: u8) -> Packet {
     packet(id, Instruction::Write, &[address, value])
 }
@@ -121,6 +125,14 @@ mod tests {
     #[test]
     fn ping_matches_feetech_reference() {
         assert_eq!(ping(1).as_slice(), &[0xFF, 0xFF, 0x01, 0x02, 0x01, 0xFB]);
+    }
+
+    #[test]
+    fn read_asks_for_a_length_from_an_address() {
+        assert_eq!(
+            read(0, 21, 2).as_slice(),
+            &[0xFF, 0xFF, 0x00, 0x04, 0x02, 21, 0x02, 0xE2]
+        );
     }
 
     #[test]

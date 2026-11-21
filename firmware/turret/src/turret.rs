@@ -26,6 +26,9 @@ commands:
   status                  show arming, arm switch, fire phase, battery and gimbal
   ping <id>               ping a serial bus servo
   setid <old> <new>       change a serial bus servo's ID, disarmed only, with only that servo on the bus
+  regr <id> <addr> [len]  read 1-8 bytes of a servo's registers
+  regw <id> <addr> <val>  write one register byte, disarmed only; not saved past power-off,
+                          and the ID (5) and EEPROM lock (48) are refused
   pusher <us> | off       hold the pusher at a pulse (500-2500 us) for calibration, disarmed only
   P;pan;tilt;vpan;vtilt   move the gimbal in servo units
   F;1;mode;throttle;burst fire: mode 0 single, 1 burst, 2 auto; throttle 0-100 %
@@ -237,6 +240,26 @@ fn handle(
             match gimbal.set_id(old, new).and_then(|()| gimbal.ping(new)) {
                 Ok(_) => println!("servo {old} is now servo {new}"),
                 Err(error) => println!("setid {old} -> {new}: {error}"),
+            }
+        }
+        Command::ReadRegister { id, address, len } => {
+            match gimbal.read_registers(id, address, len) {
+                Ok(status) => println!(
+                    "servo {id} @{address}: {:?}, error flags {:#04x}",
+                    status.data.as_slice(),
+                    status.error
+                ),
+                Err(error) => println!("servo {id}: {error}"),
+            }
+        }
+        Command::WriteRegister { .. } if fire.is_armed() => println!("regw refused: disarm first"),
+        Command::WriteRegister { id, address, value } => {
+            match gimbal.write_register(id, address, value) {
+                Ok(status) => println!(
+                    "servo {id} @{address} = {value}, error flags {:#04x}",
+                    status.error
+                ),
+                Err(error) => println!("servo {id}: {error}"),
             }
         }
         Command::Pusher(_) if fire.is_armed() => println!("pusher test refused: disarm first"),

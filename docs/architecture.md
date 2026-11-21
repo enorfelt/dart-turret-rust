@@ -51,6 +51,8 @@ Open with `espflash monitor` (or `cargo run`). Typed characters are echoed; Ente
 | `status` | Arming, fire phase, battery, last gimbal target |
 | `ping <id>` | Ping a serial bus servo |
 | `setid <old> <new>` | Change a serial bus servo's ID (0–253): unlock its EEPROM, write the ID, lock it again under the new ID, then ping it. Disarmed only. Every servo on the bus with the old ID takes the new one, so connect only that servo |
+| `regr <id> <addr> [len]` | Read 1–8 bytes of a servo's memory table and print them in decimal |
+| `regw <id> <addr> <val>` | Write one byte of a servo's memory table, for trying settings such as the dead zones (26, 27) or minimum starting force (24–25, big-endian). Disarmed only. The EEPROM stays locked, so the change is lost at power-off; the ID (5) and the lock (48) are refused |
 | `pusher <µs>` / `pusher off` | Hold the pusher at a pulse of 500–2500 µs to calibrate it, or release it to retracted. Disarmed only; `arm` and losing the BLE link release it. The servo only has power with the arm switch on |
 | `P;pan;tilt;vpan;vtilt` | Move the gimbal, servo units |
 | `F;1;mode;throttle;burst` | Fire; mode 0 single, 1 burst, 2 auto; throttle 0–100 % |

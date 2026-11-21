@@ -79,6 +79,14 @@ impl Gimbal {
         self.transact(&scs::ping(id))
     }
 
+    pub fn read_registers(&self, id: u8, address: u8, len: u8) -> Result<Status, ReplyError> {
+        self.transact(&scs::read(id, address, len))
+    }
+
+    pub fn write_register(&self, id: u8, address: u8, value: u8) -> Result<Status, ReplyError> {
+        self.transact(&scs::write_byte(id, address, value))
+    }
+
     pub fn set_id(&self, old: u8, new: u8) -> Result<(), ReplyError> {
         for request in scs::set_id(old, new) {
             let status = self.transact(&request)?;
