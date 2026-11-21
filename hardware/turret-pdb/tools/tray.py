@@ -80,6 +80,7 @@ TRAY = {
     "switch_hole_d": 6.3,
     "switch_body": (13.0, 13.0, 18.0),
     "switch_above": 22.0,
+    "switch_nut_d": 11.0,
     "min_floor_clear": 5.0,
     "jack_axis": 6.5,
     "plug_d": 12.0,
@@ -357,8 +358,9 @@ def switch_centre(t):
 def switch_space(t=TRAY):
     w, l, depth = t["switch_body"]
     x, y = switch_centre(t)
-    under_bar = arm_bar(t)[2]
-    return box(x - w / 2, x + w / 2, y - l / 2, y + l / 2, under_bar - depth, under_bar)
+    _, _, under_bar, top = arm_bar(t)
+    body = box(x - w / 2, x + w / 2, y - l / 2, y + l / 2, under_bar - depth, under_bar)
+    return body + zcyl(x, y, top, top + t["switch_above"], t["switch_nut_d"])
 
 
 def jack_xz(t):
@@ -397,6 +399,11 @@ def arm_bracket_print(t=TRAY):
     return arm_bracket(t).rotate((-90.0, 0.0, 0.0))
 
 
+def stl(m):
+    # The tray frame follows KiCad (x right, y rear, z up), which is left-handed; STL is right-handed.
+    return m.mirror((1.0, 0.0, 0.0))
+
+
 NAMES = ("tray", "deck", "cradle-test", "sleeve", "riser", "arm-bracket")
 
 
@@ -414,7 +421,7 @@ def main(out, t=TRAY):
     parts["arm-bracket"] = arm_bracket_print(t)
     os.makedirs(out, exist_ok=True)
     for name, m in parts.items():
-        plates.write(os.path.join(out, f"{name}.stl"), m)
+        plates.write(os.path.join(out, f"{name}.stl"), stl(m))
         print(f"{name}: {m.volume() / 1000:.1f} cm3")
 
 

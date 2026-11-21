@@ -320,6 +320,16 @@ class ArmBracket(unittest.TestCase):
         problems = tray.check_parts(t, {"arm-bracket": tray.arm_bracket(t)})
         self.assertTrue(any("feet" in p for p in problems), problems)
 
+    def test_switch_next_to_the_jack_flagged(self):
+        t = dict(tray.TRAY, switch_x=15.0)
+        problems = tray.check_parts(t, {"tray": tray.tray(t), "arm-bracket": tray.arm_bracket(t)})
+        self.assertTrue(any("plug" in p for p in problems), problems)
+
+    def test_stl_puts_the_switch_on_the_physical_left(self):
+        m = tray.stl(self.m)
+        self.assertFalse(solid_at(m, 15.0, self.sy, 32))
+        self.assertTrue(solid_at(m, -15.0, self.sy, 32))
+
     def test_prints_on_its_rear_face(self):
         p = tray.arm_bracket_print()
         b = p.bounding_box()
