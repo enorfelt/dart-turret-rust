@@ -56,7 +56,7 @@ The gap is set by the tallest part on the power board (C2, a 6.3 × 11 mm can st
 
 One printed tray holds both stacks and hangs under the two 12 mm frame tubes, with its floor 10 mm below them. Resting on the tubes, Stack 2 would rise about 10 mm above the 75 mm the turret sweeps. Its design is in `docs/superpowers/specs/2026-11-06-stack-tray-design.md`; every dimension is in `TRAY` at the top of `tools/tray.py`, and the Stack 2 holes come from `tools/stack.py`.
 
-`tools/tray.py` checks the heights and the fit against the tubes, the BMS and Stack 2, and only then writes `out/tray/`:
+`tools/tray.py` checks the heights and the fit against the tubes, the BMS, Stack 2 and the 12 V plug's path, and only then writes `out/tray/`:
 
 | File | Print |
 |---|---|
@@ -64,7 +64,7 @@ One printed tray holds both stacks and hangs under the two 12 mm frame tubes, wi
 | `tray.stl` | The tray, 106 × 155 mm, floor down |
 | `deck.stl` | The deck over the BMS, which carries the PDB, bar down |
 | `riser.stl` | Four, one on each Stack 2 boss. They lift the power board 7 mm so the buck modules on its back clear the floor and the bosses. 5.8 mm across, so they miss U5 |
-| `arm-bracket.stl` | The arm switch bracket, top face down, 106 × 24 mm. It bridges the tubes over the two rear cradles, held by the cradles' own ties, and takes a mini toggle with a 6 mm (M6 × 0.75) bushing in the middle, 6 mm behind the tray, lever up |
+| `arm-bracket.stl` | The arm switch bracket, rear face down, 106 × 28 mm. Its feet sit on the tubes over the two rear cradles, held by the cradles' own ties, and a leg inside each foot drops to a cross-bar just behind the tray, below the 12 V jack, so nothing is in the plug's way. The cross-bar takes a mini toggle with a 6 mm (M6 × 0.75) bushing 15 mm left of centre, opposite the jack, lever up |
 
 Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The tubes rest in open cradles and zip ties over them carry the tray, so nothing has to flex. The tie tunnels through the cradles have pointed roofs, so nothing on the tray bridges.
 
@@ -88,7 +88,7 @@ Print in PLA with 0.2 mm layers, 4 walls and 40 % infill, without supports. The 
 5. Build both boards as under [Assembly](#assembly), up to and including the power board's wires; the ESP stays out. Stand a riser on each Stack 2 boss and the power board on the risers, buck modules down. Drive the four M3 × 20 screws, with washers, up from under the floor through the risers and the power board into the four standoffs. Lower the logic board onto the standoffs, threading each link wire up through the logic board's J12 hole with the same name, and screw it down with the four M3 × 6. Solder the link wires on the logic board's front and trim them. Then do the [safety checks](#safety-checks-after-assembly) before plugging in the ESP. A printed Stack 2 is already joined; see Assembly step 8.
 6. Hold the tray up under the tubes, with Stack 1 towards the blue base, and fit two zip ties per cradle: in at the cradle's inner face, through the tunnel, up the outer face, over the tube and back. At the two rear cradles, first set the arm switch bracket (step 8) over the tubes and take the ties over its feet instead of the tubes, coming up the inner face through the bracket's notch.
 7. Bring the PDB's male pigtail and the female pigtail from the fuse and BMS out past the right-hand tube, between the front and middle cradles, and zip-tie each one's leads to the tube so the connectors hang free just outside it. To switch off, hold one connector in each hand and pull them apart; the ties keep the pull off the solder pads. Tie the balance lead the same way, with its plug next to the female pigtail, for [charging](../../docs/wiring.md#charging).
-8. Push the arm switch's bushing up through the bracket's hole and fit its nut on top, then trim the J3 leads from the power board to length and solder them to the switch: J3 1–2 on pole A, 3–4 on pole B, with both poles closing in the same lever position, as drawn under [Arm switch](../../docs/wiring.md#arm-switch). The bracket goes across the tubes on the rear cradles, notches forward, with the switch behind the tray's rear end; tie it down as in step 6. Run the J3 wires back along the side of Stack 2 and tie them to the tray. The lever top is about 68 mm up, under the turret's sweep.
+8. Push the arm switch's bushing up through the bracket's hole and fit its nut on top, then trim the J3 leads from the power board to length and solder them to the switch: J3 1–2 on pole A, 3–4 on pole B, with both poles closing in the same lever position, as drawn under [Arm switch](../../docs/wiring.md#arm-switch). The bracket goes across the tubes on the rear cradles, notches forward, with the cross-bar behind the tray's rear end; tie it down as in step 6. Run the J3 wires back along the side of Stack 2 and tie them to the tray, clear of the jack. The lever top is about 56 mm up, under the turret's sweep, and the switch body hangs to about 12 mm above the floor. The 12 V plug goes straight into the jack from behind, over the cross-bar.
 
 PLA slowly gives way under constant pressure, so tighten the screws only until snug.
 
